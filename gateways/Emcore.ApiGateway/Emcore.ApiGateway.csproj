@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Yarp.ReverseProxy" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\orchestration\Emcore.ServiceDefaults\Emcore.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Emcore.BuildingBlocks.Api\Emcore.BuildingBlocks.Api.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Emcore.BuildingBlocks.Security\Emcore.BuildingBlocks.Security.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Emcore.BuildingBlocks.Observability\Emcore.BuildingBlocks.Observability.csproj" />
+  </ItemGroup>
+
+</Project>
