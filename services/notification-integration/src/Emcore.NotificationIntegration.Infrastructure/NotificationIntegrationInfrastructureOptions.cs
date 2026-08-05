@@ -1,0 +1,1 @@
+﻿namespace Emcore.NotificationIntegration.Infrastructure; public class NotificationIntegrationInfrastructureOptions { }

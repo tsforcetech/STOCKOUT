@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "catalog-listing",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7103,
+    "workerProject":  "Emcore.CatalogListing.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.CatalogListing.Api",
+    "namespace":  "Emcore.CatalogListing",
+    "databaseLogicalName":  "EMCORE_CATALOG_LISTING_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

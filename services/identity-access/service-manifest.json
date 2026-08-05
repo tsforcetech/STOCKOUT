@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "identity-access",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7101,
+    "workerProject":  "Emcore.IdentityAccess.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.IdentityAccess.Api",
+    "namespace":  "Emcore.IdentityAccess",
+    "databaseLogicalName":  "EMCORE_IDENTITY_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

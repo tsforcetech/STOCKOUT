@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+.env
+artifacts/
+*.log
+*.txt
+*.trx
+*.patch
+*.csv
+.gemini/
+.user_uploaded/

@@ -1,0 +1,137 @@
+{
+  "documentVersion": "1.0",
+  "scope": "project-setup-only",
+  "targetFramework": "net10.0",
+  "services": [
+    {
+      "serviceKey": "identity-access",
+      "namespace": "Emcore.IdentityAccess",
+      "localApiPort": 7101,
+      "databaseLogicalName": "EMCORE_IDENTITY_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "user-organization",
+      "namespace": "Emcore.UserOrganization",
+      "localApiPort": 7102,
+      "databaseLogicalName": "EMCORE_ORGANIZATION_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "catalog-listing",
+      "namespace": "Emcore.CatalogListing",
+      "localApiPort": 7103,
+      "databaseLogicalName": "EMCORE_CATALOG_LISTING_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "inventory-media",
+      "namespace": "Emcore.InventoryMedia",
+      "localApiPort": 7104,
+      "databaseLogicalName": "EMCORE_INVENTORY_MEDIA_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "search-discovery",
+      "namespace": "Emcore.SearchDiscovery",
+      "localApiPort": 7105,
+      "databaseLogicalName": "EMCORE_SEARCH_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "bidding-deal",
+      "namespace": "Emcore.BiddingDeal",
+      "localApiPort": 7106,
+      "databaseLogicalName": "EMCORE_BIDDING_DEAL_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "inspection-trust",
+      "namespace": "Emcore.InspectionTrust",
+      "localApiPort": 7107,
+      "databaseLogicalName": "EMCORE_INSPECTION_TRUST_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "subscription-payment",
+      "namespace": "Emcore.SubscriptionPayment",
+      "localApiPort": 7108,
+      "databaseLogicalName": "EMCORE_SUBSCRIPTION_PAYMENT_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "conversation-realtime",
+      "namespace": "Emcore.ConversationRealtime",
+      "localApiPort": 7109,
+      "databaseLogicalName": "EMCORE_CONVERSATION_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "notification-integration",
+      "namespace": "Emcore.NotificationIntegration",
+      "localApiPort": 7110,
+      "databaseLogicalName": "EMCORE_NOTIFICATION_INTEGRATION_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "workflow-scheduler",
+      "namespace": "Emcore.WorkflowScheduler",
+      "localApiPort": 7111,
+      "databaseLogicalName": "EMCORE_WORKFLOW_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    },
+    {
+      "serviceKey": "audit-reporting",
+      "namespace": "Emcore.AuditReporting",
+      "localApiPort": 7112,
+      "databaseLogicalName": "EMCORE_AUDIT_REPORTING_DB",
+      "databaseProvisioning": "DEFERRED",
+      "storedProcedures": "DEFERRED"
+    }
+  ],
+  "gateways": [
+    {
+      "project": "Emcore.ApiGateway",
+      "localPort": 7000
+    },
+    {
+      "project": "Emcore.PublicBff",
+      "localPort": 7010
+    },
+    {
+      "project": "Emcore.PortalBff",
+      "localPort": 7020
+    },
+    {
+      "project": "Emcore.McpGateway",
+      "localPort": 7030
+    },
+    {
+      "project": "Emcore.RealtimeGateway",
+      "localPort": 7040
+    }
+  ],
+  "environments": [
+    "Local",
+    "Development",
+    "Integration"
+  ],
+  "localSqlServerContainer": false,
+  "cloud": {
+    "provider": "AWS",
+    "regionRequirement": "UAE",
+    "containerPlatform": "ECS Fargate"
+  },
+  "ciCd": "GitHub Actions"
+}

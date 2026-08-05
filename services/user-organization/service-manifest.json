@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "user-organization",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7102,
+    "workerProject":  "Emcore.UserOrganization.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.UserOrganization.Api",
+    "namespace":  "Emcore.UserOrganization",
+    "databaseLogicalName":  "EMCORE_ORGANIZATION_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

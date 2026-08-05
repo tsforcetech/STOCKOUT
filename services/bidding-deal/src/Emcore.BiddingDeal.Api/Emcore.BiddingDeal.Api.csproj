@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.BiddingDeal.Application\Emcore.BiddingDeal.Application.csproj" />
+    <ProjectReference Include="..\Emcore.BiddingDeal.Contracts\Emcore.BiddingDeal.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.BiddingDeal.Infrastructure\Emcore.BiddingDeal.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Api\Emcore.BuildingBlocks.Api.csproj" />
+  </ItemGroup>
+</Project>

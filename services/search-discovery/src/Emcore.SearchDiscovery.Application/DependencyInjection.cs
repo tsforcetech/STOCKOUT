@@ -1,0 +1,1 @@
+﻿namespace Emcore.SearchDiscovery.Application; public static class DependencyInjection { public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddApplication(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) => services; }

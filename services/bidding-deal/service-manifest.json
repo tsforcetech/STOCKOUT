@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "bidding-deal",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7106,
+    "workerProject":  "Emcore.BiddingDeal.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.BiddingDeal.Api",
+    "namespace":  "Emcore.BiddingDeal",
+    "databaseLogicalName":  "EMCORE_BIDDING_DEAL_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

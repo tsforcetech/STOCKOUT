@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Emcore.NotificationIntegration.Worker-1e4f08e8-d6cf-43cf-9571-921a66a698c2</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.NotificationIntegration.Application\Emcore.NotificationIntegration.Application.csproj" />
+    <ProjectReference Include="..\Emcore.NotificationIntegration.Contracts\Emcore.NotificationIntegration.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.NotificationIntegration.Infrastructure\Emcore.NotificationIntegration.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

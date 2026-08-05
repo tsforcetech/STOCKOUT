@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Emcore.ConversationRealtime.Domain\Emcore.ConversationRealtime.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.ConversationRealtime.Application\Emcore.ConversationRealtime.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.ConversationRealtime.Infrastructure\Emcore.ConversationRealtime.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.ConversationRealtime.Contracts\Emcore.ConversationRealtime.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.ConversationRealtime.Api\Emcore.ConversationRealtime.Api.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.ConversationRealtime.Worker\Emcore.ConversationRealtime.Worker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

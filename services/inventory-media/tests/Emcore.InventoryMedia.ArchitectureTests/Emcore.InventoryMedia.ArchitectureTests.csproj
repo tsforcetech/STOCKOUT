@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Emcore.InventoryMedia.Domain\Emcore.InventoryMedia.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.InventoryMedia.Application\Emcore.InventoryMedia.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.InventoryMedia.Infrastructure\Emcore.InventoryMedia.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.InventoryMedia.Contracts\Emcore.InventoryMedia.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.InventoryMedia.Api\Emcore.InventoryMedia.Api.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.InventoryMedia.Worker\Emcore.InventoryMedia.Worker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

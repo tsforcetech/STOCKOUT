@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Emcore.SearchDiscovery.Domain\Emcore.SearchDiscovery.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.SearchDiscovery.Application\Emcore.SearchDiscovery.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.SearchDiscovery.Infrastructure\Emcore.SearchDiscovery.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.SearchDiscovery.Contracts\Emcore.SearchDiscovery.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.SearchDiscovery.Api\Emcore.SearchDiscovery.Api.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.SearchDiscovery.Worker\Emcore.SearchDiscovery.Worker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

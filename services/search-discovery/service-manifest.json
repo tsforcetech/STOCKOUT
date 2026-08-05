@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "search-discovery",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7105,
+    "workerProject":  "Emcore.SearchDiscovery.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.SearchDiscovery.Api",
+    "namespace":  "Emcore.SearchDiscovery",
+    "databaseLogicalName":  "EMCORE_SEARCH_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

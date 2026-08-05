@@ -1,0 +1,6 @@
+@Emcore.NotificationIntegration.Api_HostAddress = http://localhost:5201
+
+GET {{Emcore.NotificationIntegration.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

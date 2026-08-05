@@ -1,0 +1,6 @@
+@Emcore.ConversationRealtime.Api_HostAddress = http://localhost:5208
+
+GET {{Emcore.ConversationRealtime.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

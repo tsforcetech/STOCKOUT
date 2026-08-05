@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "audit-reporting",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7112,
+    "workerProject":  "Emcore.AuditReporting.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.AuditReporting.Api",
+    "namespace":  "Emcore.AuditReporting",
+    "databaseLogicalName":  "EMCORE_AUDIT_REPORTING_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

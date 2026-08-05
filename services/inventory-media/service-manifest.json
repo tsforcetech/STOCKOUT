@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "inventory-media",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7104,
+    "workerProject":  "Emcore.InventoryMedia.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.InventoryMedia.Api",
+    "namespace":  "Emcore.InventoryMedia",
+    "databaseLogicalName":  "EMCORE_INVENTORY_MEDIA_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

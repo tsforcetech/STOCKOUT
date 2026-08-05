@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "inspection-trust",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7107,
+    "workerProject":  "Emcore.InspectionTrust.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.InspectionTrust.Api",
+    "namespace":  "Emcore.InspectionTrust",
+    "databaseLogicalName":  "EMCORE_INSPECTION_TRUST_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

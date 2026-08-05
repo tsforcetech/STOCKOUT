@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Emcore.NotificationIntegration.Domain\Emcore.NotificationIntegration.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.NotificationIntegration.Application\Emcore.NotificationIntegration.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.NotificationIntegration.Infrastructure\Emcore.NotificationIntegration.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.NotificationIntegration.Contracts\Emcore.NotificationIntegration.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.NotificationIntegration.Api\Emcore.NotificationIntegration.Api.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.NotificationIntegration.Worker\Emcore.NotificationIntegration.Worker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

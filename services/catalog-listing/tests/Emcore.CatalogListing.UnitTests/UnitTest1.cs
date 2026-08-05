@@ -1,0 +1,10 @@
+﻿namespace Emcore.CatalogListing.UnitTests;
+
+public class UnitTest1
+{
+    [Fact]
+    public void Test1()
+    {
+
+    }
+}

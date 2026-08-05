@@ -1,0 +1,196 @@
+<Solution>
+  <Folder Name="/building-blocks/">
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Api/Emcore.BuildingBlocks.Api.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Caching/Emcore.BuildingBlocks.Caching.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Core/Emcore.BuildingBlocks.Core.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Data/Emcore.BuildingBlocks.Data.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Idempotency/Emcore.BuildingBlocks.Idempotency.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Messaging/Emcore.BuildingBlocks.Messaging.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Observability/Emcore.BuildingBlocks.Observability.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Security/Emcore.BuildingBlocks.Security.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Storage/Emcore.BuildingBlocks.Storage.csproj" />
+    <Project Path="building-blocks/Emcore.BuildingBlocks.Testing/Emcore.BuildingBlocks.Testing.csproj" />
+  </Folder>
+  <Folder Name="/gateways/">
+    <Project Path="gateways/Emcore.ApiGateway/Emcore.ApiGateway.csproj" />
+    <Project Path="gateways/Emcore.ApiGateway.Tests/Emcore.ApiGateway.Tests.csproj" />
+    <Project Path="gateways/Emcore.McpGateway/Emcore.McpGateway.csproj" />
+    <Project Path="gateways/Emcore.PortalBff/Emcore.PortalBff.csproj" />
+    <Project Path="gateways/Emcore.PublicBff/Emcore.PublicBff.csproj" />
+    <Project Path="gateways/Emcore.RealtimeGateway/Emcore.RealtimeGateway.csproj" />
+  </Folder>
+  <Folder Name="/orchestration/">
+    <Project Path="orchestration/Emcore.ServiceDefaults/Emcore.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/services/" />
+  <Folder Name="/services/audit-reporting/" />
+  <Folder Name="/services/audit-reporting/src/">
+    <Project Path="services/audit-reporting/src/Emcore.AuditReporting.Api/Emcore.AuditReporting.Api.csproj" />
+    <Project Path="services/audit-reporting/src/Emcore.AuditReporting.Application/Emcore.AuditReporting.Application.csproj" />
+    <Project Path="services/audit-reporting/src/Emcore.AuditReporting.Contracts/Emcore.AuditReporting.Contracts.csproj" />
+    <Project Path="services/audit-reporting/src/Emcore.AuditReporting.Domain/Emcore.AuditReporting.Domain.csproj" />
+    <Project Path="services/audit-reporting/src/Emcore.AuditReporting.Infrastructure/Emcore.AuditReporting.Infrastructure.csproj" />
+    <Project Path="services/audit-reporting/src/Emcore.AuditReporting.Worker/Emcore.AuditReporting.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/audit-reporting/tests/">
+    <Project Path="services/audit-reporting/tests/Emcore.AuditReporting.ArchitectureTests/Emcore.AuditReporting.ArchitectureTests.csproj" />
+    <Project Path="services/audit-reporting/tests/Emcore.AuditReporting.IntegrationTests/Emcore.AuditReporting.IntegrationTests.csproj" />
+    <Project Path="services/audit-reporting/tests/Emcore.AuditReporting.UnitTests/Emcore.AuditReporting.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/bidding-deal/" />
+  <Folder Name="/services/bidding-deal/src/">
+    <Project Path="services/bidding-deal/src/Emcore.BiddingDeal.Api/Emcore.BiddingDeal.Api.csproj" />
+    <Project Path="services/bidding-deal/src/Emcore.BiddingDeal.Application/Emcore.BiddingDeal.Application.csproj" />
+    <Project Path="services/bidding-deal/src/Emcore.BiddingDeal.Contracts/Emcore.BiddingDeal.Contracts.csproj" />
+    <Project Path="services/bidding-deal/src/Emcore.BiddingDeal.Domain/Emcore.BiddingDeal.Domain.csproj" />
+    <Project Path="services/bidding-deal/src/Emcore.BiddingDeal.Infrastructure/Emcore.BiddingDeal.Infrastructure.csproj" />
+    <Project Path="services/bidding-deal/src/Emcore.BiddingDeal.Worker/Emcore.BiddingDeal.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/bidding-deal/tests/">
+    <Project Path="services/bidding-deal/tests/Emcore.BiddingDeal.ArchitectureTests/Emcore.BiddingDeal.ArchitectureTests.csproj" />
+    <Project Path="services/bidding-deal/tests/Emcore.BiddingDeal.IntegrationTests/Emcore.BiddingDeal.IntegrationTests.csproj" />
+    <Project Path="services/bidding-deal/tests/Emcore.BiddingDeal.UnitTests/Emcore.BiddingDeal.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/catalog-listing/" />
+  <Folder Name="/services/catalog-listing/src/">
+    <Project Path="services/catalog-listing/src/Emcore.CatalogListing.Api/Emcore.CatalogListing.Api.csproj" />
+    <Project Path="services/catalog-listing/src/Emcore.CatalogListing.Application/Emcore.CatalogListing.Application.csproj" />
+    <Project Path="services/catalog-listing/src/Emcore.CatalogListing.Contracts/Emcore.CatalogListing.Contracts.csproj" />
+    <Project Path="services/catalog-listing/src/Emcore.CatalogListing.Domain/Emcore.CatalogListing.Domain.csproj" />
+    <Project Path="services/catalog-listing/src/Emcore.CatalogListing.Infrastructure/Emcore.CatalogListing.Infrastructure.csproj" />
+    <Project Path="services/catalog-listing/src/Emcore.CatalogListing.Worker/Emcore.CatalogListing.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/catalog-listing/tests/">
+    <Project Path="services/catalog-listing/tests/Emcore.CatalogListing.ArchitectureTests/Emcore.CatalogListing.ArchitectureTests.csproj" />
+    <Project Path="services/catalog-listing/tests/Emcore.CatalogListing.IntegrationTests/Emcore.CatalogListing.IntegrationTests.csproj" />
+    <Project Path="services/catalog-listing/tests/Emcore.CatalogListing.UnitTests/Emcore.CatalogListing.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/conversation-realtime/" />
+  <Folder Name="/services/conversation-realtime/src/">
+    <Project Path="services/conversation-realtime/src/Emcore.ConversationRealtime.Api/Emcore.ConversationRealtime.Api.csproj" />
+    <Project Path="services/conversation-realtime/src/Emcore.ConversationRealtime.Application/Emcore.ConversationRealtime.Application.csproj" />
+    <Project Path="services/conversation-realtime/src/Emcore.ConversationRealtime.Contracts/Emcore.ConversationRealtime.Contracts.csproj" />
+    <Project Path="services/conversation-realtime/src/Emcore.ConversationRealtime.Domain/Emcore.ConversationRealtime.Domain.csproj" />
+    <Project Path="services/conversation-realtime/src/Emcore.ConversationRealtime.Infrastructure/Emcore.ConversationRealtime.Infrastructure.csproj" />
+    <Project Path="services/conversation-realtime/src/Emcore.ConversationRealtime.Worker/Emcore.ConversationRealtime.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/conversation-realtime/tests/">
+    <Project Path="services/conversation-realtime/tests/Emcore.ConversationRealtime.ArchitectureTests/Emcore.ConversationRealtime.ArchitectureTests.csproj" />
+    <Project Path="services/conversation-realtime/tests/Emcore.ConversationRealtime.IntegrationTests/Emcore.ConversationRealtime.IntegrationTests.csproj" />
+    <Project Path="services/conversation-realtime/tests/Emcore.ConversationRealtime.UnitTests/Emcore.ConversationRealtime.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/identity-access/">
+    <Project Path="services/identity-access/Emcore.IdentityAccess.Migrator/Emcore.IdentityAccess.Migrator.csproj" />
+  </Folder>
+  <Folder Name="/services/identity-access/src/">
+    <Project Path="services/identity-access/src/Emcore.IdentityAccess.Api/Emcore.IdentityAccess.Api.csproj" />
+    <Project Path="services/identity-access/src/Emcore.IdentityAccess.Application/Emcore.IdentityAccess.Application.csproj" />
+    <Project Path="services/identity-access/src/Emcore.IdentityAccess.Contracts/Emcore.IdentityAccess.Contracts.csproj" />
+    <Project Path="services/identity-access/src/Emcore.IdentityAccess.Domain/Emcore.IdentityAccess.Domain.csproj" />
+    <Project Path="services/identity-access/src/Emcore.IdentityAccess.Infrastructure/Emcore.IdentityAccess.Infrastructure.csproj" />
+    <Project Path="services/identity-access/src/Emcore.IdentityAccess.Worker/Emcore.IdentityAccess.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/identity-access/tests/">
+    <Project Path="services/identity-access/tests/Emcore.IdentityAccess.ArchitectureTests/Emcore.IdentityAccess.ArchitectureTests.csproj" />
+    <Project Path="services/identity-access/tests/Emcore.IdentityAccess.IntegrationTests/Emcore.IdentityAccess.IntegrationTests.csproj" />
+    <Project Path="services/identity-access/tests/Emcore.IdentityAccess.UnitTests/Emcore.IdentityAccess.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/inspection-trust/" />
+  <Folder Name="/services/inspection-trust/src/">
+    <Project Path="services/inspection-trust/src/Emcore.InspectionTrust.Api/Emcore.InspectionTrust.Api.csproj" />
+    <Project Path="services/inspection-trust/src/Emcore.InspectionTrust.Application/Emcore.InspectionTrust.Application.csproj" />
+    <Project Path="services/inspection-trust/src/Emcore.InspectionTrust.Contracts/Emcore.InspectionTrust.Contracts.csproj" />
+    <Project Path="services/inspection-trust/src/Emcore.InspectionTrust.Domain/Emcore.InspectionTrust.Domain.csproj" />
+    <Project Path="services/inspection-trust/src/Emcore.InspectionTrust.Infrastructure/Emcore.InspectionTrust.Infrastructure.csproj" />
+    <Project Path="services/inspection-trust/src/Emcore.InspectionTrust.Worker/Emcore.InspectionTrust.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/inspection-trust/tests/">
+    <Project Path="services/inspection-trust/tests/Emcore.InspectionTrust.ArchitectureTests/Emcore.InspectionTrust.ArchitectureTests.csproj" />
+    <Project Path="services/inspection-trust/tests/Emcore.InspectionTrust.IntegrationTests/Emcore.InspectionTrust.IntegrationTests.csproj" />
+    <Project Path="services/inspection-trust/tests/Emcore.InspectionTrust.UnitTests/Emcore.InspectionTrust.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/inventory-media/" />
+  <Folder Name="/services/inventory-media/src/">
+    <Project Path="services/inventory-media/src/Emcore.InventoryMedia.Api/Emcore.InventoryMedia.Api.csproj" />
+    <Project Path="services/inventory-media/src/Emcore.InventoryMedia.Application/Emcore.InventoryMedia.Application.csproj" />
+    <Project Path="services/inventory-media/src/Emcore.InventoryMedia.Contracts/Emcore.InventoryMedia.Contracts.csproj" />
+    <Project Path="services/inventory-media/src/Emcore.InventoryMedia.Domain/Emcore.InventoryMedia.Domain.csproj" />
+    <Project Path="services/inventory-media/src/Emcore.InventoryMedia.Infrastructure/Emcore.InventoryMedia.Infrastructure.csproj" />
+    <Project Path="services/inventory-media/src/Emcore.InventoryMedia.Worker/Emcore.InventoryMedia.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/inventory-media/tests/">
+    <Project Path="services/inventory-media/tests/Emcore.InventoryMedia.ArchitectureTests/Emcore.InventoryMedia.ArchitectureTests.csproj" />
+    <Project Path="services/inventory-media/tests/Emcore.InventoryMedia.IntegrationTests/Emcore.InventoryMedia.IntegrationTests.csproj" />
+    <Project Path="services/inventory-media/tests/Emcore.InventoryMedia.UnitTests/Emcore.InventoryMedia.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/notification-integration/" />
+  <Folder Name="/services/notification-integration/src/">
+    <Project Path="services/notification-integration/src/Emcore.NotificationIntegration.Api/Emcore.NotificationIntegration.Api.csproj" />
+    <Project Path="services/notification-integration/src/Emcore.NotificationIntegration.Application/Emcore.NotificationIntegration.Application.csproj" />
+    <Project Path="services/notification-integration/src/Emcore.NotificationIntegration.Contracts/Emcore.NotificationIntegration.Contracts.csproj" />
+    <Project Path="services/notification-integration/src/Emcore.NotificationIntegration.Domain/Emcore.NotificationIntegration.Domain.csproj" />
+    <Project Path="services/notification-integration/src/Emcore.NotificationIntegration.Infrastructure/Emcore.NotificationIntegration.Infrastructure.csproj" />
+    <Project Path="services/notification-integration/src/Emcore.NotificationIntegration.Worker/Emcore.NotificationIntegration.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/notification-integration/tests/">
+    <Project Path="services/notification-integration/tests/Emcore.NotificationIntegration.ArchitectureTests/Emcore.NotificationIntegration.ArchitectureTests.csproj" />
+    <Project Path="services/notification-integration/tests/Emcore.NotificationIntegration.IntegrationTests/Emcore.NotificationIntegration.IntegrationTests.csproj" />
+    <Project Path="services/notification-integration/tests/Emcore.NotificationIntegration.UnitTests/Emcore.NotificationIntegration.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/search-discovery/" />
+  <Folder Name="/services/search-discovery/src/">
+    <Project Path="services/search-discovery/src/Emcore.SearchDiscovery.Api/Emcore.SearchDiscovery.Api.csproj" />
+    <Project Path="services/search-discovery/src/Emcore.SearchDiscovery.Application/Emcore.SearchDiscovery.Application.csproj" />
+    <Project Path="services/search-discovery/src/Emcore.SearchDiscovery.Contracts/Emcore.SearchDiscovery.Contracts.csproj" />
+    <Project Path="services/search-discovery/src/Emcore.SearchDiscovery.Domain/Emcore.SearchDiscovery.Domain.csproj" />
+    <Project Path="services/search-discovery/src/Emcore.SearchDiscovery.Infrastructure/Emcore.SearchDiscovery.Infrastructure.csproj" />
+    <Project Path="services/search-discovery/src/Emcore.SearchDiscovery.Worker/Emcore.SearchDiscovery.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/search-discovery/tests/">
+    <Project Path="services/search-discovery/tests/Emcore.SearchDiscovery.ArchitectureTests/Emcore.SearchDiscovery.ArchitectureTests.csproj" />
+    <Project Path="services/search-discovery/tests/Emcore.SearchDiscovery.IntegrationTests/Emcore.SearchDiscovery.IntegrationTests.csproj" />
+    <Project Path="services/search-discovery/tests/Emcore.SearchDiscovery.UnitTests/Emcore.SearchDiscovery.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/subscription-payment/" />
+  <Folder Name="/services/subscription-payment/src/">
+    <Project Path="services/subscription-payment/src/Emcore.SubscriptionPayment.Api/Emcore.SubscriptionPayment.Api.csproj" />
+    <Project Path="services/subscription-payment/src/Emcore.SubscriptionPayment.Application/Emcore.SubscriptionPayment.Application.csproj" />
+    <Project Path="services/subscription-payment/src/Emcore.SubscriptionPayment.Contracts/Emcore.SubscriptionPayment.Contracts.csproj" />
+    <Project Path="services/subscription-payment/src/Emcore.SubscriptionPayment.Domain/Emcore.SubscriptionPayment.Domain.csproj" />
+    <Project Path="services/subscription-payment/src/Emcore.SubscriptionPayment.Infrastructure/Emcore.SubscriptionPayment.Infrastructure.csproj" />
+    <Project Path="services/subscription-payment/src/Emcore.SubscriptionPayment.Worker/Emcore.SubscriptionPayment.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/subscription-payment/tests/">
+    <Project Path="services/subscription-payment/tests/Emcore.SubscriptionPayment.ArchitectureTests/Emcore.SubscriptionPayment.ArchitectureTests.csproj" />
+    <Project Path="services/subscription-payment/tests/Emcore.SubscriptionPayment.IntegrationTests/Emcore.SubscriptionPayment.IntegrationTests.csproj" />
+    <Project Path="services/subscription-payment/tests/Emcore.SubscriptionPayment.UnitTests/Emcore.SubscriptionPayment.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/user-organization/" />
+  <Folder Name="/services/user-organization/src/">
+    <Project Path="services/user-organization/src/Emcore.UserOrganization.Api/Emcore.UserOrganization.Api.csproj" />
+    <Project Path="services/user-organization/src/Emcore.UserOrganization.Application/Emcore.UserOrganization.Application.csproj" />
+    <Project Path="services/user-organization/src/Emcore.UserOrganization.Contracts/Emcore.UserOrganization.Contracts.csproj" />
+    <Project Path="services/user-organization/src/Emcore.UserOrganization.Domain/Emcore.UserOrganization.Domain.csproj" />
+    <Project Path="services/user-organization/src/Emcore.UserOrganization.Infrastructure/Emcore.UserOrganization.Infrastructure.csproj" />
+    <Project Path="services/user-organization/src/Emcore.UserOrganization.Worker/Emcore.UserOrganization.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/user-organization/tests/">
+    <Project Path="services/user-organization/tests/Emcore.UserOrganization.ArchitectureTests/Emcore.UserOrganization.ArchitectureTests.csproj" />
+    <Project Path="services/user-organization/tests/Emcore.UserOrganization.IntegrationTests/Emcore.UserOrganization.IntegrationTests.csproj" />
+    <Project Path="services/user-organization/tests/Emcore.UserOrganization.UnitTests/Emcore.UserOrganization.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/services/workflow-scheduler/" />
+  <Folder Name="/services/workflow-scheduler/src/">
+    <Project Path="services/workflow-scheduler/src/Emcore.WorkflowScheduler.Api/Emcore.WorkflowScheduler.Api.csproj" />
+    <Project Path="services/workflow-scheduler/src/Emcore.WorkflowScheduler.Application/Emcore.WorkflowScheduler.Application.csproj" />
+    <Project Path="services/workflow-scheduler/src/Emcore.WorkflowScheduler.Contracts/Emcore.WorkflowScheduler.Contracts.csproj" />
+    <Project Path="services/workflow-scheduler/src/Emcore.WorkflowScheduler.Domain/Emcore.WorkflowScheduler.Domain.csproj" />
+    <Project Path="services/workflow-scheduler/src/Emcore.WorkflowScheduler.Infrastructure/Emcore.WorkflowScheduler.Infrastructure.csproj" />
+    <Project Path="services/workflow-scheduler/src/Emcore.WorkflowScheduler.Worker/Emcore.WorkflowScheduler.Worker.csproj" />
+  </Folder>
+  <Folder Name="/services/workflow-scheduler/tests/">
+    <Project Path="services/workflow-scheduler/tests/Emcore.WorkflowScheduler.ArchitectureTests/Emcore.WorkflowScheduler.ArchitectureTests.csproj" />
+    <Project Path="services/workflow-scheduler/tests/Emcore.WorkflowScheduler.IntegrationTests/Emcore.WorkflowScheduler.IntegrationTests.csproj" />
+    <Project Path="services/workflow-scheduler/tests/Emcore.WorkflowScheduler.UnitTests/Emcore.WorkflowScheduler.UnitTests.csproj" />
+  </Folder>
+</Solution>

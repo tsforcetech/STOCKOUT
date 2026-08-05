@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Emcore.BiddingDeal.Worker-0eebc4a6-714b-463c-a612-9d6f656bee61</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.BiddingDeal.Application\Emcore.BiddingDeal.Application.csproj" />
+    <ProjectReference Include="..\Emcore.BiddingDeal.Contracts\Emcore.BiddingDeal.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.BiddingDeal.Infrastructure\Emcore.BiddingDeal.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

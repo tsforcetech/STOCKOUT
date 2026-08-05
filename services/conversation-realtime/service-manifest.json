@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "conversation-realtime",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7109,
+    "workerProject":  "Emcore.ConversationRealtime.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.ConversationRealtime.Api",
+    "namespace":  "Emcore.ConversationRealtime",
+    "databaseLogicalName":  "EMCORE_CONVERSATION_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

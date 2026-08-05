@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "workflow-scheduler",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7111,
+    "workerProject":  "Emcore.WorkflowScheduler.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.WorkflowScheduler.Api",
+    "namespace":  "Emcore.WorkflowScheduler",
+    "databaseLogicalName":  "EMCORE_WORKFLOW_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

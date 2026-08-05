@@ -1,0 +1,6 @@
+@Emcore.CatalogListing.Api_HostAddress = http://localhost:5072
+
+GET {{Emcore.CatalogListing.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

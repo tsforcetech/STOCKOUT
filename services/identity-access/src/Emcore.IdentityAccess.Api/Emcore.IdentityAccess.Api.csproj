@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.IdentityAccess.Application\Emcore.IdentityAccess.Application.csproj" />
+    <ProjectReference Include="..\Emcore.IdentityAccess.Contracts\Emcore.IdentityAccess.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.IdentityAccess.Infrastructure\Emcore.IdentityAccess.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Api\Emcore.BuildingBlocks.Api.csproj" />
+  </ItemGroup>
+</Project>

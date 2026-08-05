@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "subscription-payment",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7108,
+    "workerProject":  "Emcore.SubscriptionPayment.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.SubscriptionPayment.Api",
+    "namespace":  "Emcore.SubscriptionPayment",
+    "databaseLogicalName":  "EMCORE_SUBSCRIPTION_PAYMENT_DB",
+    "databaseProvisioning":  "DEFERRED"
+}

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Emcore.AuditReporting.Worker-d38001ad-7493-433e-a4a8-d6f8db7bf943</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.AuditReporting.Application\Emcore.AuditReporting.Application.csproj" />
+    <ProjectReference Include="..\Emcore.AuditReporting.Contracts\Emcore.AuditReporting.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.AuditReporting.Infrastructure\Emcore.AuditReporting.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

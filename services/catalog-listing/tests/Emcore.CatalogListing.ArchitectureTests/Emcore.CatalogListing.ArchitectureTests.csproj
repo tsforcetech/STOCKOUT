@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Emcore.CatalogListing.Domain\Emcore.CatalogListing.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.CatalogListing.Application\Emcore.CatalogListing.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.CatalogListing.Infrastructure\Emcore.CatalogListing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.CatalogListing.Contracts\Emcore.CatalogListing.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.CatalogListing.Api\Emcore.CatalogListing.Api.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.CatalogListing.Worker\Emcore.CatalogListing.Worker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

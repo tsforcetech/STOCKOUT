@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.ConversationRealtime.Application\Emcore.ConversationRealtime.Application.csproj" />
+    <ProjectReference Include="..\Emcore.ConversationRealtime.Contracts\Emcore.ConversationRealtime.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.ConversationRealtime.Infrastructure\Emcore.ConversationRealtime.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Api\Emcore.BuildingBlocks.Api.csproj" />
+  </ItemGroup>
+</Project>

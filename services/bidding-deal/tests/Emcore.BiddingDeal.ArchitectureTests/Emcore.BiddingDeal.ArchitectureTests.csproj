@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Emcore.BiddingDeal.Domain\Emcore.BiddingDeal.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.BiddingDeal.Application\Emcore.BiddingDeal.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.BiddingDeal.Infrastructure\Emcore.BiddingDeal.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.BiddingDeal.Contracts\Emcore.BiddingDeal.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.BiddingDeal.Api\Emcore.BiddingDeal.Api.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.BiddingDeal.Worker\Emcore.BiddingDeal.Worker.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+</Project>

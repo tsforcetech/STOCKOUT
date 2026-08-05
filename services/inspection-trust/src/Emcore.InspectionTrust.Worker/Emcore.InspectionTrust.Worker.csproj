@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Emcore.InspectionTrust.Worker-543911e4-625e-4d27-8dea-3219dac37c09</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.InspectionTrust.Application\Emcore.InspectionTrust.Application.csproj" />
+    <ProjectReference Include="..\Emcore.InspectionTrust.Contracts\Emcore.InspectionTrust.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.InspectionTrust.Infrastructure\Emcore.InspectionTrust.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Emcore.WorkflowScheduler.Worker-ea119360-8ae0-4fef-9d75-404449524b56</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emcore.WorkflowScheduler.Application\Emcore.WorkflowScheduler.Application.csproj" />
+    <ProjectReference Include="..\Emcore.WorkflowScheduler.Contracts\Emcore.WorkflowScheduler.Contracts.csproj" />
+    <ProjectReference Include="..\Emcore.WorkflowScheduler.Infrastructure\Emcore.WorkflowScheduler.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

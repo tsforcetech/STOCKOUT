@@ -1,0 +1,12 @@
+﻿{
+    "serviceKey":  "notification-integration",
+    "messagingTopology":  "DEFERRED",
+    "deploymentTarget":  "AWS_ECS_FARGATE",
+    "localApiPort":  7110,
+    "workerProject":  "Emcore.NotificationIntegration.Worker",
+    "storedProcedures":  "DEFERRED",
+    "apiProject":  "Emcore.NotificationIntegration.Api",
+    "namespace":  "Emcore.NotificationIntegration",
+    "databaseLogicalName":  "EMCORE_NOTIFICATION_INTEGRATION_DB",
+    "databaseProvisioning":  "DEFERRED"
+}
