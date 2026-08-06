@@ -1,0 +1,236 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "EMCORE Inventory \u0026 Media API",
+    "description": "Manages real-time physical inventory, stock adjustments, order reservations, secure media upload sessions, digital assets, documents, and signed downloads. Owns inventory counts and asset storage metadata; does not own marketplace listing taxonomy.\n\n**Service Ownership:** Inventory \u0026 Media Core Team\n**Intended Consumers:** Seller applications, logistics integrations, media storage pipelines\n**Operational Mode:** Primarily synchronous HTTP API; critical domain mutations emit versioned outbox events and may operate under eventual consistency.\n**Confidentiality:** Public/Enterprise Consumer Contract.",
+    "termsOfService": "https://emcore.platform/terms-of-service",
+    "contact": {
+      "name": "EMCORE Architecture \u0026 Support Team",
+      "url": "https://emcore.platform/support",
+      "email": "support@emcore.platform"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost",
+      "description": "EMCORE Local Standalone Host Server"
+    },
+    {
+      "url": "https://api.emcore.platform/v1",
+      "description": "EMCORE Platform Target Server"
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "tags": [
+          "Emcore.InventoryMedia.Api"
+        ],
+        "summary": "Instantaneous liveness probe check",
+        "description": "Returns HTTP 200 OK without evaluating downstream network or storage dependencies to confirm that the container process is actively running without deadlocks. Excludes rate limiting.",
+        "operationId": "getHealthLive",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "Emcore.InventoryMedia.Api"
+        ],
+        "summary": "System runtime dependency readiness probe",
+        "description": "Evaluates real-time connectivity to core runtime infrastructure (databases, caches, event brokers). Returns 200 OK when service is fully initialized and ready to safely handle consumer traffic.",
+        "operationId": "getHealthReady",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/system/version": {
+      "get": {
+        "tags": [
+          "Emcore.InventoryMedia.Api"
+        ],
+        "summary": "Retrieve service deployment release metadata",
+        "description": "Returns executable release metadata including service logical identifier, semantic version string, and runtime environment designation. Used for contract compatibility validation and diagnostic tracing.",
+        "operationId": "getApiV1SystemVersion",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/429",
+                  "title": "Too Many Requests",
+                  "status": 429,
+                  "code": "RATE_LIMIT_EXCEEDED",
+                  "detail": "Caller has exceeded permitted request bucket quota. Retry after cool-down window.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/429",
+                  "title": "Too Many Requests",
+                  "status": 429,
+                  "code": "RATE_LIMIT_EXCEEDED",
+                  "detail": "Caller has exceeded permitted request bucket quota. Retry after cool-down window.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EmcoreProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "URI reference identifying the problem type.",
+            "example": "https://emcore.platform/errors/400"
+          },
+          "title": {
+            "type": "string",
+            "description": "Short human-readable summary of the error.",
+            "example": "Validation failed"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code.",
+            "format": "int32",
+            "example": 400
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable error code.",
+            "example": "VALIDATION_ERROR"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Detailed diagnostic explanation of the error condition.",
+            "example": "One or more request parameters failed structural validation."
+          },
+          "traceId": {
+            "type": "string",
+            "description": "Distributed trace identifier.",
+            "example": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Enterprise request tracking identifier.",
+            "example": "req_01HPX7K7R5YZ2X90WY"
+          },
+          "correlationId": {
+            "type": "string",
+            "description": "Distributed correlation identifier.",
+            "example": "cor_01HPX7K7R5YZ2X90WY"
+          },
+          "errors": {
+            "type": "object",
+            "description": "Property-level validation failure details."
+          }
+        },
+        "description": "RFC 7807 standardized problem details error payload."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Access token requirement. Issuer and audience validated by EMCORE Platform. Authorization header format: Bearer \u003Ctoken\u003E. Session revocation behavior applies; tokens are verified against distributed cache.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "ClientCredentials": {
+        "type": "oauth2",
+        "description": "OAuth-style client credentials for service identities. Requires Client ID and Secret to obtain a short-lived bearer token from /api/v1/auth/token. Credential rotation and revocation enforced.",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://auth.emcore.platform/api/v1/auth/token",
+            "scopes": {
+              "api.access": "General API service access",
+              "admin.write": "Elevated administrative state modifications"
+            }
+          }
+        }
+      },
+      "StepUpToken": {
+        "type": "apiKey",
+        "description": "High-entropy step-up token issued upon high-assurance identity challenge completion (MFA/biometrics). Required for sensitive administrative modifications and elevated security operations. Valid for 5 minutes; cannot be refreshed without re-authentication.",
+        "name": "X-StepUp-Token",
+        "in": "header"
+      },
+      "WebhookHmac": {
+        "type": "apiKey",
+        "description": "SHA-256 HMAC signature calculated over exact raw webhook request payload bytes using verified destination endpoint secret. Replay protected via mandatory X-Timestamp verification window.",
+        "name": "X-Signature-256",
+        "in": "header"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Emcore.InventoryMedia.Api"
+    }
+  ]
+}

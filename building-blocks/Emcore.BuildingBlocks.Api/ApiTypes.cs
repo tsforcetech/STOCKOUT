@@ -1,4 +1,4 @@
-﻿namespace Emcore.BuildingBlocks.Api;
+namespace Emcore.BuildingBlocks.Api;
 
 public class ApiResponse<T> { }
 public class PagedResponse<T> { }
@@ -12,4 +12,3 @@ public class SecurityHeadersMiddleware { }
 public static class EndpointConventionExtensions { }
 public static class HealthEndpointExtensions { }
 public static class VersionEndpointExtensions { }
-public static class OpenApiExtensions { }

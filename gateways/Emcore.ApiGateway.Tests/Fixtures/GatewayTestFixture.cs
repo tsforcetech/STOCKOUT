@@ -96,11 +96,11 @@ public class GatewayTestFixture : IAsyncDisposable
         
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["ReverseProxy:Clusters:identity-cluster:Destinations:destination1:Address"] = MockIdentityUrl,
-            ["ReverseProxy:Clusters:organization-cluster:Destinations:destination1:Address"] = MockOrgUrl,
-            ["ReverseProxy:Clusters:organization-cluster:HttpRequest:Timeout"] = timeoutSeconds,
-            ["ReverseProxy:Clusters:organization-cluster:HttpRequest:ActivityTimeout"] = timeoutSeconds,
-            ["ReverseProxy:Clusters:organization-cluster:HttpClient:Timeout"] = timeoutSeconds,
+            ["ReverseProxy:Clusters:identity-access-cluster:Destinations:identity-access-api:Address"] = MockIdentityUrl,
+            ["ReverseProxy:Clusters:user-organization-cluster:Destinations:user-organization-api:Address"] = MockOrgUrl,
+            ["ReverseProxy:Clusters:user-organization-cluster:HttpRequest:Timeout"] = timeoutSeconds,
+            ["ReverseProxy:Clusters:user-organization-cluster:HttpRequest:ActivityTimeout"] = timeoutSeconds,
+            ["ReverseProxy:Clusters:user-organization-cluster:HttpClient:Timeout"] = timeoutSeconds,
             ["Gateway:AllowedOrigins:0"] = "http://localhost:5173",
             ["RateLimiting:LoginOtp:PermitLimit"] = testAuthPermitLimit,
             ["RateLimiting:Anonymous:PermitLimit"] = anonymousPermitLimit,

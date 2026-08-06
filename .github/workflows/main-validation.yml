@@ -1,4 +1,4 @@
-﻿name: Main Validation
+name: Main Validation
 on:
   push:
     branches: [ "main" ]
@@ -18,3 +18,12 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Test
       run: dotnet test -c Release --no-build
+    - name: Verify OpenAPI Contract Export & Schema Validation
+      run: |
+        chmod +x ./scripts/Generate-OpenApi.sh
+        ./scripts/Generate-OpenApi.sh
+    - name: Upload Generated OpenAPI Contracts
+      uses: actions/upload-artifact@v4
+      with:
+        name: emcore-openapi-specs
+        path: contracts/openapi/

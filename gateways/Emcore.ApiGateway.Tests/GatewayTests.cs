@@ -327,4 +327,95 @@ public class GatewayTests
         actB.Should().Throw<InvalidOperationException>()
             .WithMessage("*Gateway:AllowedOrigins*");
     }
+
+    [Fact]
+    public async Task Registry_Identity_Contains_All_Gateway_Prefixes()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/api/v1/swagger/registry");
+        res.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await res.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(content).RootElement;
+
+        var identity = doc.EnumerateArray().FirstOrDefault(x => x.GetProperty("service").GetString() == "emcore-identity-access-api");
+        var prefixes = new List<string>();
+        foreach (var p in identity.GetProperty("gatewayPrefixes").EnumerateArray())
+        {
+            prefixes.Add(p.GetString()!);
+        }
+        prefixes.Should().Contain(new[] { "/api/v1/auth", "/api/v1/identity" });
+    }
+
+    [Fact]
+    public async Task Registry_UserOrganization_Contains_All_Gateway_Prefixes()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/api/v1/swagger/registry");
+        res.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await res.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(content).RootElement;
+
+        var userOrg = doc.EnumerateArray().FirstOrDefault(x => x.GetProperty("service").GetString() == "emcore-user-organization-api");
+        var prefixes = new List<string>();
+        foreach (var p in userOrg.GetProperty("gatewayPrefixes").EnumerateArray())
+        {
+            prefixes.Add(p.GetString()!);
+        }
+        prefixes.Should().Contain(new[] { "/api/v1/users", "/api/v1/organizations" });
+    }
+
+    [Fact]
+    public async Task Registry_Urls_Are_Unique()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/api/v1/swagger/registry");
+        var content = await res.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(content).RootElement;
+
+        var urls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in doc.EnumerateArray())
+        {
+            var url = item.GetProperty("url").GetString()!;
+            urls.Add(url).Should().BeTrue($"URL '{url}' must be unique in swagger registry.");
+        }
+    }
+
+    [Fact]
+    public async Task Registry_ServiceIds_Are_Unique()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/api/v1/swagger/registry");
+        var content = await res.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(content).RootElement;
+
+        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in doc.EnumerateArray())
+        {
+            var id = item.GetProperty("service").GetString()!;
+            ids.Add(id).Should().BeTrue($"Service ID '{id}' must be unique in swagger registry.");
+        }
+    }
+
+    [Fact]
+    public async Task Registry_Is_Disabled_In_Production_By_Default()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Production"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/api/v1/swagger/registry");
+        res.StatusCode.Should().Be(HttpStatusCode.NotFound, "Swagger registry must not be accessible in Production by default.");
+    }
 }

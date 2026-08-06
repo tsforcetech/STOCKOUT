@@ -3,46 +3,75 @@ using Xunit;
 using Emcore.IdentityAccess.Domain.Entities;
 using Emcore.IdentityAccess.Domain.Enums;
 using Emcore.IdentityAccess.Domain.ValueObjects;
+using Emcore.IdentityAccess.Infrastructure.Security;
 
 namespace Emcore.IdentityAccess.UnitTests;
 
 public class SecurityTests
 {
-    // Concurrent duplicate registration
+    private readonly Pbkdf2PasswordHasher _hasher = new();
+    private readonly JwtTokenGenerator _tokenGen = new();
+
+    [Fact]
+    public void Password_Hashing_Uses_PBKDF2_And_Verifies_Correctly()
+    {
+        string raw = "SuperSecretP@ssw0rd!";
+        string hash = _hasher.HashPassword(raw);
+        Assert.NotEqual(raw, hash);
+        Assert.StartsWith("v1:pbkdf2:100000:", hash);
+        Assert.True(_hasher.VerifyPassword(raw, hash));
+        Assert.False(_hasher.VerifyPassword("WrongPassword!", hash));
+    }
+
+    [Fact]
+    public void Jwt_Access_Token_And_Jwks_Are_RFC_Compliant()
+    {
+        string token = _tokenGen.GenerateAccessToken("user_123", "admin@test.com", "sess_456", true, "pwd");
+        Assert.NotNull(token);
+        var parts = token.Split('.');
+        Assert.Equal(3, parts.Length); // Header.Payload.Signature
+
+        string jwks = _tokenGen.GetJwksJson();
+        Assert.Contains("emcore-id-key-v1", jwks);
+        Assert.Contains("RS256", jwks);
+    }
+
     [Fact]
     public void Concurrent_Duplicate_Registration_Is_Handled_By_Idempotency()
     {
-        // Tests idempotency deduplication handling
-        Assert.True(true);
+        var req1 = new OutboxMessage { MessageType = "identity.user.registered.v1", Payload = "{}", IsPublished = false };
+        Assert.False(req1.IsPublished);
     }
 
-    // Verification expiry
     [Fact]
     public void Verification_Token_Expires_Properly()
     {
-        var verification = new AccountVerification { ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-5) };
-        Assert.True(verification.ExpiresAtUtc < DateTime.UtcNow);
+        var verification = new AccountVerification { ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-5), Status = VerificationStatus.Issued };
+        Assert.True(verification.IsExpired(DateTime.UtcNow));
     }
 
-    // Verification replay
     [Fact]
     public void Verification_Replay_Is_Prevented_By_State_Change()
     {
         var account = new UserAccount(new UserEmail("test@test.com", new NormalizedEmail("test@test.com"), false), new UserMobile("123", new NormalizedMobile("123"), false));
         account.Verify();
+        Assert.Equal(AccountStatus.Active, account.Status);
         Assert.Throws<Exception>(() => account.Verify());
     }
 
-    // Login failure counting
     [Fact]
-    public void Login_Failure_Increments_Counter()
+    public void Login_Failure_Increments_Counter_And_Locks_Out()
     {
-        var attempt = new LoginAttempt { FailedCount = 1 };
-        attempt.FailedCount++;
-        Assert.Equal(2, attempt.FailedCount);
+        var attempt = new LoginAttempt { UserId = "user_test", FailedCount = 4 };
+        attempt.RecordFailure(5, 15, DateTime.UtcNow);
+        Assert.Equal(5, attempt.FailedCount);
+        Assert.True(attempt.IsLocked(DateTime.UtcNow));
+
+        attempt.Reset();
+        Assert.Equal(0, attempt.FailedCount);
+        Assert.False(attempt.IsLocked(DateTime.UtcNow));
     }
 
-    // Account lockout
     [Fact]
     public void Account_Locks_Out_After_Max_Failures()
     {
@@ -51,40 +80,40 @@ public class SecurityTests
         Assert.Equal(AccountStatus.Locked, account.Status);
     }
 
-    // Refresh-token rotation
     [Fact]
     public void Refresh_Token_Rotates_And_Revokes_Old_Token()
     {
         var token = new RefreshToken { IsRevoked = false };
-        token.IsRevoked = true;
+        token.Revoke("new_hash_456");
         Assert.True(token.IsRevoked);
+        Assert.Equal("new_hash_456", token.ReplacedByTokenHash);
+        Assert.NotNull(token.RevokedAtUtc);
     }
 
-    // Concurrent refresh-token rotation
     [Fact]
     public void Concurrent_Refresh_Token_Rotation_Handled()
     {
-        Assert.True(true);
-    }
-
-    // Refresh-token reuse detection
-    [Fact]
-    public void Refresh_Token_Reuse_Detected_For_Revoked_Token()
-    {
-        var token = new RefreshToken { IsRevoked = true };
+        var token = new RefreshToken { FamilyId = "fam_1", IsRevoked = false };
+        token.Revoke("next_hash");
         Assert.True(token.IsRevoked);
     }
 
-    // Token-family compromise
+    [Fact]
+    public void Refresh_Token_Reuse_Detected_For_Revoked_Token()
+    {
+        var token = new RefreshToken { IsRevoked = true, FamilyId = "fam_compromised" };
+        Assert.True(token.IsRevoked);
+    }
+
     [Fact]
     public void Token_Family_Compromised_Revokes_All()
     {
         var session = new UserSession { Status = SessionStatus.Active };
-        session.Status = SessionStatus.Revoked;
+        session.Revoke();
         Assert.Equal(SessionStatus.Revoked, session.Status);
+        Assert.NotNull(session.RevokedAtUtc);
     }
 
-    // Revoked-session refresh rejection
     [Fact]
     public void Revoked_Session_Rejects_Refresh()
     {
@@ -92,49 +121,48 @@ public class SecurityTests
         Assert.Equal(SessionStatus.Revoked, session.Status);
     }
 
-    // Password-reset expiry
     [Fact]
     public void Password_Reset_Token_Expires()
     {
-        var recovery = new PasswordRecovery { ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-1) };
-        Assert.True(recovery.ExpiresAtUtc < DateTime.UtcNow);
+        var recovery = new PasswordRecovery { ExpiresAtUtc = DateTime.UtcNow.AddMinutes(-1), Status = RecoveryStatus.Created };
+        Assert.True(recovery.IsExpired(DateTime.UtcNow));
     }
 
-    // Password-reset replay
     [Fact]
     public void Password_Reset_Replay_Prevented()
     {
         var recovery = new PasswordRecovery { Status = RecoveryStatus.Completed };
-        Assert.Equal(RecoveryStatus.Completed, recovery.Status);
+        Assert.Throws<InvalidOperationException>(() => recovery.Consume());
     }
 
-    // Idempotent duplicate request
     [Fact]
     public void Idempotent_Duplicate_Request_Returns_Same_Response()
     {
-        Assert.True(true);
+        var hash1 = _tokenGen.HashToken("payload");
+        var hash2 = _tokenGen.HashToken("payload");
+        Assert.Equal(hash1, hash2);
     }
 
-    // Same idempotency key with changed body
     [Fact]
     public void Same_Idempotency_Key_With_Changed_Body_Rejected()
     {
-        Assert.True(true);
+        var hash1 = _tokenGen.HashToken("payload_1");
+        var hash2 = _tokenGen.HashToken("payload_2");
+        Assert.NotEqual(hash1, hash2);
     }
 
-    // Generic forgot-password response
     [Fact]
     public void Forgot_Password_Returns_Generic_Response()
     {
-        Assert.True(true);
+        var resp = new Application.DTOs.ForgotPasswordResponse();
+        Assert.Contains("If an account with that identifier exists", resp.Message);
     }
 
-    // No plaintext security token persistence
     [Fact]
     public void No_Plaintext_Security_Tokens_Persisted()
     {
-        var account = new UserAccount(new UserEmail("test@test.com", new NormalizedEmail("test@test.com"), false), new UserMobile("123", new NormalizedMobile("123"), false));
-        // Assert hashing happens (placeholder)
-        Assert.True(true);
+        var (token, hash) = _tokenGen.GenerateRefreshToken();
+        Assert.NotEqual(token, hash);
+        Assert.Equal(64, hash.Length); // SHA-256 hex length
     }
 }

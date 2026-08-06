@@ -1,8 +1,27 @@
-﻿namespace Emcore.BuildingBlocks.Core;
+namespace Emcore.BuildingBlocks.Core;
 
-public class Result { }
-public class Result<T> { }
-public class Error { }
+public class Result 
+{ 
+    public bool IsSuccess { get; set; } = true;
+    public Error? Error { get; set; }
+    public static Result Success() => new Result();
+    public static Result Failure(Error error) => new Result { IsSuccess = false, Error = error };
+}
+
+public class Result<T> : Result 
+{ 
+    public T? Value { get; set; }
+    public static Result<T> Success(T value) => new Result<T> { Value = value, IsSuccess = true };
+    public static implicit operator Result<T>(T? value) => new Result<T> { Value = value, IsSuccess = value != null };
+}
+
+public class Error 
+{ 
+    public string Code { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public ErrorType Type { get; set; }
+}
+
 public enum ErrorType { Failure, Validation, NotFound, Conflict, Forbidden }
 public class DomainException : System.Exception { }
 public class NotFoundException : System.Exception { }

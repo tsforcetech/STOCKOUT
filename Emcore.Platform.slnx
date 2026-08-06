@@ -193,4 +193,7 @@
     <Project Path="services/workflow-scheduler/tests/Emcore.WorkflowScheduler.IntegrationTests/Emcore.WorkflowScheduler.IntegrationTests.csproj" />
     <Project Path="services/workflow-scheduler/tests/Emcore.WorkflowScheduler.UnitTests/Emcore.WorkflowScheduler.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/architecture/Emcore.OpenApi.Tests/Emcore.OpenApi.Tests.csproj" />
+  </Folder>
 </Solution>

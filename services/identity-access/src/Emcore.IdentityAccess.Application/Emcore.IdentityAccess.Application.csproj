@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\Emcore.IdentityAccess.Domain\Emcore.IdentityAccess.Domain.csproj" />
+    <ProjectReference Include="..\Emcore.IdentityAccess.Contracts\Emcore.IdentityAccess.Contracts.csproj" />
     <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Core\Emcore.BuildingBlocks.Core.csproj" />
   </ItemGroup>
   <PropertyGroup>

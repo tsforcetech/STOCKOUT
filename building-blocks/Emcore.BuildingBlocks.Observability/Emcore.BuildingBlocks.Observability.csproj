@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -22,7 +22,7 @@
     Expiry Date: 2026-12-31
   -->
   <PropertyGroup>
-    <NoWarn>;NU1902</NoWarn>
+    <NoWarn>$(NoWarn);NU1902</NoWarn>
   </PropertyGroup>
 </Project>
 

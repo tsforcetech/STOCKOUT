@@ -17,5 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Domain\Emcore.IdentityAccess.Domain.csproj" />
     <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Application\Emcore.IdentityAccess.Application.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Infrastructure\Emcore.IdentityAccess.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
