@@ -450,10 +450,10 @@ public class GatewayTests
         using var client = factory.CreateClient();
 
         var res = await client.GetAsync("/swagger/index.html");
-        
+
         var cspValues = res.Headers.GetValues("Content-Security-Policy");
         cspValues.Should().ContainSingle("CSP header should appear exactly once.");
-        
+
         var csp = cspValues.First();
         csp.Should().Contain("default-src 'self'");
         csp.Should().Contain("script-src 'self' 'unsafe-inline'");
@@ -472,10 +472,10 @@ public class GatewayTests
         using var client = factory.CreateClient();
 
         var res = await client.GetAsync("/health/live");
-        
+
         var cspValues = res.Headers.GetValues("Content-Security-Policy");
         cspValues.Should().ContainSingle();
-        
+
         var csp = cspValues.First();
         csp.Should().Contain("default-src 'none'");
         csp.Should().Contain("frame-ancestors 'none'");
@@ -491,14 +491,14 @@ public class GatewayTests
         context.Request.Path = "/health/live";
 
         var middleware = new Emcore.ApiGateway.Middleware.SecurityHeadersMiddleware(
-            innerHttpContext => Task.CompletedTask, 
+            innerHttpContext => Task.CompletedTask,
             env);
 
         await middleware.InvokeAsync(context);
-        
+
         var cspValues = context.Response.Headers["Content-Security-Policy"];
         cspValues.Should().ContainSingle();
-        
+
         var csp = cspValues.First();
         csp.Should().Contain("default-src 'none'");
         csp.Should().Contain("frame-ancestors 'none'");
@@ -514,14 +514,14 @@ public class GatewayTests
         context.Request.Path = "/swagger/index.html";
 
         var middleware = new Emcore.ApiGateway.Middleware.SecurityHeadersMiddleware(
-            innerHttpContext => Task.CompletedTask, 
+            innerHttpContext => Task.CompletedTask,
             env);
 
         await middleware.InvokeAsync(context);
-        
+
         var cspValues = context.Response.Headers["Content-Security-Policy"];
         cspValues.Should().ContainSingle();
-        
+
         var csp = cspValues.First();
         csp.Should().Contain("default-src 'none'");
         csp.Should().Contain("frame-ancestors 'none'");
