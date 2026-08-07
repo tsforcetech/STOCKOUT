@@ -1,0 +1,34 @@
+name: PR Validation
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: global.json
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Verify formatting
+      run: dotnet format --verify-no-changes
+    - name: Build
+      run: dotnet build -c Release --no-restore
+    - name: Test
+      run: dotnet test -c Release --no-build
+    - name: Verify OpenAPI Contract Export & Schema Validation
+      run: |
+        chmod +x ./scripts/Generate-OpenApi.sh
+        ./scripts/Generate-OpenApi.sh
+    - name: Check OpenAPI Contract Compatibility
+      shell: pwsh
+      run: ./scripts/Check-OpenApiCompatibility.ps1 -CurrentDir "contracts/openapi"
+    - name: Upload Generated OpenAPI Contracts
+      uses: actions/upload-artifact@v4
+      with:
+        name: emcore-openapi-specs
+        path: contracts/openapi/

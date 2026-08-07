@@ -10,7 +10,9 @@
 param(
     [string]$BaselineDir = "docs/verification/swagger-safe-remediation/baseline-contracts",
     [string]$CurrentDir = "contracts/openapi",
-    [switch]$AllowBreakingChanges = $false
+    [switch]$AllowBreakingChanges = $false,
+    [switch]$EstablishBaseline = $false,
+    [switch]$ForceBaselineOverwrite = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,23 +23,53 @@ Write-Host "================================================================" -F
 Write-Host "Checking contracts in: $CurrentDir"
 
 if (-not (Test-Path $CurrentDir)) {
-    Write-Host "Current directory $CurrentDir does not exist. Nothing to verify." -ForegroundColor Yellow
-    exit 0
+    Write-Host "[FAIL] Current directory $CurrentDir does not exist. Cannot verify compatibility." -ForegroundColor Red
+    exit 1
 }
 
-# If no baseline directory exists yet, establish current files as baseline for future CI evaluation
-if (-not (Test-Path $BaselineDir)) {
-    Write-Host "Baseline directory '$BaselineDir' not found. Creating baseline snapshot from current contracts..." -ForegroundColor Yellow
+$currentFilesCheck = Get-ChildItem -Path $CurrentDir -Filter "*.json" -Recurse
+if ($null -eq $currentFilesCheck -or $currentFilesCheck.Count -eq 0) {
+    Write-Host "[FAIL] Current directory $CurrentDir is empty. Contract generation may have failed." -ForegroundColor Red
+    exit 1
+}
+
+# If -EstablishBaseline is specified, create or overwrite the baseline
+if ($EstablishBaseline) {
+    Write-Host "[WARNING] -EstablishBaseline specified. This should NEVER be run automatically in CI." -ForegroundColor Yellow
+    if (Test-Path $BaselineDir) {
+        if (-not $ForceBaselineOverwrite) {
+            Write-Host "[FAIL] Baseline directory '$BaselineDir' already exists. Use -ForceBaselineOverwrite to explicitly overwrite it." -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "Existing baseline directory found. Overwriting..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force $BaselineDir
+    }
     New-Item -ItemType Directory -Force -Path $BaselineDir | Out-Null
+    
+    $checksums = @()
     Get-ChildItem -Path $CurrentDir -Filter "*.json" -Recurse | ForEach-Object {
         $rel = $_.FullName.Substring((Get-Item $CurrentDir).FullName.Length).TrimStart("\", "/")
         $dest = Join-Path $BaselineDir $rel
         $destDir = Split-Path -Parent $dest
         if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Force -Path $destDir | Out-Null }
         Copy-Item $_.FullName -Destination $dest -Force
+        
+        $hash = (Get-FileHash $dest -Algorithm SHA256).Hash
+        $checksums += "$hash  $rel"
     }
-    Write-Host "Baseline snapshot established. No breaking changes detected." -ForegroundColor Green
+    
+    $checksums | Set-Content (Join-Path $BaselineDir "checksums.txt")
+    Write-Host "Baseline snapshot established and checksums recorded." -ForegroundColor Green
     exit 0
+} elseif (-not (Test-Path $BaselineDir)) {
+    Write-Host "[FAIL] Baseline directory '$BaselineDir' not found and -EstablishBaseline was not specified. Cannot verify compatibility without a baseline." -ForegroundColor Red
+    exit 1
+}
+
+$baselineFilesCheck = Get-ChildItem -Path $BaselineDir -Filter "*.json" -Recurse
+if ($null -eq $baselineFilesCheck -or $baselineFilesCheck.Count -eq 0) {
+    Write-Host "[FAIL] Baseline directory '$BaselineDir' is empty. Missing valid contracts." -ForegroundColor Red
+    exit 1
 }
 
 $breakingChangesCount = 0
@@ -99,7 +131,7 @@ $baselineFiles = Get-ChildItem -Path $BaselineDir -Filter "*.json" -Recurse
 foreach ($baseFile in $baselineFiles) {
     $relPath = $baseFile.FullName.Substring((Get-Item $BaselineDir).FullName.Length).TrimStart("\", "/")
     $currPath = Join-Path $CurrentDir $relPath
-    $serviceName = [System.IO.Path]::GetFileNameWithoutExtension($relPath)
+    $serviceName = $relPath.Split("\/")[0]
     
     $filesChecked++
 
@@ -141,6 +173,22 @@ foreach ($baseFile in $baselineFiles) {
                         }
                         if ($null -eq $match) {
                             Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' removed from '$method.ToUpper() $route'."
+                        } else {
+                            if ($null -ne $oldParam.schema -and $null -ne $match.schema) {
+                                if ($oldParam.schema.type -ne $match.schema.type -and $null -ne $oldParam.schema.type) {
+                                    Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' type changed from '$($oldParam.schema.type)' to '$($match.schema.type)'."
+                                }
+                                if ($oldParam.schema.format -ne $match.schema.format -and $null -ne $oldParam.schema.format) {
+                                    Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' format changed from '$($oldParam.schema.format)' to '$($match.schema.format)'."
+                                }
+                                if ($null -ne $oldParam.schema.enum) {
+                                    foreach ($val in $oldParam.schema.enum) {
+                                        if ($null -eq $match.schema.enum -or -not ($match.schema.enum -contains $val)) {
+                                            Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' removed enum value '$val'."
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -166,12 +214,61 @@ foreach ($baseFile in $baselineFiles) {
                         $statusCode = $respItem.Name
                         $newResp = $newOp.Value.responses.PSObject.Properties[$statusCode]
                         if ($null -eq $newResp) {
-                            if ($statusCode -match "^[2|3]\d\d$") {
+                            if ($statusCode -match "^[23]\d\d$") {
                                 Report-BreakingChange $serviceName "Success response code '$statusCode' removed from '$method.ToUpper() $route'."
+                            }
+                        } else {
+                            $oldContent = $respItem.Value.content
+                            $newContent = $newResp.Value.content
+                            if ($null -ne $oldContent) {
+                                if ($null -eq $newContent) {
+                                    Report-BreakingChange $serviceName "Response content removed from '$statusCode' on '$method.ToUpper() $route'."
+                                } else {
+                                    foreach ($mediaItem in $oldContent.PSObject.Properties) {
+                                        $mediaType = $mediaItem.Name
+                                        $newMedia = $newContent.PSObject.Properties[$mediaType]
+                                        if ($null -eq $newMedia) {
+                                            Report-BreakingChange $serviceName "Response media type '$mediaType' removed from '$statusCode' on '$method.ToUpper() $route'."
+                                        } elseif ($null -ne $mediaItem.Value.schema -and $null -ne $mediaItem.Value.schema.type) {
+                                            if ($null -eq $newMedia.Value.schema -or $newMedia.Value.schema.type -ne $mediaItem.Value.schema.type) {
+                                                Report-BreakingChange $serviceName "Response schema type changed for '$mediaType' on '$statusCode' on '$method.ToUpper() $route'."
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
+                # Compare Request Body
+                if ($null -ne $oldOp.requestBody) {
+                    if ($null -eq $newOp.Value.requestBody) {
+                        Report-BreakingChange $serviceName "Request body was completely removed from '$method.ToUpper() $route'."
+                    } else {
+                        if ($null -ne $oldOp.requestBody.content) {
+                            foreach ($mediaItem in $oldOp.requestBody.content.PSObject.Properties) {
+                                $mediaType = $mediaItem.Name
+                                if ($null -eq $newOp.Value.requestBody.content.PSObject.Properties[$mediaType]) {
+                                    Report-BreakingChange $serviceName "Request media type '$mediaType' removed from '$method.ToUpper() $route'."
+                                }
+                            }
+                        }
+                    }
+                }
+                if ($null -ne $newOp.Value.requestBody -and $newOp.Value.requestBody.required -eq $true) {
+                    if ($null -eq $oldOp.requestBody -or $oldOp.requestBody.required -ne $true) {
+                        Report-BreakingChange $serviceName "Request body became newly required on '$method.ToUpper() $route'."
+                    }
+                }
+                
+                # Compare Security
+                if ($null -ne $newOp.Value.security -and $newOp.Value.security.Count -gt 0) {
+                    if ($null -eq $oldOp.security -or $oldOp.security.Count -eq 0) {
+                        Report-BreakingChange $serviceName "Operation '$method.ToUpper() $route' was anonymous but now requires security."
+                    }
+                }
+                
             }
         }
     }
