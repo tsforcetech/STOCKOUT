@@ -30,7 +30,7 @@ jobs:
         ./scripts/Generate-OpenApi.sh
     - name: Check OpenAPI Contract Compatibility
       shell: pwsh
-      run: ./scripts/Check-OpenApiCompatibility.ps1 -BaselineDir "docs/verification/swagger-safe-remediation/baseline-contracts" -CurrentDir "contracts/openapi"
+      run: ./scripts/Check-OpenApiCompatibility.ps1 -BaselineDir "docs/verification/swagger-final-remediation-v5/03-contract-governance/baseline-contracts" -CurrentDir "contracts/openapi"
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
       if: always()

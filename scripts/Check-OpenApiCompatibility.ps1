@@ -22,28 +22,37 @@ Write-Host "================================================================" -F
 Write-Host "Checking contracts in: $CurrentDir"
 
 if (-not (Test-Path $CurrentDir)) {
-    Write-Host "Current directory $CurrentDir does not exist. Nothing to verify." -ForegroundColor Yellow
-    exit 0
+    Write-Host "[FAIL] Current directory $CurrentDir does not exist. Cannot verify compatibility." -ForegroundColor Red
+    exit 1
 }
 
-# If no baseline directory exists yet, establish current files as baseline for future CI evaluation
-if (-not (Test-Path $BaselineDir)) {
-    if ($EstablishBaseline) {
-        Write-Host "Baseline directory '$BaselineDir' not found. Creating baseline snapshot from current contracts..." -ForegroundColor Yellow
-        New-Item -ItemType Directory -Force -Path $BaselineDir | Out-Null
-        Get-ChildItem -Path $CurrentDir -Filter "*.json" -Recurse | ForEach-Object {
-            $rel = $_.FullName.Substring((Get-Item $CurrentDir).FullName.Length).TrimStart("\", "/")
-            $dest = Join-Path $BaselineDir $rel
-            $destDir = Split-Path -Parent $dest
-            if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Force -Path $destDir | Out-Null }
-            Copy-Item $_.FullName -Destination $dest -Force
-        }
-        Write-Host "Baseline snapshot established. No breaking changes detected." -ForegroundColor Green
-        exit 0
-    } else {
-        Write-Host "[FAIL] Baseline directory '$BaselineDir' not found and -EstablishBaseline was not specified. Cannot verify compatibility without a baseline." -ForegroundColor Red
-        exit 1
+# If -EstablishBaseline is specified, create or overwrite the baseline
+if ($EstablishBaseline) {
+    Write-Host "[WARNING] -EstablishBaseline specified. This will create or overwrite the baseline at '$BaselineDir'. This should NEVER be run automatically in CI." -ForegroundColor Yellow
+    if (Test-Path $BaselineDir) {
+        Write-Host "Existing baseline directory found. Overwriting..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force $BaselineDir
     }
+    New-Item -ItemType Directory -Force -Path $BaselineDir | Out-Null
+    
+    $checksums = @()
+    Get-ChildItem -Path $CurrentDir -Filter "*.json" -Recurse | ForEach-Object {
+        $rel = $_.FullName.Substring((Get-Item $CurrentDir).FullName.Length).TrimStart("\", "/")
+        $dest = Join-Path $BaselineDir $rel
+        $destDir = Split-Path -Parent $dest
+        if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Force -Path $destDir | Out-Null }
+        Copy-Item $_.FullName -Destination $dest -Force
+        
+        $hash = (Get-FileHash $dest -Algorithm SHA256).Hash
+        $checksums += "$hash  $rel"
+    }
+    
+    $checksums | Set-Content (Join-Path $BaselineDir "checksums.txt")
+    Write-Host "Baseline snapshot established and checksums recorded." -ForegroundColor Green
+    exit 0
+} elseif (-not (Test-Path $BaselineDir)) {
+    Write-Host "[FAIL] Baseline directory '$BaselineDir' not found and -EstablishBaseline was not specified. Cannot verify compatibility without a baseline." -ForegroundColor Red
+    exit 1
 }
 
 $breakingChangesCount = 0

@@ -72,7 +72,7 @@ public static class OpenApiExtensions
                     {
                         var forwardedHost = httpContext.Request.Headers["X-Forwarded-Host"].FirstOrDefault();
                         var forwardedProto = httpContext.Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? httpContext.Request.Scheme;
-                        
+
                         if (!string.IsNullOrEmpty(forwardedHost))
                         {
                             serverUrl = $"{forwardedProto}://{forwardedHost}";
@@ -103,12 +103,18 @@ public static class OpenApiExtensions
     {
         var env = app.ServiceProvider.GetRequiredService<IHostEnvironment>();
         var config = app.ServiceProvider.GetService<IConfiguration>();
-        
+
         var enableInProd = config?.GetValue<bool>("OpenApi:EnableInProduction") ?? config?.GetValue<bool>("Swagger:EnableInProduction") ?? false;
         var enableJsonInProd = enableInProd || (config?.GetValue<bool>("OpenApi:EnableJsonInProduction") ?? false);
         var enableUiInProd = enableInProd || (config?.GetValue<bool>("OpenApi:EnableUiInProduction") ?? false);
         var requireAuthInProd = config?.GetValue<bool>("OpenApi:RequireAuthorizationInProduction") ?? true;
         var requiredPolicy = config?.GetValue<string>("OpenApi:RequiredPolicy") ?? "PlatformSwaggerAdministrator";
+
+        if (env.IsProduction())
+        {
+            // Explicit protected Production Swagger enablement: BLOCKED UNTIL APPROVED ADMIN POLICY + JWT VALIDATION EXIST
+            enableJsonInProd = false;
+        }
 
         if (!env.IsProduction() || enableJsonInProd)
         {
@@ -122,6 +128,11 @@ public static class OpenApiExtensions
                 endpoint1.RequireAuthorization(requiredPolicy);
                 endpoint2?.RequireAuthorization(requiredPolicy);
             }
+        }
+
+        if (env.IsProduction())
+        {
+            enableUiInProd = false;
         }
 
         if (!env.IsProduction() || enableUiInProd)
@@ -147,7 +158,7 @@ public static class OpenApiExtensions
                     options.RoutePrefix = "swagger";
                     options.SwaggerEndpoint("/openapi/v1.json", "EMCORE Service API (v1)");
                     options.DocumentTitle = "EMCORE Standalone Service UI";
-                    
+
                     if (env.IsProduction() && !(config?.GetValue<bool>("OpenApi:EnableTryItOutInProduction") ?? false))
                     {
                         options.SupportedSubmitMethods();
@@ -194,7 +205,7 @@ public static class OpenApiExtensions
                 Type = SecuritySchemeType.ApiKey,
                 In = ParameterLocation.Header,
                 Name = "X-StepUp-Token",
-                Description = "High-entropy step-up token issued upon high-assurance identity challenge completion (MFA/biometrics). Required for sensitive administrative modifications and elevated security operations. Valid for 5 minutes; cannot be refreshed without re-authentication."
+                Description = "Identity Step-Up Flow: IMPLEMENTED. Downstream Step-Up Enforcement: NOT VERIFIED / NOT IMPLEMENTED."
             });
 
             document.Components.SecuritySchemes.TryAdd("WebhookHmac", new OpenApiSecurityScheme
@@ -285,21 +296,23 @@ public static class OpenApiExtensions
                                     path.StartsWith("health", StringComparison.OrdinalIgnoreCase) ||
                                     path.Contains("system", StringComparison.OrdinalIgnoreCase);
 
-            if (isMutation && !isAuthOrSessionOp)
-            {
-                AddHeaderIfMissing("X-Idempotency-Key", "Reserved for future idempotency support. The current runtime does not enforce duplicate-request protection, response replay or payload conflict detection.", false, "idmp_01HPX7K7R5YZ2X90WY");
-            }
+            // Idempotency disabled as NoOp runtime does not enforce it.
+            // if (isMutation && !isAuthOrSessionOp)
+            // {
+            //     AddHeaderIfMissing("X-Idempotency-Key", "Reserved for future idempotency support. The current runtime does not enforce duplicate-request protection, response replay or payload conflict detection.", false, "idmp_01HPX7K7R5YZ2X90WY");
+            // }
 
-            if (!isAuthOrSessionOp && (path.Contains("organizations", StringComparison.OrdinalIgnoreCase) || 
-                                       path.Contains("users", StringComparison.OrdinalIgnoreCase) || 
-                                       path.Contains("tenants", StringComparison.OrdinalIgnoreCase) || 
-                                       path.Contains("catalog", StringComparison.OrdinalIgnoreCase) || 
-                                       path.Contains("deals", StringComparison.OrdinalIgnoreCase) || 
-                                       path.Contains("inventory", StringComparison.OrdinalIgnoreCase) || 
+            if (!isAuthOrSessionOp && (path.Contains("organizations", StringComparison.OrdinalIgnoreCase) ||
+                                       path.Contains("users", StringComparison.OrdinalIgnoreCase) ||
+                                       path.Contains("tenants", StringComparison.OrdinalIgnoreCase) ||
+                                       path.Contains("catalog", StringComparison.OrdinalIgnoreCase) ||
+                                       path.Contains("deals", StringComparison.OrdinalIgnoreCase) ||
+                                       path.Contains("inventory", StringComparison.OrdinalIgnoreCase) ||
                                        path.Contains("payments", StringComparison.OrdinalIgnoreCase)))
             {
-                AddHeaderIfMissing("X-Tenant-Id", "Requested organization context. Runtime membership validation is not implemented.", false, "org_01HPX7K7R5YZ2X90WY0002");
-                AddHeaderIfMissing("X-Organization-Id", "Requested organization context. Runtime membership validation is not implemented.", false, "org_01HPX7K7R5YZ2X90WY0002");
+                var tenantDesc = "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.";
+                AddHeaderIfMissing("X-Tenant-Id", tenantDesc, false, "org_01HPX7K7R5YZ2X90WY0002");
+                AddHeaderIfMissing("X-Organization-Id", tenantDesc, false, "org_01HPX7K7R5YZ2X90WY0002");
             }
 
             return Task.CompletedTask;
@@ -507,7 +520,7 @@ public static class OpenApiExtensions
                     }
                     else if (string.Equals(name, "organizationId", StringComparison.OrdinalIgnoreCase) || name.EndsWith("OrganizationId", StringComparison.OrdinalIgnoreCase))
                     {
-                        propSchema.Description = "Opaque tenant organization identifier (ULID/UUID format) resolved from authenticated membership context.";
+                        propSchema.Description = "Opaque string identifier representing the requested organization context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.";
                         propSchema.Example = new OpenApiString("org_01HPX7K7R5YZ2X90WY0002");
                     }
                     else if (string.Equals(name, "listingId", StringComparison.OrdinalIgnoreCase) || string.Equals(name, "itemId", StringComparison.OrdinalIgnoreCase))
