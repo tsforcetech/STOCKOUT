@@ -26,7 +26,7 @@ public class GatewayTestFixture : IAsyncDisposable
     public string MockOrgUrl { get; private set; } = string.Empty;
     public string GatewayUrl { get; private set; } = string.Empty;
 
-    public async Task InitializeAsync(string testAuthPermitLimit = "30", string timeoutSeconds = "00:00:00.200", string anonymousPermitLimit = "60", string trustedProxy = "127.0.0.1")
+    public async Task InitializeAsync(string testAuthPermitLimit = "30", string timeoutSeconds = "00:00:00.200", string anonymousPermitLimit = "60", string trustedProxy = "127.0.0.1", string environment = "Integration")
     {
         // 1. Start Mock Identity Service on loopback
         var idBuilder = WebApplication.CreateBuilder(new[] { "--urls", "http://127.0.0.1:0" });
@@ -92,7 +92,7 @@ public class GatewayTestFixture : IAsyncDisposable
         MockOrgUrl = _mockOrgServer.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First() + "/";
 
         // 3. Start ApiGateway on loopback with overridden configuration
-        var gatewayArgs = new[] { "--urls", "http://127.0.0.1:0", "--environment", "Integration" };
+        var gatewayArgs = new[] { "--urls", "http://127.0.0.1:0", "--environment", environment };
         var builder = WebApplication.CreateBuilder(gatewayArgs);
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -105,7 +105,10 @@ public class GatewayTestFixture : IAsyncDisposable
             ["Gateway:AllowedOrigins:0"] = "http://localhost:5173",
             ["RateLimiting:LoginOtp:PermitLimit"] = testAuthPermitLimit,
             ["RateLimiting:Anonymous:PermitLimit"] = anonymousPermitLimit,
-            ["Gateway:TrustedProxies:0"] = trustedProxy
+            ["Gateway:TrustedProxies:0"] = trustedProxy,
+            ["Authentication:Issuer"] = "test-issuer",
+            ["Authentication:Audience"] = "test-audience",
+            ["Authentication:SigningKey"] = "test-secret-key-that-is-at-least-32-bytes-long!"
         });
 
         // Register gateway services

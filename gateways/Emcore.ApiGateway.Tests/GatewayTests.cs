@@ -441,4 +441,98 @@ public class GatewayTests
         act.Should().Throw<InvalidOperationException>()
            .WithMessage("*Missing required Production authentication configuration*");
     }
+
+    [Fact]
+    public async Task Development_Swagger_Endpoint_Uses_Relaxed_CSP()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/swagger/index.html");
+        
+        var cspValues = res.Headers.GetValues("Content-Security-Policy");
+        cspValues.Should().ContainSingle("CSP header should appear exactly once.");
+        
+        var csp = cspValues.First();
+        csp.Should().Contain("default-src 'self'");
+        csp.Should().Contain("script-src 'self' 'unsafe-inline'");
+        csp.Should().Contain("style-src 'self' 'unsafe-inline'");
+        csp.Should().Contain("img-src 'self' data:");
+        csp.Should().Contain("connect-src 'self'");
+        csp.Should().NotContain("default-src *");
+        csp.Should().NotContain("default-src 'none'");
+    }
+
+    [Fact]
+    public async Task Development_Normal_API_Endpoint_Uses_Restrictive_CSP()
+    {
+        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+            .WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        using var client = factory.CreateClient();
+
+        var res = await client.GetAsync("/health/live");
+        
+        var cspValues = res.Headers.GetValues("Content-Security-Policy");
+        cspValues.Should().ContainSingle();
+        
+        var csp = cspValues.First();
+        csp.Should().Contain("default-src 'none'");
+        csp.Should().Contain("frame-ancestors 'none'");
+        csp.Should().Contain("upgrade-insecure-requests");
+    }
+
+    [Fact]
+    public async Task Production_Normal_Endpoint_Uses_Restrictive_CSP()
+    {
+        var env = new MockEnvironment { EnvironmentName = "Production" };
+
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/health/live";
+
+        var middleware = new Emcore.ApiGateway.Middleware.SecurityHeadersMiddleware(
+            innerHttpContext => Task.CompletedTask, 
+            env);
+
+        await middleware.InvokeAsync(context);
+        
+        var cspValues = context.Response.Headers["Content-Security-Policy"];
+        cspValues.Should().ContainSingle();
+        
+        var csp = cspValues.First();
+        csp.Should().Contain("default-src 'none'");
+        csp.Should().Contain("frame-ancestors 'none'");
+        csp.Should().Contain("upgrade-insecure-requests");
+    }
+
+    [Fact]
+    public async Task Production_Swagger_Policy_Remains_Restrictive()
+    {
+        var env = new MockEnvironment { EnvironmentName = "Production" };
+
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/swagger/index.html";
+
+        var middleware = new Emcore.ApiGateway.Middleware.SecurityHeadersMiddleware(
+            innerHttpContext => Task.CompletedTask, 
+            env);
+
+        await middleware.InvokeAsync(context);
+        
+        var cspValues = context.Response.Headers["Content-Security-Policy"];
+        cspValues.Should().ContainSingle();
+        
+        var csp = cspValues.First();
+        csp.Should().Contain("default-src 'none'");
+        csp.Should().Contain("frame-ancestors 'none'");
+        csp.Should().Contain("upgrade-insecure-requests");
+    }
+
+    private class MockEnvironment : Microsoft.Extensions.Hosting.IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = "Production";
+        public string ApplicationName { get; set; } = "Test";
+        public string ContentRootPath { get; set; } = "";
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
+    }
 }

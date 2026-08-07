@@ -30,7 +30,16 @@ public class SecurityHeadersMiddleware
         }
 
         // Apply CSP only where relevant without breaking JSON APIs or dev Swagger
-        context.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
+        bool isSwagger = context.Request.Path.StartsWithSegments("/swagger", System.StringComparison.OrdinalIgnoreCase);
+
+        if (isSwagger && !_environment.IsProduction())
+        {
+            context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self';";
+        }
+        else
+        {
+            context.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
+        }
 
         await _next(context);
     }
