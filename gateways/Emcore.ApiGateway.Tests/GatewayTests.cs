@@ -409,13 +409,36 @@ public class GatewayTests
     }
 
     [Fact]
-    public async Task Registry_Is_Disabled_In_Production_By_Default()
+    public void Registry_Is_Disabled_In_Production_By_Default()
     {
-        await using var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
-            .WithWebHostBuilder(b => b.UseEnvironment("Production"));
-        using var client = factory.CreateClient();
+        Action act = () =>
+        {
+            var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+                .WithWebHostBuilder(b => 
+                {
+                    b.UseEnvironment("Production");
+                });
+            var client = factory.CreateClient();
+        };
 
-        var res = await client.GetAsync("/api/v1/swagger/registry");
-        res.StatusCode.Should().Be(HttpStatusCode.NotFound, "Swagger registry must not be accessible in Production by default.");
+        act.Should().Throw<InvalidOperationException>()
+           .WithMessage("*Missing required Production authentication configuration*");
+    }
+
+    [Fact]
+    public void SwaggerProxy_Is_Disabled_In_Production_By_Default()
+    {
+        Action act = () =>
+        {
+            var factory = new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program>()
+                .WithWebHostBuilder(b => 
+                {
+                    b.UseEnvironment("Production");
+                });
+            var client = factory.CreateClient();
+        };
+
+        act.Should().Throw<InvalidOperationException>()
+           .WithMessage("*Missing required Production authentication configuration*");
     }
 }

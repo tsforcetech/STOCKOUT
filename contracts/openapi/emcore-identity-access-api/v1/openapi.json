@@ -2692,7 +2692,7 @@
           {
             "name": "X-Tenant-Id",
             "in": "header",
-            "description": "Requested organization context. The value is validated against the authenticated user\u0027s active organization memberships. Supplying this header does not grant organization access.",
+            "description": "Requested organization context. Runtime membership validation is not implemented.",
             "schema": {
               "type": "string",
               "default": "org_01HPX7K7R5YZ2X90WY0002"
@@ -2701,7 +2701,7 @@
           {
             "name": "X-Organization-Id",
             "in": "header",
-            "description": "Requested organization context. The value is validated against the authenticated user\u0027s active organization memberships. Supplying this header does not grant organization access.",
+            "description": "Requested organization context. Runtime membership validation is not implemented.",
             "schema": {
               "type": "string",
               "default": "org_01HPX7K7R5YZ2X90WY0002"
@@ -2830,7 +2830,7 @@
           {
             "name": "X-Tenant-Id",
             "in": "header",
-            "description": "Requested organization context. The value is validated against the authenticated user\u0027s active organization memberships. Supplying this header does not grant organization access.",
+            "description": "Requested organization context. Runtime membership validation is not implemented.",
             "schema": {
               "type": "string",
               "default": "org_01HPX7K7R5YZ2X90WY0002"
@@ -2839,7 +2839,7 @@
           {
             "name": "X-Organization-Id",
             "in": "header",
-            "description": "Requested organization context. The value is validated against the authenticated user\u0027s active organization memberships. Supplying this header does not grant organization access.",
+            "description": "Requested organization context. Runtime membership validation is not implemented.",
             "schema": {
               "type": "string",
               "default": "org_01HPX7K7R5YZ2X90WY0002"
@@ -3456,7 +3456,7 @@
           {
             "name": "X-Tenant-Id",
             "in": "header",
-            "description": "Requested organization context. The value is validated against the authenticated user\u0027s active organization memberships. Supplying this header does not grant organization access.",
+            "description": "Requested organization context. Runtime membership validation is not implemented.",
             "schema": {
               "type": "string",
               "default": "org_01HPX7K7R5YZ2X90WY0002"
@@ -3465,7 +3465,7 @@
           {
             "name": "X-Organization-Id",
             "in": "header",
-            "description": "Requested organization context. The value is validated against the authenticated user\u0027s active organization memberships. Supplying this header does not grant organization access.",
+            "description": "Requested organization context. Runtime membership validation is not implemented.",
             "schema": {
               "type": "string",
               "default": "org_01HPX7K7R5YZ2X90WY0002"
@@ -4459,13 +4459,13 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Access token requirement. Issuer and audience validated by EMCORE Platform. Authorization header format: Bearer \u003Ctoken\u003E. Session revocation behavior applies; tokens are verified against distributed cache.",
+        "description": "PRODUCTION GATEWAY JWT VALIDATION: NOT IMPLEMENTED. PRODUCTION FALLBACK TO TEST AUTH: PROHIBITED. DEVELOPMENT ONLY token verification. DEFERRED.",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       },
       "ClientCredentials": {
         "type": "oauth2",
-        "description": "OAuth-style client credentials for service identities. Requires Client ID and Secret to obtain a short-lived bearer token from /api/v1/auth/token. Credential rotation and revocation enforced.",
+        "description": "OAuth-style client credentials for service identities. Requires Client ID and Secret to obtain a short-lived bearer token from POST /api/v1/auth/token.",
         "flows": {
           "clientCredentials": {
             "tokenUrl": "https://auth.emcore.platform/api/v1/auth/token",
@@ -4484,7 +4484,7 @@
       },
       "WebhookHmac": {
         "type": "apiKey",
-        "description": "SHA-256 HMAC signature calculated over exact raw webhook request payload bytes using verified destination endpoint secret. Replay protected via mandatory X-Timestamp verification window.",
+        "description": "PLANNED \u2014 NOT IMPLEMENTED.",
         "name": "X-Signature-256",
         "in": "header"
       }

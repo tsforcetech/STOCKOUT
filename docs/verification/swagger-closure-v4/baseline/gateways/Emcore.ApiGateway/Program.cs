@@ -165,29 +165,6 @@ if (!app.Environment.IsProduction() || enableUiInProd)
     });
 }
 
-// 11.5 Proxy Swagger production guard
-app.Use(async (context, next) =>
-{
-    if (app.Environment.IsProduction() && context.Request.Path.StartsWithSegments("/swagger/services", StringComparison.OrdinalIgnoreCase))
-    {
-        var enableProxy = app.Configuration.GetValue<bool>("OpenApi:EnableInProduction") || app.Configuration.GetValue<bool>("OpenApi:EnableProxyContractsInProduction");
-        if (!enableProxy)
-        {
-            context.Response.StatusCode = 404;
-            return;
-        }
-
-        // Even if enabled, ensure the proxy contract requires an authenticated session.
-        // YARP's underlying endpoints may use PublicPolicy, so we strictly verify authentication here in production.
-        if (!context.User.Identity?.IsAuthenticated ?? true)
-        {
-            context.Response.StatusCode = 404;
-            return;
-        }
-    }
-    await next();
-});
-
 // 12. YARP reverse proxy
 app.MapReverseProxy();
 

@@ -168,13 +168,13 @@ public static class OpenApiExtensions
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
                 BearerFormat = "JWT",
-                Description = "PRODUCTION GATEWAY JWT VALIDATION: NOT IMPLEMENTED. PRODUCTION FALLBACK TO TEST AUTH: PROHIBITED. DEVELOPMENT ONLY token verification. DEFERRED."
+                Description = "Access token requirement. Issuer and audience validated by EMCORE Platform. Authorization header format: Bearer <token>. Session revocation behavior applies; tokens are verified against distributed cache."
             });
 
             document.Components.SecuritySchemes.TryAdd("ClientCredentials", new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.OAuth2,
-                Description = "OAuth-style client credentials for service identities. Requires Client ID and Secret to obtain a short-lived bearer token from POST /api/v1/auth/token.",
+                Description = "OAuth-style client credentials for service identities. Requires Client ID and Secret to obtain a short-lived bearer token from /api/v1/auth/token. Credential rotation and revocation enforced.",
                 Flows = new OpenApiOAuthFlows
                 {
                     ClientCredentials = new OpenApiOAuthFlow
@@ -202,7 +202,7 @@ public static class OpenApiExtensions
                 Type = SecuritySchemeType.ApiKey,
                 In = ParameterLocation.Header,
                 Name = "X-Signature-256",
-                Description = "PLANNED — NOT IMPLEMENTED."
+                Description = "SHA-256 HMAC signature calculated over exact raw webhook request payload bytes using verified destination endpoint secret. Replay protected via mandatory X-Timestamp verification window."
             });
 
             return Task.CompletedTask;
@@ -298,8 +298,8 @@ public static class OpenApiExtensions
                                        path.Contains("inventory", StringComparison.OrdinalIgnoreCase) || 
                                        path.Contains("payments", StringComparison.OrdinalIgnoreCase)))
             {
-                AddHeaderIfMissing("X-Tenant-Id", "Requested organization context. Runtime membership validation is not implemented.", false, "org_01HPX7K7R5YZ2X90WY0002");
-                AddHeaderIfMissing("X-Organization-Id", "Requested organization context. Runtime membership validation is not implemented.", false, "org_01HPX7K7R5YZ2X90WY0002");
+                AddHeaderIfMissing("X-Tenant-Id", "Requested organization context. The value is validated against the authenticated user's active organization memberships. Supplying this header does not grant organization access.", false, "org_01HPX7K7R5YZ2X90WY0002");
+                AddHeaderIfMissing("X-Organization-Id", "Requested organization context. The value is validated against the authenticated user's active organization memberships. Supplying this header does not grant organization access.", false, "org_01HPX7K7R5YZ2X90WY0002");
             }
 
             return Task.CompletedTask;
