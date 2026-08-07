@@ -57,7 +57,7 @@ All implementation documentation and runtime contracts have been persisted into 
 | Deliverable Type | File Path / Route | Description |
 | :--- | :--- | :--- |
 | **Architecture Report** | `SWAGGER_OPENAPI_IMPLEMENTATION_REPORT.md` | Comprehensive engineering report detailing transformer design and scope rules. |
-| **Endpoint Matrix** | `SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` | Exhaustive tabular taxonomy of all routes, verbs, rate quotas, and security schemas. |
+| **Endpoint Matrix** | `docs/api/openapi/SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` | Exhaustive tabular taxonomy of all routes, verbs, rate quotas, and security schemas. |
 | **Portal User Guide** | `SWAGGER_GATEWAY_PORTAL_GUIDE.md` | Practical manual for accessing the Universal Gateway Portal and registry route. |
 | **Testing & Script Guide** | `SWAGGER_CONTRACT_EXPORT_AND_TESTING_GUIDE.md` | Operational instructions for running tests, automation scripts, and interpreting CI results. |
 | **Security & Idempotency** | `SWAGGER_SECURITY_AND_IDEMPOTENCY_DOCUMENTATION.md` | Technical guide covering JWT authentication, tracing headers, idempotency keys, and rate limiting. |
@@ -66,3 +66,4 @@ All implementation documentation and runtime contracts have been persisted into 
 | **Contract Artifacts** | `contracts/openapi/{service}/v1/openapi.json` | 17 verified OpenAPI 3.0 specifications ready for client SDK generation and partner ingestion. |
 | **Test Suite Assembly** | `tests/architecture/Emcore.OpenApi.Tests` | xUnit structural compliance and automated contract verification test harness. |
 | **Portal Registry Endpoint**| `https://api.emcore.platform/api/v1/swagger/registry` | Machine-readable API JSON dictionary listing all active microservice contracts. |
+

@@ -5,7 +5,7 @@
 - **.NET Runtime & SDK**: `.NET 10.0.302` / `Host: 10.0.10`
 - **Build Configuration**: `Release` (with explicit clean and restore)
 - **Execution Timestamp**: `2026-08-05T21:13:00+05:30`
-- **TRX Results Storage**: `docs/verification/identity-access-final/test-results/`
+- **TRX Results Storage**: `docs/verification/archive/identity/identity-access-final/test-results/`
 
 ---
 
@@ -28,7 +28,7 @@
 ### 2.1 Identity Unit Tests (`Emcore.IdentityAccess.UnitTests`)
 **Execution Command**:
 ```powershell
-dotnet test services/identity-access/tests/Emcore.IdentityAccess.UnitTests/Emcore.IdentityAccess.UnitTests.csproj --configuration Release --no-build --logger "trx;LogFileName=identity-unit-tests.trx" --results-directory "docs/verification/identity-access-final/test-results"
+dotnet test services/identity-access/tests/Emcore.IdentityAccess.UnitTests/Emcore.IdentityAccess.UnitTests.csproj --configuration Release --no-build --logger "trx;LogFileName=identity-unit-tests.trx" --results-directory "docs/verification/archive/identity/identity-access-final/test-results"
 ```
 **Key Test Capabilities Verified**:
 - **Password Hasher Verification**: Validates `Pbkdf2PasswordHasher` produces different random salts across invocations and correctly implements constant-time verification.
@@ -41,7 +41,7 @@ dotnet test services/identity-access/tests/Emcore.IdentityAccess.UnitTests/Emcor
 ### 2.2 Identity Integration Tests (`Emcore.IdentityAccess.IntegrationTests`)
 **Execution Command**:
 ```powershell
-dotnet test services/identity-access/tests/Emcore.IdentityAccess.IntegrationTests/Emcore.IdentityAccess.IntegrationTests.csproj --configuration Release --no-build --logger "trx;LogFileName=identity-integration-tests.trx" --results-directory "docs/verification/identity-access-final/test-results"
+dotnet test services/identity-access/tests/Emcore.IdentityAccess.IntegrationTests/Emcore.IdentityAccess.IntegrationTests.csproj --configuration Release --no-build --logger "trx;LogFileName=identity-integration-tests.trx" --results-directory "docs/verification/archive/identity/identity-access-final/test-results"
 ```
 **List of 6 Executed Integration Tests**:
 1. `IdentityEndToEndTests.EndToEnd_User_Registration_Login_And_Session_Management`: Proves full lifecycle from registration -> JWT token issuance -> refresh token rotation -> password modification -> rejection of compromised/old credentials -> multi-device session logout.
@@ -56,7 +56,7 @@ dotnet test services/identity-access/tests/Emcore.IdentityAccess.IntegrationTest
 ### 2.3 Identity Architecture Tests (`Emcore.IdentityAccess.ArchitectureTests`)
 **Execution Command**:
 ```powershell
-dotnet test services/identity-access/tests/Emcore.IdentityAccess.ArchitectureTests/Emcore.IdentityAccess.ArchitectureTests.csproj --configuration Release --no-build --logger "trx;LogFileName=identity-architecture-tests.trx" --results-directory "docs/verification/identity-access-final/test-results"
+dotnet test services/identity-access/tests/Emcore.IdentityAccess.ArchitectureTests/Emcore.IdentityAccess.ArchitectureTests.csproj --configuration Release --no-build --logger "trx;LogFileName=identity-architecture-tests.trx" --results-directory "docs/verification/archive/identity/identity-access-final/test-results"
 ```
 **Verified Architectural Boundaries**:
 1. `Domain_Should_Not_DependOn_OtherLayers`: Asserts `Emcore.IdentityAccess.Domain` has zero references to application, infrastructure, API, or worker assemblies.
@@ -70,6 +70,7 @@ dotnet test services/identity-access/tests/Emcore.IdentityAccess.ArchitectureTes
 ### 2.4 Gateway & Full Solution Regression (`Emcore.Platform.slnx`)
 **Execution Command**:
 ```powershell
-dotnet test Emcore.Platform.slnx --configuration Release --no-build --logger "trx" --results-directory "docs/verification/identity-access-final/test-results/regression"
+dotnet test Emcore.Platform.slnx --configuration Release --no-build --logger "trx" --results-directory "docs/verification/archive/identity/identity-access-final/test-results/regression"
 ```
 **Outcome**: All 28 project test assemblies across building blocks, gateways, and business microservices (`CatalogListing`, `BiddingDeal`, `SubscriptionPayment`, `InventoryMedia`, `ConversationRealtime`, `AuditReporting`, `WorkflowScheduler`, `UserOrganization`, `SearchDiscovery`, `NotificationIntegration`) compiled and passed completely without a single failure or warning.
+

@@ -11,8 +11,8 @@ A comprehensive, zero-regression remediation of the EMCORE Platform OpenAPI/Swag
 ## 2. Baseline & Audit Preservation
 
 Prior to any modifications, a complete historical snapshot of the targeted implementation files was generated.
-- **Location:** `docs/verification/swagger-safe-remediation/baseline/`
-- **Manifest:** `docs/verification/swagger-safe-remediation/BASELINE_MANIFEST.md`
+- **Location:** `docs/verification/archive/swagger/swagger-safe-remediation/baseline/`
+- **Manifest:** `docs/verification/archive/swagger/swagger-safe-remediation/BASELINE_MANIFEST.md`
 - **Integrity:** SHA-256 hashes generated for all baseline artifacts.
 
 ## 3. Gateway Configuration & Launch Profiles
@@ -56,3 +56,4 @@ A complete regression execution was performed across the entire `Emcore.Platform
 - **OpenAPI Export:** 17 versioned JSON contracts successfully regenerated and validated against the compatibility checker with 0 regressions.
 
 **Conclusion:** The EMCORE Platform OpenAPI implementation is now secure, deterministic, accurately aligned with runtime capabilities, and fully protected against future unauthorized regressions.
+

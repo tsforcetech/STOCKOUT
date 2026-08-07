@@ -270,7 +270,7 @@ public class ServiceOpenApiIntegrationTests
             if (allowAnonMeta) authMeta = "AllowAnonymous";
 
             var httpMethodMeta = endpoint.Metadata.OfType<Microsoft.AspNetCore.Routing.HttpMethodMetadata>().FirstOrDefault();
-            var methods = httpMethodMeta?.HttpMethods ?? new[] { "ANY" };
+            var methods = httpMethodMeta?.HttpMethods ?? new[] { "UNCONSTRAINED_HTTP_METHOD" };
 
             var rateLimitMeta = endpoint.Metadata.OfType<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>().FirstOrDefault();
             var rateLimitPolicy = rateLimitMeta?.PolicyName;
@@ -284,7 +284,11 @@ public class ServiceOpenApiIntegrationTests
                     DisplayName = endpoint.DisplayName,
                     AuthMetadata = authMeta,
                     RateLimitPolicy = rateLimitPolicy,
-                    IsFramework = endpoint.RoutePattern.RawText?.Contains("health") == true || endpoint.RoutePattern.RawText?.Contains("metrics") == true || endpoint.RoutePattern.RawText?.Contains("swagger") == true || endpoint.RoutePattern.RawText?.Contains("openapi") == true
+                    IsFramework = endpoint.RoutePattern.RawText?.Contains("health") == true || 
+                                  endpoint.RoutePattern.RawText?.Contains("metrics") == true || 
+                                  endpoint.RoutePattern.RawText?.Contains("swagger") == true || 
+                                  endpoint.RoutePattern.RawText?.Contains("openapi") == true ||
+                                  endpoint.RoutePattern.RawText?.Contains("/api/v1/system/version") == true
                 });
             }
         }

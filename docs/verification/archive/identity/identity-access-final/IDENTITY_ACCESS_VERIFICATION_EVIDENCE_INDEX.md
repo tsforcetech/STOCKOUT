@@ -1,6 +1,6 @@
 # EMCORE Identity & Access — Verification Evidence & Artifact Index
 
-**Verification Directory**: `docs/verification/identity-access-final/`  
+**Verification Directory**: `docs/verification/archive/identity/identity-access-final/`  
 **Generated Timestamp**: `2026-08-05T21:25:00+05:30`  
 **Purpose**: Central cryptographic manifest indexing every documentary evidence report, test execution log, database validation log, and automated TRX test run associated with the EMCORE Identity & Access acceptance audit.
 
@@ -30,3 +30,4 @@
 | `test-results/identity-architecture-tests.trx` | `Emcore.IdentityAccess.ArchitectureTests.csproj`| 5 Total, 5 Passed, 0 Failed | `dotnet test ... --logger "trx;LogFileName=identity-architecture-tests.trx"`|2026-08-05 15:42:39Z | `039B11723A34C9EABE49EB23EA51DBE8FB9DA121BF1670EC1A4B0EF55E4B1CBD` |
 | `test-results/identity-gateway-tests.trx` | `Emcore.ApiGateway.Tests.csproj` | 16 Total, 16 Passed, 0 Failed | `dotnet test ... --logger "trx;LogFileName=identity-gateway-tests.trx"` | 2026-08-05 15:42:53Z | `732CBEDE287F8A937A763215AF2A32BD4F1B6443B401D397E166D07EB95B34C8` |
 | `test-results/regression/*.trx` | Entire solution (`Emcore.Platform.slnx` 28 test suites) | 122 Total, 122 Passed, 0 Failed | `dotnet test Emcore.Platform.slnx --logger "trx"` | 2026-08-05 15:43:52Z | 28 individual project TRX reports preserved in `regression/`. |
+

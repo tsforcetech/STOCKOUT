@@ -1,6 +1,6 @@
 # EMCORE Swagger/OpenAPI — Safe Remediation Baseline Manifest
 
-**Document Location:** `docs/verification/swagger-safe-remediation/BASELINE_MANIFEST.md`  
+**Document Location:** `docs/verification/archive/swagger/swagger-safe-remediation/BASELINE_MANIFEST.md`  
 **Purpose:** Cryptographic verification baseline and non-regression impact evaluation for implementation files targeted during safe remediation.  
 **Created Timestamp:** 2026-08-06T18:38:00+05:30  
 
@@ -21,6 +21,7 @@
 
 ## Baseline Integrity Affirmation
 
-1. **Exact File Copies Preserved:** True identical copies of all above files have been saved to `docs/verification/swagger-safe-remediation/baseline/` with relative directory structures preserved.
+1. **Exact File Copies Preserved:** True identical copies of all above files have been saved to `docs/verification/archive/swagger/swagger-safe-remediation/baseline/` with relative directory structures preserved.
 2. **Zero Secrets Copied:** No private keys, connection strings, user-secrets, certificates, or production secrets exist in these source configuration or C# source files.
 3. **Zero Business Behavior Changes Permitted:** Every planned change operates strictly within presentation documentation metadata, test suites, or safe development/production interface controls. No business domain logic, database queries, or runtime API route execution will be altered.
+

@@ -399,7 +399,7 @@ Inspection of generated files under `contracts/openapi/` clarifies why `emcore-i
 ### Architectural Root Cause: Contract Size Variance
 * **Identity & Access (~409 KB):** Contains comprehensive business DTOs, complex validation schema chains, MFA recovery primitives, step-up workflows, administrative controls, and OAuth2/JWT security definitions.
 * **Downstream Domain APIs (~10.6 KB):** Presently implemented as clean architecture structural baselines. In actual repository source code, these projects register domain repositories, CQRS application commands, and architecture rule tests, but their HTTP API presentation layers currently expose only the core system diagnostic endpoints (`/system/version`, `/health/live`, `/health/ready`).
-* **Conflict Notice:** Historical reports (e.g., `SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md`) describing endpoints like `POST /api/v1/listings`, `POST /api/v1/deals/{id}/bids`, or `POST /api/v1/inspections/order` represent **planned target-state architecture** rather than active C# runtime controllers.
+* **Conflict Notice:** Historical reports (e.g., `docs/api/openapi/SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md`) describing endpoints like `POST /api/v1/listings`, `POST /api/v1/deals/{id}/bids`, or `POST /api/v1/inspections/order` represent **planned target-state architecture** rather than active C# runtime controllers.
 
 ---
 
@@ -601,7 +601,7 @@ A reconciliation table evaluating all existing repository markdown documentation
 | `SWAGGER_SECURITY_AND_IDEMPOTENCY_DOCUMENTATION.md`| Security schemes & idempotency rules | Yes | No | Claims active idempotency caching; actual codebase is No-Op stub| Yes |
 | `SWAGGER_CONTRACT_EXPORT_AND_TESTING_GUIDE.md`| Guide for contract generation scripts | Yes | Yes | Accurately explains `Generate-OpenApi.ps1` and testing parameters | Yes |
 | `SWAGGER_GATEWAY_PORTAL_GUIDE.md` | Instructions for YARP central UI | Yes | Yes | Correctly documents central UI dropdowns and Try-It-Out ingress | Yes |
-| `SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` | Comprehensive table of platform endpoints | Yes | No | Lists planned architectural domain routes not present in runtime | Yes |
+| `docs/api/openapi/SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` | Comprehensive table of platform endpoints | Yes | No | Lists planned architectural domain routes not present in runtime | Yes |
 | `SWAGGER_OPENAPI_IMPLEMENTATION_REPORT.md` | Comprehensive architectural overview | Yes | No | Overstates active middleware (idempotency, error handlers) | Yes |
 | `OPENAPI_ENDPOINT_COVERAGE_REPORT.md`| Report claiming 100% endpoint coverage | Yes | Yes | Accurate mathematically: 100% of active runtime routes are in Swagger| Yes |
 | `SWAGGER_GATEWAY_LIVE_VERIFICATION_RESULTS.md`| Output evidence from live development script| Yes | Yes | Accurately records successful proxying of openapi.json documents | Yes |
@@ -676,7 +676,7 @@ The EMCORE Platform Swagger/OpenAPI architecture demonstrates a pristine enginee
 To assist future evolutionary phases without taking action during this read-only audit, findings are structured into an actionable, categorized remediation roadmap.
 
 ### A. Documentation-Only Corrections
-1. **Route Reconciliation:** Update `SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` and related guides to reflect actual Identity runtime routes (`/api/v1/auth/register`, `/api/v1/auth/token/refresh`, split `/stepup/` endpoints, and `/health/live` vs `/health/ready`).
+1. **Route Reconciliation:** Update `docs/api/openapi/SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` and related guides to reflect actual Identity runtime routes (`/api/v1/auth/register`, `/api/v1/auth/token/refresh`, split `/stepup/` endpoints, and `/health/live` vs `/health/ready`).
 2. **Domain Architecture Disclosure:** Annotate documented domain endpoints (e.g., in Catalog, Bidding, Inspection) with explicit notes clarifying that these represent *Planned Architecture Targets* awaiting domain controller implementation.
 3. **Identifier Taxonomy:** Correct occurrences of "UUID/GUID" in organization context descriptions to state *Opaque ULID String Identifiers*.
 
@@ -756,7 +756,7 @@ The following source, configuration, and documentation files are recommended for
 * `building-blocks/Emcore.BuildingBlocks.Idempotency/IdempotencyTypes.cs` — Replace `NoOpIdempotencyStore` with an active Redis or persistence-backed idempotency lock service.
 * `building-blocks/Emcore.BuildingBlocks.Api/ApiTypes.cs` — Implement active ASP.NET Core Problem Details error formatting within `GlobalExceptionHandler`.
 * `gateways/Emcore.ApiGateway/Extensions/GatewayExtensions.cs` — Add optional emission of `X-RateLimit-Limit`, `Remaining`, and `Reset` headers during rate limiter filtering.
-* `SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` & `SWAGGER_CONFIGURATION_REFERENCE.md` — Update narrative text to reconcile identified route and configuration conflicts with actual codebase runtime reality.
+* `docs/api/openapi/SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX.md` & `SWAGGER_CONFIGURATION_REFERENCE.md` — Update narrative text to reconcile identified route and configuration conflicts with actual codebase runtime reality.
 
 ## Files That Must Not Be Modified
 
@@ -777,3 +777,4 @@ To enforce non-regression requirements and preserve verified platform behavior, 
 
 ---
 *End of Verification Package. Consolidated evidence ready for review handoff.*
+
