@@ -11,7 +11,8 @@ param(
     [string]$BaselineDir = "docs/verification/swagger-safe-remediation/baseline-contracts",
     [string]$CurrentDir = "contracts/openapi",
     [switch]$AllowBreakingChanges = $false,
-    [switch]$EstablishBaseline = $false
+    [switch]$EstablishBaseline = $false,
+    [switch]$ForceBaselineOverwrite = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,10 +27,20 @@ if (-not (Test-Path $CurrentDir)) {
     exit 1
 }
 
+$currentFilesCheck = Get-ChildItem -Path $CurrentDir -Filter "*.json" -Recurse
+if ($null -eq $currentFilesCheck -or $currentFilesCheck.Count -eq 0) {
+    Write-Host "[FAIL] Current directory $CurrentDir is empty. Contract generation may have failed." -ForegroundColor Red
+    exit 1
+}
+
 # If -EstablishBaseline is specified, create or overwrite the baseline
 if ($EstablishBaseline) {
-    Write-Host "[WARNING] -EstablishBaseline specified. This will create or overwrite the baseline at '$BaselineDir'. This should NEVER be run automatically in CI." -ForegroundColor Yellow
+    Write-Host "[WARNING] -EstablishBaseline specified. This should NEVER be run automatically in CI." -ForegroundColor Yellow
     if (Test-Path $BaselineDir) {
+        if (-not $ForceBaselineOverwrite) {
+            Write-Host "[FAIL] Baseline directory '$BaselineDir' already exists. Use -ForceBaselineOverwrite to explicitly overwrite it." -ForegroundColor Red
+            exit 1
+        }
         Write-Host "Existing baseline directory found. Overwriting..." -ForegroundColor Yellow
         Remove-Item -Recurse -Force $BaselineDir
     }
@@ -52,6 +63,12 @@ if ($EstablishBaseline) {
     exit 0
 } elseif (-not (Test-Path $BaselineDir)) {
     Write-Host "[FAIL] Baseline directory '$BaselineDir' not found and -EstablishBaseline was not specified. Cannot verify compatibility without a baseline." -ForegroundColor Red
+    exit 1
+}
+
+$baselineFilesCheck = Get-ChildItem -Path $BaselineDir -Filter "*.json" -Recurse
+if ($null -eq $baselineFilesCheck -or $baselineFilesCheck.Count -eq 0) {
+    Write-Host "[FAIL] Baseline directory '$BaselineDir' is empty. Missing valid contracts." -ForegroundColor Red
     exit 1
 }
 
@@ -156,6 +173,22 @@ foreach ($baseFile in $baselineFiles) {
                         }
                         if ($null -eq $match) {
                             Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' removed from '$method.ToUpper() $route'."
+                        } else {
+                            if ($null -ne $oldParam.schema -and $null -ne $match.schema) {
+                                if ($oldParam.schema.type -ne $match.schema.type -and $null -ne $oldParam.schema.type) {
+                                    Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' type changed from '$($oldParam.schema.type)' to '$($match.schema.type)'."
+                                }
+                                if ($oldParam.schema.format -ne $match.schema.format -and $null -ne $oldParam.schema.format) {
+                                    Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' format changed from '$($oldParam.schema.format)' to '$($match.schema.format)'."
+                                }
+                                if ($null -ne $oldParam.schema.enum) {
+                                    foreach ($val in $oldParam.schema.enum) {
+                                        if ($null -eq $match.schema.enum -or -not ($match.schema.enum -contains $val)) {
+                                            Report-BreakingChange $serviceName "Parameter '$($oldParam.name)' in '$($oldParam.in)' removed enum value '$val'."
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -208,6 +241,15 @@ foreach ($baseFile in $baselineFiles) {
                 if ($null -ne $oldOp.requestBody) {
                     if ($null -eq $newOp.Value.requestBody) {
                         Report-BreakingChange $serviceName "Request body was completely removed from '$method.ToUpper() $route'."
+                    } else {
+                        if ($null -ne $oldOp.requestBody.content) {
+                            foreach ($mediaItem in $oldOp.requestBody.content.PSObject.Properties) {
+                                $mediaType = $mediaItem.Name
+                                if ($null -eq $newOp.Value.requestBody.content.PSObject.Properties[$mediaType]) {
+                                    Report-BreakingChange $serviceName "Request media type '$mediaType' removed from '$method.ToUpper() $route'."
+                                }
+                            }
+                        }
                     }
                 }
                 if ($null -ne $newOp.Value.requestBody -and $newOp.Value.requestBody.required -eq $true) {

@@ -1,0 +1,354 @@
+[
+  {
+    "Route": "/openapi/{documentName}.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /openapi/{documentName}.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/{documentName}/swagger.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /swagger/{documentName}/swagger.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/api-gateway/{documentName}/openapi.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /swagger/services/api-gateway/{documentName}/openapi.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/{documentName}/swagger.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /swagger/{documentName}/swagger.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/health/live",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /health/live",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": "HealthPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/health/ready",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /health/ready",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": "HealthPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/health",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /health",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": "HealthPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/system/version",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/system/version",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/swagger/registry",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/swagger/registry",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/docs",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /docs",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/users/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "users-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/public-bff/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-public-bff",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/conversation-realtime/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-conversation-realtime",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/identity-access/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-identity-access",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/deals/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "bidding-deal-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/mcp-gateway/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-mcp-gateway",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/public/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "public-bff-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/search/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "search-discovery-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/audit-reporting/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-audit-reporting",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/inspection-trust/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-inspection-trust",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/user-organization/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-user-organization",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/realtime/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "realtime-gateway-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/workflow-scheduler/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-workflow-scheduler",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/bidding-deal/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-bidding-deal",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/inventory/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "inventory-media-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/catalog/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "catalog-listing-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/webhooks/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "notification-integration-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/audit/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "audit-reporting-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/workflows/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "workflow-scheduler-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/portal/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "portal-bff-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/subscription-payment/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-subscription-payment",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/identity/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "identity-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/mcp/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "mcp-gateway-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/payments/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "subscription-payment-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/catalog-listing/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-catalog-listing",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/auth/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "auth-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "LoginOtpPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/realtime-gateway/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-realtime-gateway",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/portal-bff/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-portal-bff",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/notification-integration/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-notification-integration",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/services/search-discovery/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-search-discovery",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  },
+  {
+    "Route": "/api/v1/organizations/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "organizations-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/inspections/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "inspection-trust-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/messages/{**catch-all}",
+    "Method": "ANY",
+    "DisplayName": "conversation-realtime-route",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AuthenticatedPolicy",
+    "IsFramework": false
+  },
+  {
+    "Route": "/swagger/services/inventory-media/v1/openapi.json",
+    "Method": "ANY",
+    "DisplayName": "swagger-inventory-media",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": "AnonymousPolicy",
+    "IsFramework": true
+  }
+]

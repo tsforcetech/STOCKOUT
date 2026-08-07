@@ -1,0 +1,37 @@
+{
+    "openapi":  "3.0.1",
+    "paths":  {
+
+              },
+    "components":  {
+                       "schemas":  {
+                                       "User":  {
+                                                    "type":  "object",
+                                                    "properties":  {
+                                                                       "id":  {
+                                                                                  "type":  "string"
+                                                                              },
+                                                                       "name":  {
+                                                                                    "type":  "string"
+                                                                                },
+                                                                       "role":  {
+                                                                                    "$ref":  "#/components/schemas/UserRole"
+                                                                                }
+                                                                   }
+                                                },
+                                       "UserRole":  {
+                                                        "type":  "string",
+                                                        "enum":  [
+                                                                     "Admin",
+                                                                     "User"
+                                                                 ]
+                                                    }
+                                   },
+                       "securitySchemes":  {
+                                               "Bearer":  {
+                                                              "type":  "http",
+                                                              "scheme":  "bearer"
+                                                          }
+                                           }
+                   }
+}

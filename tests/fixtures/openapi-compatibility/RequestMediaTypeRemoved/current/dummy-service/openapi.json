@@ -1,0 +1,85 @@
+{
+    "openapi":  "3.0.1",
+    "paths":  {
+                  "/api/test":  {
+                                    "get":  {
+                                                "summary":  "Old summary",
+                                                "description":  "Old description",
+                                                "parameters":  [
+                                                                   {
+                                                                       "name":  "oldParam",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "type":  "string",
+                                                                                      "format":  "uuid",
+                                                                                      "enum":  [
+                                                                                                   "A",
+                                                                                                   "B"
+                                                                                               ]
+                                                                                  }
+                                                                   }
+                                                               ],
+                                                "responses":  {
+                                                                  "200":  {
+                                                                              "description":  "Success",
+                                                                              "content":  {
+                                                                                              "application/json":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/User"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                          }
+                                                                          }
+                                                              },
+                                                "security":  [
+
+                                                             ]
+                                            },
+                                    "post":  {
+                                                 "requestBody":  {
+                                                                     "required":  false,
+                                                                     "content":  {
+
+                                                                                 }
+                                                                 },
+                                                 "responses":  {
+                                                                   "200":  {
+                                                                               "description":  "ok"
+                                                                           }
+                                                               }
+                                             }
+                                }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "User":  {
+                                                    "type":  "object",
+                                                    "properties":  {
+                                                                       "id":  {
+                                                                                  "type":  "string"
+                                                                              },
+                                                                       "name":  {
+                                                                                    "type":  "string"
+                                                                                },
+                                                                       "role":  {
+                                                                                    "$ref":  "#/components/schemas/UserRole"
+                                                                                }
+                                                                   }
+                                                },
+                                       "UserRole":  {
+                                                        "type":  "string",
+                                                        "enum":  [
+                                                                     "Admin",
+                                                                     "User"
+                                                                 ]
+                                                    }
+                                   },
+                       "securitySchemes":  {
+                                               "Bearer":  {
+                                                              "type":  "http",
+                                                              "scheme":  "bearer"
+                                                          }
+                                           }
+                   }
+}

@@ -232,4 +232,82 @@ public class ServiceOpenApiIntegrationTests
             }
         }
     }
+
+    [Theory]
+    [InlineData("emcore-api-gateway", "Emcore.ApiGateway")]
+    [InlineData("emcore-public-bff", "Emcore.PublicBff")]
+    [InlineData("emcore-portal-bff", "Emcore.PortalBff")]
+    [InlineData("emcore-mcp-gateway", "Emcore.McpGateway")]
+    [InlineData("emcore-realtime-gateway", "Emcore.RealtimeGateway")]
+    [InlineData("emcore-identity-access-api", "Emcore.IdentityAccess.Api")]
+    [InlineData("emcore-user-organization-api", "Emcore.UserOrganization.Api")]
+    [InlineData("emcore-catalog-listing-api", "Emcore.CatalogListing.Api")]
+    [InlineData("emcore-inventory-media-api", "Emcore.InventoryMedia.Api")]
+    [InlineData("emcore-search-discovery-api", "Emcore.SearchDiscovery.Api")]
+    [InlineData("emcore-bidding-deal-api", "Emcore.BiddingDeal.Api")]
+    [InlineData("emcore-inspection-trust-api", "Emcore.InspectionTrust.Api")]
+    [InlineData("emcore-subscription-payment-api", "Emcore.SubscriptionPayment.Api")]
+    [InlineData("emcore-conversation-realtime-api", "Emcore.ConversationRealtime.Api")]
+    [InlineData("emcore-notification-integration-api", "Emcore.NotificationIntegration.Api")]
+    [InlineData("emcore-workflow-scheduler-api", "Emcore.WorkflowScheduler.Api")]
+    [InlineData("emcore-audit-reporting-api", "Emcore.AuditReporting.Api")]
+    public void ExportEndpointDataSource(string serviceName, string assemblyName)
+    {
+        var assembly = Assembly.Load(assemblyName);
+        var programType = assembly.GetTypes().FirstOrDefault(t => t.Name == "Program") ?? assembly.EntryPoint?.DeclaringType!;
+        var factoryType = typeof(WebApplicationFactory<>).MakeGenericType(programType);
+        using var factory = (System.IDisposable)System.Activator.CreateInstance(factoryType)!;
+        var appServices = (System.IServiceProvider)factoryType.GetProperty("Services")!.GetValue(factory)!;
+
+        var endpointDataSource = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>(appServices);
+        var endpoints = endpointDataSource.Endpoints.OfType<Microsoft.AspNetCore.Routing.RouteEndpoint>();
+
+        var endpointList = new List<object>();
+        foreach (var endpoint in endpoints)
+        {
+            var authMeta = endpoint.Metadata.OfType<Microsoft.AspNetCore.Authorization.IAuthorizeData>().Any() ? "Authorize" : "AllowAnonymous";
+            var allowAnonMeta = endpoint.Metadata.OfType<Microsoft.AspNetCore.Authorization.IAllowAnonymous>().Any();
+            if (allowAnonMeta) authMeta = "AllowAnonymous";
+
+            var httpMethodMeta = endpoint.Metadata.OfType<Microsoft.AspNetCore.Routing.HttpMethodMetadata>().FirstOrDefault();
+            var methods = httpMethodMeta?.HttpMethods ?? new[] { "ANY" };
+
+            var rateLimitMeta = endpoint.Metadata.OfType<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>().FirstOrDefault();
+            var rateLimitPolicy = rateLimitMeta?.PolicyName;
+
+            foreach (var method in methods)
+            {
+                endpointList.Add(new
+                {
+                    Route = endpoint.RoutePattern.RawText,
+                    Method = method,
+                    DisplayName = endpoint.DisplayName,
+                    AuthMetadata = authMeta,
+                    RateLimitPolicy = rateLimitPolicy,
+                    IsFramework = endpoint.RoutePattern.RawText?.Contains("health") == true || endpoint.RoutePattern.RawText?.Contains("metrics") == true || endpoint.RoutePattern.RawText?.Contains("swagger") == true || endpoint.RoutePattern.RawText?.Contains("openapi") == true
+                });
+            }
+        }
+
+        var outputRoot = Environment.GetEnvironmentVariable("EMCORE_OPENAPI_EXPORT_PATH");
+        if (string.IsNullOrWhiteSpace(outputRoot))
+        {
+            var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+            while (currentDir != null && !File.Exists(Path.Combine(currentDir.FullName, "Emcore.Platform.slnx")))
+            {
+                currentDir = currentDir.Parent;
+            }
+            outputRoot = currentDir != null
+                ? Path.Combine(currentDir.FullName, "contracts", "endpoints")
+                : Path.Combine(Directory.GetCurrentDirectory(), "contracts", "endpoints");
+        }
+
+        var targetDir = Path.Combine(outputRoot, serviceName);
+        Directory.CreateDirectory(targetDir);
+
+        var targetFilePath = Path.Combine(targetDir, "endpoints.json");
+        var formattedJson = JsonSerializer.Serialize(endpointList, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(targetFilePath, formattedJson);
+        _output.WriteLine($"Saved endpoint data to: {targetFilePath}");
+    }
 }

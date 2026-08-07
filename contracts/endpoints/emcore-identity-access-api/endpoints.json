@@ -1,0 +1,338 @@
+[
+  {
+    "Route": "/openapi/{documentName}.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /openapi/{documentName}.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/swagger/{documentName}/swagger.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /swagger/{documentName}/swagger.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/health/live",
+    "Method": "ANY",
+    "DisplayName": "Health checks",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/health/ready",
+    "Method": "ANY",
+    "DisplayName": "Health checks",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/healthz",
+    "Method": "ANY",
+    "DisplayName": "Health checks",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": true
+  },
+  {
+    "Route": "/.well-known/jwks.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /.well-known/jwks.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/.well-known/jwks.json",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/auth/.well-known/jwks.json",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/register",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/register",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/verification/email/send",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/verification/email/send",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/verification/email/confirm",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/verification/email/confirm",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/verification/mobile/send",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/verification/mobile/send",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/verification/mobile/confirm",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/verification/mobile/confirm",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/login",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/login",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/token/refresh",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/token/refresh",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/logout",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/logout",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/logout-all",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/logout-all",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/password/forgot",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/password/forgot",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/password/reset",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/password/reset",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/password/change",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/password/change",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/sessions",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/auth/sessions",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/sessions/{sessionId}",
+    "Method": "DELETE",
+    "DisplayName": "HTTP: DELETE /api/v1/auth/sessions/{sessionId}",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/account/status",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/auth/account/status",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/me",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/identity/me",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/mfa/verify",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/mfa/verify",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/mfa/register",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/mfa/register",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/mfa/confirm",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/mfa/confirm",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/stepup/initiate",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/stepup/initiate",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/stepup/verify",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/stepup/verify",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/auth/token",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/auth/token",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/service-clients/register",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/service-clients/register",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/service-clients/{id}/rotate",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/service-clients/{id}/rotate",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/service-clients/credentials/revoke",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/service-clients/credentials/revoke",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/service-clients/{id}/credentials",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/identity/service-clients/{id}/credentials",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/admin/users/status",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/admin/users/status",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/admin/users/{id}/status",
+    "Method": "PUT",
+    "DisplayName": "HTTP: PUT /api/v1/identity/admin/users/{id}/status",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/register",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/register",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/verify",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/verify",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/resend-verification",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/resend-verification",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/login",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/login",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/refresh",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/refresh",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/logout",
+    "Method": "POST",
+    "DisplayName": "HTTP: POST /api/v1/identity/logout",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  },
+  {
+    "Route": "/api/v1/identity/users/{id}",
+    "Method": "GET",
+    "DisplayName": "HTTP: GET /api/v1/identity/users/{id}",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "IsFramework": false
+  }
+]

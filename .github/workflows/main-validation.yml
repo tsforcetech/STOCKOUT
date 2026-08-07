@@ -28,6 +28,9 @@ jobs:
       run: |
         chmod +x ./scripts/Generate-OpenApi.sh
         ./scripts/Generate-OpenApi.sh
+    - name: Run OpenAPI Compatibility Fixtures
+      shell: pwsh
+      run: ./scripts/Test-OpenApiCompatibilityFixtures.ps1
     - name: Check OpenAPI Contract Compatibility
       shell: pwsh
       run: ./scripts/Check-OpenApiCompatibility.ps1 -BaselineDir "docs/verification/swagger-final-remediation-v5/03-contract-governance/baseline-contracts" -CurrentDir "contracts/openapi"

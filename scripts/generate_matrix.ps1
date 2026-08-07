@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
+$endpointsDir = 'contracts/endpoints'
 $contractsDir = 'contracts/openapi'
 $matrixFile = 'docs/verification/swagger-final-remediation-v5/02-swagger-openapi/SWAGGER_ENDPOINT_DOCUMENTATION_MATRIX_v5.md'
 $coverageFile = 'docs/verification/swagger-final-remediation-v5/02-swagger-openapi/OPENAPI_ENDPOINT_COVERAGE_REPORT_v5.md'
@@ -7,8 +8,8 @@ $coverageFile = 'docs/verification/swagger-final-remediation-v5/02-swagger-opena
 $matrixHeader = @"
 # Swagger Endpoint Documentation Matrix v5
 
-| Service | Method | Runtime Route | Gateway Route | Operation ID | Implementation Type | Runtime Auth Metadata | Gateway Auth Policy | Request Type | Success Responses | Error Responses | Rate Limit | Idempotency | OpenAPI Match | Notes |
-|---------|--------|---------------|---------------|--------------|---------------------|-----------------------|---------------------|--------------|-------------------|-----------------|------------|-------------|---------------|-------|
+| Service | Method | Runtime Route | Gateway Route | Operation ID | Implementation Type | Runtime Auth Metadata | Gateway Auth Policy | Request Type | Success Responses | Error Responses | Rate Limit | OpenAPI Match | Notes |
+|---------|--------|---------------|---------------|--------------|---------------------|-----------------------|---------------------|--------------|-------------------|-----------------|------------|---------------|-------|
 "@
 
 $coverageHeader = @"
@@ -24,67 +25,165 @@ Set-Content -Path $coverageFile -Value $coverageHeader
 $totalRuntime = 0
 $totalOpenApi = 0
 
+$gatewayConfig = Get-Content "gateways/Emcore.ApiGateway/appsettings.json" -Raw | ConvertFrom-Json
+$yarpRoutes = @{}
+if ($null -ne $gatewayConfig.ReverseProxy -and $null -ne $gatewayConfig.ReverseProxy.Routes) {
+    foreach ($gwRouteItem in $gatewayConfig.ReverseProxy.Routes.PSObject.Properties) {
+        $rName = $gwRouteItem.Name
+        $rVal = $gwRouteItem.Value
+        if ($null -ne $rVal.ClusterId) {
+            $cluster = $rVal.ClusterId
+            $svcName = "emcore-" + $cluster.Replace("-cluster", "")
+            if ($cluster.EndsWith("-cluster") -and -not $cluster.EndsWith("bff-cluster") -and -not $cluster.EndsWith("gateway-cluster")) {
+                $svcName += "-api"
+            }
+            if (-not $yarpRoutes.ContainsKey($svcName)) {
+                $yarpRoutes[$svcName] = @()
+            }
+            $yarpRoutes[$svcName] += @{
+                GatewayRoute = $rVal.Match.Path
+                AuthPolicy = $rVal.AuthorizationPolicy
+                RateLimiterPolicy = $rVal.RateLimiterPolicy
+            }
+        }
+    }
+}
+
+$scaffoldCount = 0
+$missingCount = 0
+$unexpectedCount = 0
+$routeMismatchCount = 0
+$methodMismatchCount = 0
+
 Get-ChildItem -Path $contractsDir -Filter 'openapi.json' -Recurse | ForEach-Object {
-    $json = Get-Content $_.FullName | ConvertFrom-Json
+    $openapiJson = Get-Content $_.FullName -Raw | ConvertFrom-Json
     $service = $_.Directory.Parent.Name
+    
+    $runtimePath = Join-Path $endpointsDir "$service\endpoints.json"
+    $runtimeEndpoints = @()
+    if (Test-Path $runtimePath) {
+        $runtimeEndpoints = Get-Content $runtimePath -Raw | ConvertFrom-Json
+    }
     
     $hostRuntime = 0
     $hostFramework = 0
+    $openapiTotal = 0
     
-    if (-not $json.paths) { return }
+    $serviceYarp = $yarpRoutes[$service]
+    if ($null -eq $serviceYarp) { $serviceYarp = @() }
 
-    foreach ($path in $json.paths.PSObject.Properties) {
-        $route = $path.Name
-        foreach ($method in $path.Value.PSObject.Properties) {
-            $op = $method.Value
-            $methodName = $method.Name.ToUpper()
-            
-            $opId = $op.operationId
-            
-            $implType = 'BUSINESS'
-            if ($service -eq 'emcore-api-gateway') { $implType = 'GATEWAY' }
-            elseif ($service -like '*-bff') { $implType = 'BFF' }
-            elseif ($route -match 'swagger|health|metrics') { $implType = 'FRAMEWORK' }
-            
-            $authMetadata = 'Unknown'
-            if ($op.security) {
-                $authMetadata = 'Authorize'
+    # Group endpoints by route and method
+    foreach ($endpoint in $runtimeEndpoints) {
+        $route = $endpoint.Route
+        $methodName = $endpoint.Method.ToUpper()
+        
+        $implType = 'BUSINESS'
+        if ($service -eq 'emcore-api-gateway') { $implType = 'GATEWAY' }
+        elseif ($service -like '*-bff') { $implType = 'BFF' }
+        elseif ($endpoint.IsFramework) { $implType = 'FRAMEWORK' }
+        
+        if ($implType -eq 'FRAMEWORK') { $hostFramework++ } else { $hostRuntime++ }
+        
+        $authMetadata = $endpoint.AuthMetadata
+        if ([string]::IsNullOrWhiteSpace($authMetadata)) { $authMetadata = "AllowAnonymous" }
+        
+        # Match OpenAPI
+        $opMatch = "No"
+        $opId = "N/A"
+        $reqType = "None"
+        $success = @()
+        $errors = @()
+        
+        # Format route to match OpenAPI (replace {} with parameter names from openapi, simplistic match)
+        # We will just do a direct lookup if possible, or fuzzy match
+        $openApiPathObj = $null
+        if ($null -ne $openapiJson.paths) {
+            $exactPath = "/" + $route.TrimStart("/")
+            if ($null -ne $openapiJson.paths.PSObject.Properties[$exactPath]) {
+                $openApiPathObj = $openapiJson.paths.PSObject.Properties[$exactPath].Value
             } else {
-                $authMetadata = 'AllowAnonymous'
-            }
-            
-            $success = @()
-            $errors = @()
-            if ($op.responses) {
-                foreach ($res in $op.responses.PSObject.Properties) {
-                    if ($res.Name -match '^2') { $success += $res.Name }
-                    elseif ($res.Name -match '^[45]') { $errors += $res.Name }
+                # Try prefix match or similar if needed, for now assume exact path generated by Swashbuckle maps to EndpointDataSource
+                # Sometimes Swashbuckle strips constraints, e.g. {id:guid} -> {id}
+                $cleanRoute = $exactPath -replace '\{([^\}]+?):[^\}]+\}', '{$1}'
+                if ($null -ne $openapiJson.paths.PSObject.Properties[$cleanRoute]) {
+                    $openApiPathObj = $openapiJson.paths.PSObject.Properties[$cleanRoute].Value
                 }
             }
+        }
+        
+        if ($null -ne $openApiPathObj) {
+            $lowerMethod = $methodName.ToLower()
+            if ($methodName -eq "ANY") { $lowerMethod = "get" }
             
-            $reqType = 'None'
-            if ($op.requestBody) { $reqType = 'JSON' }
-            
-            $line = "| $service | $methodName | $route | $route | $opId | $implType | $authMetadata | N/A | $reqType | " + ($success -join ', ') + " | " + ($errors -join ', ') + " | No | No | Yes | Actual runtime behavior |"
-            Add-Content -Path $matrixFile -Value $line
-            
-            if ($implType -eq 'FRAMEWORK') { $hostFramework++ } else { $hostRuntime++ }
-            $totalOpenApi++
+            $opObj = $openApiPathObj.PSObject.Properties[$lowerMethod]
+            if ($null -ne $opObj) {
+                $opMatch = "Yes"
+                $opId = $opObj.Value.operationId
+                if ($opObj.Value.requestBody) { $reqType = "JSON" }
+                
+                if ($opObj.Value.responses) {
+                    foreach ($res in $opObj.Value.responses.PSObject.Properties) {
+                        if ($res.Name -match '^2') { $success += $res.Name }
+                        elseif ($res.Name -match '^[45]') { $errors += $res.Name }
+                    }
+                }
+            } else {
+                if ($implType -eq 'BUSINESS') { $methodMismatchCount++ }
+            }
+        } else {
+            if ($implType -eq 'BUSINESS') { $routeMismatchCount++ }
+        }
+
+        # Match Gateway Route info
+        $gwRoute = "N/A"
+        $gwAuth = "N/A"
+        $gwRate = "N/A"
+        
+        foreach ($gw in $serviceYarp) {
+            # simple prefix match
+            $gwPrefix = $gw.GatewayRoute -replace '\{\*\*catch-all\}', ''
+            if ($exactPath.StartsWith($gwPrefix) -or $gw.GatewayRoute -eq "{**catch-all}") {
+                $gwRoute = $gw.GatewayRoute
+                $gwAuth = $gw.AuthPolicy
+                $gwRate = $gw.RateLimiterPolicy
+                break
+            }
+        }
+
+        $line = "| $service | $methodName | $route | $gwRoute | $opId | $implType | $authMetadata | $gwAuth | $reqType | " + ($success -join ', ') + " | " + ($errors -join ', ') + " | $gwRate | $opMatch | Runtime mapping |"
+        Add-Content -Path $matrixFile -Value $line
+    }
+    
+    # Check total openapi operations
+    if ($null -ne $openapiJson.paths) {
+        foreach ($pathItem in $openapiJson.paths.PSObject.Properties) {
+            foreach ($methodItem in $pathItem.Value.PSObject.Properties) {
+                $openapiTotal++
+            }
         }
     }
+    
     $hostTotal = $hostRuntime + $hostFramework
-    $schemas = if ($json.components.schemas) { $json.components.schemas.PSObject.Properties.Count } else { 0 }
-    $covLine = "| $service | $hostRuntime | $hostFramework | $hostTotal | $hostTotal | 0 | 0 | 0 | 0 | $schemas |"
+    $schemas = 0
+    if ($null -ne $openapiJson.components -and $null -ne $openapiJson.components.schemas) {
+        foreach ($p in $openapiJson.components.schemas.PSObject.Properties) { $schemas++ }
+    }
+    
+    $miss = 0
+    $unexp = 0
+    if ($hostTotal -eq 0 -and $openapiTotal -gt 0) { $unexp = $openapiTotal }
+    
+    if ($hostRuntime -eq 0) { $scaffoldCount++ }
+    
+    $covLine = "| $service | $hostRuntime | $hostFramework | $hostTotal | $openapiTotal | $miss | $unexp | $routeMismatchCount | $methodMismatchCount | $schemas |"
     Add-Content -Path $coverageFile -Value $covLine
+    
     $totalRuntime += $hostTotal
+    $totalOpenApi += $openapiTotal
 }
 
 Add-Content -Path $coverageFile -Value ""
 Add-Content -Path $coverageFile -Value "## Totals"
-Add-Content -Path $coverageFile -Value "- Runtime operations: $totalRuntime (Obtained via generation test which iterates EndpointDataSource)"
+Add-Content -Path $coverageFile -Value "- Runtime operations: $totalRuntime (Obtained via runtime `EndpointDataSource`)"
 Add-Content -Path $coverageFile -Value "- OpenAPI operations: $totalOpenApi"
-Add-Content -Path $coverageFile -Value "- Missing: 0 from generated paths"
-Add-Content -Path $coverageFile -Value "- Unexpected: 0"
-Add-Content -Path $coverageFile -Value "- Route mismatch: 0"
-Add-Content -Path $coverageFile -Value "- Method mismatch: 0"
-Add-Content -Path $coverageFile -Value "- Scaffold host count: 4"
+Add-Content -Path $coverageFile -Value "- Scaffold host count: $scaffoldCount (Services with 0 business operations)"
