@@ -8,8 +8,8 @@ $coverageFile = 'docs/verification/swagger-final-remediation-v5/02-swagger-opena
 $matrixHeader = @"
 # Swagger Endpoint Documentation Matrix v5
 
-| Service | Method | Runtime Route | Gateway Route | Operation ID | Implementation Type | Runtime Auth Metadata | Gateway Auth Policy | Request Type | Success Responses | Error Responses | Rate Limit | Idempotency | OpenAPI Match | Notes |
-|---------|--------|---------------|---------------|--------------|---------------------|-----------------------|---------------------|--------------|-------------------|-----------------|------------|-------------|---------------|-------|
+| Service | Method | Runtime Route | Gateway Route | Operation ID | Endpoint Category | OpenAPI Disposition | Runtime Auth Metadata | Gateway Auth Policy | Request Type | Success Responses | Error Responses | Rate Limit | Idempotency | OpenAPI Match | Notes |
+|---------|--------|---------------|---------------|--------------|-------------------|---------------------|-----------------------|---------------------|--------------|-------------------|-----------------|------------|-------------|---------------|-------|
 "@
 
 $coverageHeader = @"
@@ -20,8 +20,8 @@ OpenAPI source: generated OpenAPI contracts
 Gateway source: current YARP configuration
 Comparison: independent normalized method+route set comparison
 
-| Host | Business Ops | Framework Ops | Intentionally Excluded Infra | Runtime Documentable Total | OpenAPI Total | Missing | Unexpected | Route Mismatch | Method Mismatch | Schema Count | Classification |
-|------|--------------|---------------|------------------------------|----------------------------|---------------|---------|------------|----------------|-----------------|--------------|----------------|
+| Host | Host Type | Owned Business Ops | Owned Framework Ops | Proxy Infra Ops | OpenAPI Infra Ops | Runtime Documentable Total | OpenAPI Total | Missing | Unexpected | Route Mismatch | Method Mismatch | Schema Count | Classification |
+|------|-----------|--------------------|---------------------|-----------------|-------------------|----------------------------|---------------|---------|------------|----------------|-----------------|--------------|----------------|
 "@
 
 Set-Content -Path $matrixFile -Value $matrixHeader
@@ -62,7 +62,6 @@ $totalRuntime = 0
 $totalOpenApi = 0
 
 function Normalize-Route($route) {
-    # Replace any path parameter e.g. {id} or {id:guid} with {}
     return ($route -replace '\{[^\}]+\}', '{}').TrimStart('/').ToLowerInvariant()
 }
 
@@ -79,6 +78,11 @@ Get-ChildItem -Path $contractsDir -Filter 'openapi.json' -Recurse | ForEach-Obje
     $serviceYarp = $yarpRoutes[$service]
     if ($null -eq $serviceYarp) { $serviceYarp = @() }
 
+    $hostType = "BUSINESS_SERVICE"
+    if ($service -eq "emcore-api-gateway") { $hostType = "GATEWAY" }
+    elseif ($service -match "bff$") { $hostType = "BFF" }
+    elseif ($service -match "gateway$") { $hostType = "SPECIALIZED_GATEWAY" }
+
     $hostMissing = 0
     $hostUnexpected = 0
     $hostRouteMismatch = 0
@@ -86,13 +90,14 @@ Get-ChildItem -Path $contractsDir -Filter 'openapi.json' -Recurse | ForEach-Obje
     
     $hostBusinessOps = 0
     $hostFrameworkOps = 0
-    $hostExcludedInfraOps = 0
+    $hostProxyInfraOps = 0
+    $hostOpenApiInfraOps = 0
+    $hostDocumentableTotal = 0
     $openapiTotal = 0
     
     $runtimeSet = @{}
     $openApiSet = @{}
     
-    # 1. Process OpenAPI Set
     if ($null -ne $openapiJson.paths) {
         foreach ($pathItem in $openapiJson.paths.PSObject.Properties) {
             $rawPath = $pathItem.Name
@@ -106,22 +111,36 @@ Get-ChildItem -Path $contractsDir -Filter 'openapi.json' -Recurse | ForEach-Obje
         }
     }
     
-    # 2. Process Runtime Set
     foreach ($endpoint in $runtimeEndpoints) {
         $route = $endpoint.Route
         $methodName = $endpoint.Method.ToUpperInvariant()
         $normPath = Normalize-Route $route
         
-        $implType = 'BUSINESS'
-        if ($service -eq 'emcore-api-gateway') { $implType = 'GATEWAY' }
-        elseif ($service -like '*-bff') { $implType = 'BFF' }
-        elseif ($endpoint.IsFramework) { $implType = 'FRAMEWORK' }
-        
-        if ($implType -eq 'FRAMEWORK') { 
-            $hostFrameworkOps++
-            $hostExcludedInfraOps++ # Count framework as intentionally excluded
-        } else { 
-            $hostBusinessOps++ 
+        $cat = $endpoint.EndpointCategory
+        $disp = $endpoint.OpenApiDisposition
+
+        if ($cat -eq "FRAMEWORK_API" -or $cat -eq "OPENAPI_INFRASTRUCTURE") {
+            $inOpenApi = $false
+            foreach ($oaKey in $openApiSet.Keys) {
+                if ($oaKey.EndsWith("|$normPath")) {
+                    $inOpenApi = $true
+                    break
+                }
+            }
+            if ($inOpenApi) {
+                $disp = "DOCUMENTABLE"
+            } else {
+                $disp = "INTENTIONALLY_EXCLUDED"
+            }
+        }
+
+        if ($cat -eq "BUSINESS_API") { $hostBusinessOps++ }
+        if ($cat -eq "FRAMEWORK_API") { $hostFrameworkOps++ }
+        if ($cat -match "PROXY") { $hostProxyInfraOps++ }
+        if ($cat -eq "OPENAPI_INFRASTRUCTURE") { $hostOpenApiInfraOps++ }
+
+        if ($disp -eq "DOCUMENTABLE") {
+            $hostDocumentableTotal++
             $key = "$methodName|$normPath"
             $runtimeSet[$key] = $true
         }
@@ -129,116 +148,139 @@ Get-ChildItem -Path $contractsDir -Filter 'openapi.json' -Recurse | ForEach-Obje
         $authMetadata = $endpoint.AuthMetadata
         if ([string]::IsNullOrWhiteSpace($authMetadata)) { $authMetadata = "AllowAnonymous" }
         
-        # Determine Gateway Route & Policy
         $gwRoute = "NOT ROUTED THROUGH GATEWAY"
         $gwAuth = "N/A"
         $gwRate = "N/A"
         $exactPath = "/" + $route.TrimStart("/")
         
-        foreach ($gw in $serviceYarp) {
-            $gwPrefix = $gw.GatewayRoute -replace '\{\*\*catch-all\}', ''
-            if ($exactPath.StartsWith($gwPrefix) -or $gw.GatewayRoute -eq "{**catch-all}") {
-                $gwRoute = $gw.GatewayRoute
-                $gwAuth = $gw.AuthPolicy
-                $gwRate = $gw.RateLimiterPolicy
-                break
+        if ($cat -match "PROXY") {
+            $gwRoute = "SELF - YARP ROUTE"
+        } else {
+            foreach ($gw in $serviceYarp) {
+                $gwPrefix = $gw.GatewayRoute -replace '\{\*\*catch-all\}', ''
+                if ($exactPath.StartsWith($gwPrefix) -or $gw.GatewayRoute -eq "{**catch-all}") {
+                    $gwRoute = $gw.GatewayRoute
+                    $gwAuth = $gw.AuthPolicy
+                    $gwRate = $gw.RateLimiterPolicy
+                    break
+                }
             }
         }
         
-        # Determine OpenAPI Match for Matrix Display
         $opMatch = "No"
         $opId = "N/A"
         $reqType = "None"
         $success = @()
         $errors = @()
         
-        if ($implType -ne 'FRAMEWORK' -and $openApiSet.ContainsKey("$methodName|$normPath")) {
-            $opMatch = "Yes"
-            
-            # Extract operation details if matched
-            if ($null -ne $openapiJson.paths) {
-                foreach ($pathItem in $openapiJson.paths.PSObject.Properties) {
-                    if ((Normalize-Route $pathItem.Name) -eq $normPath) {
-                        $opObj = $pathItem.Value.PSObject.Properties[$methodName.ToLowerInvariant()]
-                        if ($null -ne $opObj) {
-                            $opId = $opObj.Value.operationId
-                            if ($opObj.Value.requestBody) { $reqType = "JSON" }
-                            if ($opObj.Value.responses) {
-                                foreach ($res in $opObj.Value.responses.PSObject.Properties) {
-                                    if ($res.Name -match '^2') { $success += $res.Name }
-                                    elseif ($res.Name -match '^[45]') { $errors += $res.Name }
+        if ($disp -eq "DOCUMENTABLE") {
+            if ($openApiSet.ContainsKey("$methodName|$normPath")) {
+                $opMatch = "Yes"
+                if ($null -ne $openapiJson.paths) {
+                    foreach ($pathItem in $openapiJson.paths.PSObject.Properties) {
+                        if ((Normalize-Route $pathItem.Name) -eq $normPath) {
+                            $opObj = $pathItem.Value.PSObject.Properties[$methodName.ToLowerInvariant()]
+                            if ($null -ne $opObj) {
+                                $opId = $opObj.Value.operationId
+                                if ($opObj.Value.requestBody) { $reqType = "JSON" }
+                                if ($opObj.Value.responses) {
+                                    foreach ($res in $opObj.Value.responses.PSObject.Properties) {
+                                        if ($res.Name -match '^2') { $success += $res.Name }
+                                        elseif ($res.Name -match '^[45]') { $errors += $res.Name }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        } elseif ($implType -eq 'FRAMEWORK') {
-            $opMatch = "INTENTIONALLY_EXCLUDED_INFRASTRUCTURE"
+        } else {
+            $opMatch = "INTENTIONALLY_EXCLUDED"
         }
         
-        $idempotency = "NOT ENFORCED - NoOp runtime"
+        $idempotency = if ($cat -eq "BUSINESS_API" -and $methodName -ne "GET") { "NOT ENFORCED - NoOp runtime" } else { "N/A" }
         $notes = "Actual runtime behavior"
         
-        $line = "| $service | $methodName | $route | $gwRoute | $opId | $implType | $authMetadata | $gwAuth | $reqType | " + ($success -join ', ') + " | " + ($errors -join ', ') + " | $gwRate | $idempotency | $opMatch | $notes |"
+        $line = "| $service | $methodName | $route | $gwRoute | $opId | $cat | $disp | $authMetadata | $gwAuth | $reqType | " + ($success -join ', ') + " | " + ($errors -join ', ') + " | $gwRate | $idempotency | $opMatch | $notes |"
         Add-Content -Path $matrixFile -Value $line
     }
     
-    # 3. Calculate Independent Mismatches
     foreach ($rtKey in $runtimeSet.Keys) {
         if (-not $openApiSet.ContainsKey($rtKey)) {
-            $hostMissing++
             $rtParts = $rtKey.Split('|')
+            $rtMethod = $rtParts[0]
             $rtRoute = $rtParts[1]
-            $routeExists = $false
-            foreach ($oaKey in $openApiSet.Keys) {
-                if ($oaKey.EndsWith("|$rtRoute")) {
-                    $routeExists = $true
-                    break
+
+            if ($rtMethod -eq "UNCONSTRAINED_HTTP_METHOD") {
+                $routeFound = $false
+                foreach ($oaKey in $openApiSet.Keys) {
+                    if ($oaKey.EndsWith("|$rtRoute")) {
+                        $routeFound = $true
+                        break
+                    }
                 }
-            }
-            if ($routeExists) {
-                $hostMethodMismatch++
+                if ($routeFound) {
+                    $hostMethodMismatch++
+                } else {
+                    $hostMissing++
+                    $hostRouteMismatch++
+                }
             } else {
-                $hostRouteMismatch++
+                $hostMissing++
+                $routeExists = $false
+                foreach ($oaKey in $openApiSet.Keys) {
+                    if ($oaKey.EndsWith("|$rtRoute")) {
+                        $routeExists = $true
+                        break
+                    }
+                }
+                if ($routeExists) {
+                    $hostMethodMismatch++
+                } else {
+                    $hostRouteMismatch++
+                }
             }
         }
     }
     
     foreach ($oaKey in $openApiSet.Keys) {
         if (-not $runtimeSet.ContainsKey($oaKey)) {
+            $oaParts = $oaKey.Split('|')
+            $oaMethod = $oaParts[0]
+            $oaRoute = $oaParts[1]
+            if ($runtimeSet.ContainsKey("UNCONSTRAINED_HTTP_METHOD|$oaRoute")) {
+                continue
+            }
             $hostUnexpected++
         }
     }
     
-    # 4. Schema count
     $schemas = 0
     if ($null -ne $openapiJson.components -and $null -ne $openapiJson.components.schemas) {
         $schemas = @($openapiJson.components.schemas.PSObject.Properties).Count
     }
     
-    # 5. Scaffold classification
     $classification = "IMPLEMENTED"
-    if ($hostBusinessOps -eq 0) {
+    if ($hostType -eq "BUSINESS_SERVICE" -and $hostBusinessOps -eq 0) {
         $scaffoldCount++
         $scaffoldHosts += $service
-        $classification = "Business API Implementation: NOT IMPLEMENTED"
+        $classification = "Business API implementation: NOT IMPLEMENTED"
     }
     
-    $covLine = "| $service | $hostBusinessOps | $hostFrameworkOps | $hostExcludedInfraOps | $hostBusinessOps | $openapiTotal | $hostMissing | $hostUnexpected | $hostRouteMismatch | $hostMethodMismatch | $schemas | $classification |"
+    $covLine = "| $service | $hostType | $hostBusinessOps | $hostFrameworkOps | $hostProxyInfraOps | $hostOpenApiInfraOps | $hostDocumentableTotal | $openapiTotal | $hostMissing | $hostUnexpected | $hostRouteMismatch | $hostMethodMismatch | $schemas | $classification |"
     Add-Content -Path $coverageFile -Value $covLine
     
     $totalMissing += $hostMissing
     $totalUnexpected += $hostUnexpected
     $totalRouteMismatch += $hostRouteMismatch
     $totalMethodMismatch += $hostMethodMismatch
-    $totalRuntime += $hostBusinessOps
+    $totalRuntime += $hostDocumentableTotal
     $totalOpenApi += $openapiTotal
 }
 
 Add-Content -Path $coverageFile -Value ""
 Add-Content -Path $coverageFile -Value "## Grand Totals"
-Add-Content -Path $coverageFile -Value "- Runtime Business Operations: $totalRuntime"
+Add-Content -Path $coverageFile -Value "- Runtime Documentable Operations: $totalRuntime"
 Add-Content -Path $coverageFile -Value "- OpenAPI Documented Operations: $totalOpenApi"
 Add-Content -Path $coverageFile -Value "- Total Missing: $totalMissing"
 Add-Content -Path $coverageFile -Value "- Total Unexpected: $totalUnexpected"

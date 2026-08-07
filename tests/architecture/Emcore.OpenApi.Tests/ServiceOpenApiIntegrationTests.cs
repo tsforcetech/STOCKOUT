@@ -277,18 +277,66 @@ public class ServiceOpenApiIntegrationTests
 
             foreach (var method in methods)
             {
+                string endpointCategory = "BUSINESS_API";
+                string openApiDisposition = "DOCUMENTABLE";
+                string routeRaw = endpoint.RoutePattern.RawText ?? string.Empty;
+
+                if (routeRaw.Contains("/api/v1/system/version") || routeRaw.StartsWith("api/v1/system/version"))
+                {
+                    endpointCategory = "FRAMEWORK_API";
+                    openApiDisposition = "DOCUMENTABLE";
+                }
+                else if (routeRaw.Contains("health"))
+                {
+                    endpointCategory = "FRAMEWORK_API";
+                    openApiDisposition = "DOCUMENTABLE";
+                }
+                else if (routeRaw.Contains("swagger") || routeRaw.Contains("openapi") || routeRaw.Contains("docs"))
+                {
+                    if (routeRaw.Contains("{**catch-all}"))
+                    {
+                        endpointCategory = "GATEWAY_SWAGGER_PROXY";
+                        openApiDisposition = "INTENTIONALLY_EXCLUDED";
+                    }
+                    else
+                    {
+                        endpointCategory = "OPENAPI_INFRASTRUCTURE";
+                        openApiDisposition = "INTENTIONALLY_EXCLUDED";
+                    }
+                }
+                else if (routeRaw.Contains("metrics"))
+                {
+                    endpointCategory = "OTHER_INFRASTRUCTURE";
+                    openApiDisposition = "INTENTIONALLY_EXCLUDED";
+                }
+                else if (routeRaw.Contains("{**catch-all}"))
+                {
+                    if (assemblyName == "Emcore.ApiGateway")
+                    {
+                        endpointCategory = "GATEWAY_PROXY";
+                        openApiDisposition = "INTENTIONALLY_EXCLUDED";
+                    }
+                    else if (assemblyName.Contains("Bff"))
+                    {
+                        endpointCategory = "BFF_PROXY";
+                        openApiDisposition = "INTENTIONALLY_EXCLUDED";
+                    }
+                    else if (assemblyName.Contains("Gateway"))
+                    {
+                        endpointCategory = "GATEWAY_PROXY";
+                        openApiDisposition = "INTENTIONALLY_EXCLUDED";
+                    }
+                }
+
                 endpointList.Add(new
                 {
-                    Route = endpoint.RoutePattern.RawText,
+                    Route = routeRaw,
                     Method = method,
                     DisplayName = endpoint.DisplayName,
                     AuthMetadata = authMeta,
                     RateLimitPolicy = rateLimitPolicy,
-                    IsFramework = endpoint.RoutePattern.RawText?.Contains("health") == true || 
-                                  endpoint.RoutePattern.RawText?.Contains("metrics") == true || 
-                                  endpoint.RoutePattern.RawText?.Contains("swagger") == true || 
-                                  endpoint.RoutePattern.RawText?.Contains("openapi") == true ||
-                                  endpoint.RoutePattern.RawText?.Contains("/api/v1/system/version") == true
+                    EndpointCategory = endpointCategory,
+                    OpenApiDisposition = openApiDisposition
                 });
             }
         }

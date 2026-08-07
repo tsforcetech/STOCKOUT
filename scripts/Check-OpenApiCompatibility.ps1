@@ -221,14 +221,18 @@ foreach ($baseFile in $baselineFiles) {
                             $oldContent = $respItem.Value.content
                             $newContent = $newResp.Value.content
                             if ($null -ne $oldContent) {
-                                foreach ($mediaItem in $oldContent.PSObject.Properties) {
-                                    $mediaType = $mediaItem.Name
-                                    $newMedia = $newContent.PSObject.Properties[$mediaType]
-                                    if ($null -eq $newMedia) {
-                                        Report-BreakingChange $serviceName "Response media type '$mediaType' removed from '$statusCode' on '$method.ToUpper() $route'."
-                                    } elseif ($null -ne $mediaItem.Value.schema -and $null -ne $mediaItem.Value.schema.type) {
-                                        if ($null -eq $newMedia.Value.schema -or $newMedia.Value.schema.type -ne $mediaItem.Value.schema.type) {
-                                            Report-BreakingChange $serviceName "Response schema type changed for '$mediaType' on '$statusCode' on '$method.ToUpper() $route'."
+                                if ($null -eq $newContent) {
+                                    Report-BreakingChange $serviceName "Response content removed from '$statusCode' on '$method.ToUpper() $route'."
+                                } else {
+                                    foreach ($mediaItem in $oldContent.PSObject.Properties) {
+                                        $mediaType = $mediaItem.Name
+                                        $newMedia = $newContent.PSObject.Properties[$mediaType]
+                                        if ($null -eq $newMedia) {
+                                            Report-BreakingChange $serviceName "Response media type '$mediaType' removed from '$statusCode' on '$method.ToUpper() $route'."
+                                        } elseif ($null -ne $mediaItem.Value.schema -and $null -ne $mediaItem.Value.schema.type) {
+                                            if ($null -eq $newMedia.Value.schema -or $newMedia.Value.schema.type -ne $mediaItem.Value.schema.type) {
+                                                Report-BreakingChange $serviceName "Response schema type changed for '$mediaType' on '$statusCode' on '$method.ToUpper() $route'."
+                                            }
                                         }
                                     }
                                 }

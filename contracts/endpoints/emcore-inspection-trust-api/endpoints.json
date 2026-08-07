@@ -5,7 +5,8 @@
     "DisplayName": "HTTP: GET /openapi/{documentName}.json",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "OPENAPI_INFRASTRUCTURE",
+    "OpenApiDisposition": "INTENTIONALLY_EXCLUDED"
   },
   {
     "Route": "/swagger/{documentName}/swagger.json",
@@ -13,7 +14,8 @@
     "DisplayName": "HTTP: GET /swagger/{documentName}/swagger.json",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "OPENAPI_INFRASTRUCTURE",
+    "OpenApiDisposition": "INTENTIONALLY_EXCLUDED"
   },
   {
     "Route": "/health/live",
@@ -21,7 +23,8 @@
     "DisplayName": "HTTP: GET /health/live",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "FRAMEWORK_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/health/ready",
@@ -29,7 +32,8 @@
     "DisplayName": "HTTP: GET /health/ready",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "FRAMEWORK_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/system/version",
@@ -37,6 +41,7 @@
     "DisplayName": "HTTP: GET /api/v1/system/version",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "FRAMEWORK_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   }
 ]

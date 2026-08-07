@@ -5,7 +5,8 @@
     "DisplayName": "HTTP: GET /openapi/{documentName}.json",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "OPENAPI_INFRASTRUCTURE",
+    "OpenApiDisposition": "INTENTIONALLY_EXCLUDED"
   },
   {
     "Route": "/swagger/{documentName}/swagger.json",
@@ -13,31 +14,35 @@
     "DisplayName": "HTTP: GET /swagger/{documentName}/swagger.json",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "OPENAPI_INFRASTRUCTURE",
+    "OpenApiDisposition": "INTENTIONALLY_EXCLUDED"
   },
   {
     "Route": "/health/live",
-    "Method": "ANY",
+    "Method": "UNCONSTRAINED_HTTP_METHOD",
     "DisplayName": "Health checks",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "FRAMEWORK_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/health/ready",
-    "Method": "ANY",
+    "Method": "UNCONSTRAINED_HTTP_METHOD",
     "DisplayName": "Health checks",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "FRAMEWORK_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/healthz",
-    "Method": "ANY",
+    "Method": "UNCONSTRAINED_HTTP_METHOD",
     "DisplayName": "Health checks",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": true
+    "EndpointCategory": "FRAMEWORK_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/.well-known/jwks.json",
@@ -45,7 +50,8 @@
     "DisplayName": "HTTP: GET /.well-known/jwks.json",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/.well-known/jwks.json",
@@ -53,7 +59,8 @@
     "DisplayName": "HTTP: GET /api/v1/auth/.well-known/jwks.json",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/register",
@@ -61,7 +68,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/register",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/verification/email/send",
@@ -69,7 +77,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/verification/email/send",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/verification/email/confirm",
@@ -77,7 +86,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/verification/email/confirm",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/verification/mobile/send",
@@ -85,7 +95,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/verification/mobile/send",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/verification/mobile/confirm",
@@ -93,7 +104,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/verification/mobile/confirm",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/login",
@@ -101,7 +113,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/login",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/token/refresh",
@@ -109,7 +122,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/token/refresh",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/logout",
@@ -117,7 +131,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/logout",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/logout-all",
@@ -125,7 +140,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/logout-all",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/password/forgot",
@@ -133,7 +149,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/password/forgot",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/password/reset",
@@ -141,7 +158,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/password/reset",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/password/change",
@@ -149,7 +167,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/password/change",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/sessions",
@@ -157,7 +176,8 @@
     "DisplayName": "HTTP: GET /api/v1/auth/sessions",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/sessions/{sessionId}",
@@ -165,7 +185,8 @@
     "DisplayName": "HTTP: DELETE /api/v1/auth/sessions/{sessionId}",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/account/status",
@@ -173,7 +194,8 @@
     "DisplayName": "HTTP: GET /api/v1/auth/account/status",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/me",
@@ -181,7 +203,8 @@
     "DisplayName": "HTTP: GET /api/v1/identity/me",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/mfa/verify",
@@ -189,7 +212,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/mfa/verify",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/mfa/register",
@@ -197,7 +221,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/mfa/register",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/mfa/confirm",
@@ -205,7 +230,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/mfa/confirm",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/stepup/initiate",
@@ -213,7 +239,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/stepup/initiate",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/stepup/verify",
@@ -221,7 +248,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/stepup/verify",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/auth/token",
@@ -229,7 +257,8 @@
     "DisplayName": "HTTP: POST /api/v1/auth/token",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/service-clients/register",
@@ -237,7 +266,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/service-clients/register",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/service-clients/{id}/rotate",
@@ -245,7 +275,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/service-clients/{id}/rotate",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/service-clients/credentials/revoke",
@@ -253,7 +284,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/service-clients/credentials/revoke",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/service-clients/{id}/credentials",
@@ -261,7 +293,8 @@
     "DisplayName": "HTTP: GET /api/v1/identity/service-clients/{id}/credentials",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/admin/users/status",
@@ -269,7 +302,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/admin/users/status",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/admin/users/{id}/status",
@@ -277,7 +311,8 @@
     "DisplayName": "HTTP: PUT /api/v1/identity/admin/users/{id}/status",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/register",
@@ -285,7 +320,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/register",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/verify",
@@ -293,7 +329,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/verify",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/resend-verification",
@@ -301,7 +338,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/resend-verification",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/login",
@@ -309,7 +347,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/login",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/refresh",
@@ -317,7 +356,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/refresh",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/logout",
@@ -325,7 +365,8 @@
     "DisplayName": "HTTP: POST /api/v1/identity/logout",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
     "Route": "/api/v1/identity/users/{id}",
@@ -333,6 +374,7 @@
     "DisplayName": "HTTP: GET /api/v1/identity/users/{id}",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
-    "IsFramework": false
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
   }
 ]
