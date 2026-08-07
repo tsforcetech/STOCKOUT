@@ -16,6 +16,8 @@ builder.AddGatewayServices();
 builder.Services.AddEmcoreOpenApi("v1", "EMCORE Central API Gateway", "Central ingress edge router and unified reverse proxy for all EMCORE enterprise domain APIs and backend-for-frontend gateways. Provides rate limiting, correlation tracking, TLS termination, header sanitization, and centralized API contract discovery.", "1.0.0", "Platform Infrastructure & Edge Team", "All external public, mobile, portal, and partner consumers");
 
 var app = builder.Build();
+app.UseEmcoreOpenApi("/openapi/{documentName}.json", enableStandaloneSwaggerUi: false);
+app.UseEmcoreOpenApi("/swagger/services/api-gateway/{documentName}/openapi.json", enableStandaloneSwaggerUi: false);
 
 // 1. Forwarded headers
 app.UseForwardedHeaders();
@@ -49,10 +51,6 @@ app.UseAuthentication();
 
 // 10. Authorization
 app.UseAuthorization();
-
-// 10.5 OpenAPI Generation
-app.UseEmcoreOpenApi("/openapi/{documentName}.json", enableStandaloneSwaggerUi: false);
-app.UseEmcoreOpenApi("/swagger/services/api-gateway/{documentName}/openapi.json", enableStandaloneSwaggerUi: false);
 
 // 11. Health endpoints
 app.MapGet("/health/live", () => Results.Ok(new { Status = "Healthy", Service = "Emcore.ApiGateway" }))

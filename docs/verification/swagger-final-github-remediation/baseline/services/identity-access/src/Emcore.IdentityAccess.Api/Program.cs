@@ -412,4 +412,3 @@ api.MapGet("/identity/users/{id}", async (string id, IdentityApplicationService 
 app.Run();
 
 public partial class Program { }
-

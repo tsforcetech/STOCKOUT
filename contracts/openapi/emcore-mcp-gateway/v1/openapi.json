@@ -104,37 +104,6 @@
           },
           "500": {
             "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmcoreProblemDetails"
-                },
-                "example": {
-                  "type": "https://emcore.platform/errors/429",
-                  "title": "Too Many Requests",
-                  "status": 429,
-                  "code": "RATE_LIMIT_EXCEEDED",
-                  "detail": "Caller has exceeded permitted request bucket quota. Retry after cool-down window.",
-                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmcoreProblemDetails"
-                },
-                "example": {
-                  "type": "https://emcore.platform/errors/429",
-                  "title": "Too Many Requests",
-                  "status": 429,
-                  "code": "RATE_LIMIT_EXCEEDED",
-                  "detail": "Caller has exceeded permitted request bucket quota. Retry after cool-down window.",
-                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-                }
-              }
-            }
           }
         }
       }

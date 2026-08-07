@@ -190,7 +190,7 @@ public class ServiceOpenApiIntegrationTests
                             if (param.GetProperty("name").GetString() == "X-Idempotency-Key")
                             {
                                 var desc = param.GetProperty("description").GetString();
-                                desc.Should().Contain("does not enforce duplicate-request protection", "When NoOp store is registered, X-Idempotency-Key description must state it is not enforced.");
+                                desc.Should().Contain("not currently enforced by the runtime", "When NoOp store is registered, X-Idempotency-Key description must state it is not enforced.");
                             }
                         }
                     }

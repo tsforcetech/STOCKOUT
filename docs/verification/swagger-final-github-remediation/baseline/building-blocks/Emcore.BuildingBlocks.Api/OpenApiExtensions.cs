@@ -210,11 +210,21 @@ public static class OpenApiExtensions
 
         options.AddOperationTransformer((operation, context, ct) =>
         {
-            var metadata = context.Description.ActionDescriptor.EndpointMetadata;
-            var hasAllowAnonymous = metadata.Any(m => m is Microsoft.AspNetCore.Authorization.IAllowAnonymous);
-            var hasAuthorize = metadata.Any(m => m is Microsoft.AspNetCore.Authorization.IAuthorizeData);
+            var path = context.Description.RelativePath ?? string.Empty;
+            var isPublic = path.StartsWith("health", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("system/version", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/register", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/login", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/verify", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/resend-verification", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/password", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/mfa", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/stepup", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/jwks.json", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/token", StringComparison.OrdinalIgnoreCase) ||
+                           path.Contains("auth/ping", StringComparison.OrdinalIgnoreCase);
 
-            if (!hasAllowAnonymous && hasAuthorize && !isInternal)
+            if (!isPublic && !isInternal)
             {
                 operation.Security ??= new List<OpenApiSecurityRequirement>();
                 if (!operation.Security.Any())
@@ -287,7 +297,7 @@ public static class OpenApiExtensions
 
             if (isMutation && !isAuthOrSessionOp)
             {
-                AddHeaderIfMissing("X-Idempotency-Key", "Reserved for future idempotency support. The current runtime does not enforce duplicate-request protection, response replay or payload conflict detection.", false, "idmp_01HPX7K7R5YZ2X90WY");
+                AddHeaderIfMissing("X-Idempotency-Key", "Idempotency support is reserved by contract metadata but is not currently enforced by the runtime. Clients must not assume duplicate mutation protection.", false, "idmp_01HPX7K7R5YZ2X90WY");
             }
 
             if (!isAuthOrSessionOp && (path.Contains("organizations", StringComparison.OrdinalIgnoreCase) || 
@@ -390,23 +400,36 @@ public static class OpenApiExtensions
                 };
             }
 
-            var metadata = context.Description.ActionDescriptor.EndpointMetadata;
-            var hasAllowAnonymous = metadata.Any(m => m is Microsoft.AspNetCore.Authorization.IAllowAnonymous);
-            var hasAuthorize = metadata.Any(m => m is Microsoft.AspNetCore.Authorization.IAuthorizeData);
-            var hasRateLimiting = metadata.Any(m => m.GetType().Name.Contains("EnableRateLimiting"));
+            var method = (context.Description.HttpMethod ?? "GET").ToUpperInvariant();
+            var isMutation = method == "POST" || method == "PUT" || method == "DELETE" || method == "PATCH";
+            var isPublicAuth = path.Contains("login", StringComparison.OrdinalIgnoreCase) || 
+                               path.Contains("register", StringComparison.OrdinalIgnoreCase) || 
+                               path.Contains("token", StringComparison.OrdinalIgnoreCase) || 
+                               path.Contains("verify", StringComparison.OrdinalIgnoreCase) || 
+                               path.Contains("jwks", StringComparison.OrdinalIgnoreCase) || 
+                               path.Contains("system/version", StringComparison.OrdinalIgnoreCase) ||
+                               path.Contains("ping", StringComparison.OrdinalIgnoreCase);
+            var isLogin = path.Contains("login", StringComparison.OrdinalIgnoreCase);
 
-            if (!hasAllowAnonymous && hasAuthorize)
+            if (isMutation || context.Description.ParameterDescriptions.Any())
+            {
+                AddErrorResponse("400", "Bad Request", "VALIDATION_FAILED", "One or more input parameters or schema requirements failed validation.");
+            }
+
+            if (!isPublicAuth)
             {
                 AddErrorResponse("401", "Unauthorized", "AUTH_REQUIRED", "Valid authentication token or credentials were not provided.");
                 AddErrorResponse("403", "Forbidden", "ACCESS_DENIED", "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.");
             }
 
-            if (hasRateLimiting)
+            if (path.Contains("{") && !isLogin)
             {
-                AddErrorResponse("429", "Too Many Requests", "RATE_LIMIT_EXCEEDED", "Caller has exceeded permitted request bucket quota. Retry after cool-down window.");
+                AddErrorResponse("404", "Not Found", "RESOURCE_NOT_FOUND", "The targeted resource identifier does not exist within active organization scope.");
             }
 
-            if (!path.Contains("system/version", StringComparison.OrdinalIgnoreCase) && !path.Contains("jwks", StringComparison.OrdinalIgnoreCase) && path.StartsWith("health", StringComparison.OrdinalIgnoreCase))
+            AddErrorResponse("429", "Too Many Requests", "RATE_LIMIT_EXCEEDED", "Caller has exceeded permitted request bucket quota. Retry after cool-down window.");
+
+            if (!path.Contains("system/version", StringComparison.OrdinalIgnoreCase) && !path.Contains("jwks", StringComparison.OrdinalIgnoreCase))
             {
                 AddErrorResponse("503", "Service Unavailable", "DEPENDENCY_UNAVAILABLE", "A critical backend storage or message queuing dependency is momentarily unreachable.");
             }

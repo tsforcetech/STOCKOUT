@@ -24,6 +24,9 @@ jobs:
       run: |
         chmod +x ./scripts/Generate-OpenApi.sh
         ./scripts/Generate-OpenApi.sh
+    - name: Check OpenAPI Contract Compatibility
+      shell: pwsh
+      run: ./scripts/Check-OpenApiCompatibility.ps1 -CurrentDir "contracts/openapi"
     - name: Upload Generated OpenAPI Contracts
       uses: actions/upload-artifact@v4
       with:
