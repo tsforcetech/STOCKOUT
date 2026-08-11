@@ -14,7 +14,7 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
-        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -30,7 +30,7 @@ class Program
         bool isValidate = args.Contains("--validate");
         bool isDryRun = args.Contains("--dry-run");
         bool isApply = args.Contains("--apply");
-
+       
         if (!isList && !isValidate && !isDryRun && !isApply)
         {
             Console.WriteLine("Usage: Emcore.IdentityAccess.Migrator [ --list | --validate | --dry-run | --apply ]");
