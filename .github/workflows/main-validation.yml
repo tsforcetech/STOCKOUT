@@ -13,11 +13,11 @@ jobs:
       with:
         global-json-file: global.json
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Emcore.Platform.slnx
     - name: Verify formatting
-      run: dotnet format --verify-no-changes
+      run: dotnet format Emcore.Platform.slnx --verify-no-changes
     - name: Build
-      run: dotnet build -c Release --no-restore
+      run: dotnet build Emcore.Platform.slnx -c Release --no-restore
     - name: Run OpenAPI Contract Tests
       run: dotnet test tests/architecture/Emcore.OpenApi.Tests/Emcore.OpenApi.Tests.csproj -c Release --no-build --logger trx
     - name: Run Gateway Integration Tests
