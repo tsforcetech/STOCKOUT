@@ -2,6 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Emcore.UserOrganization.Domain\Emcore.UserOrganization.Domain.csproj" />
     <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Core\Emcore.BuildingBlocks.Core.csproj" />
+    <ProjectReference Include="..\Emcore.UserOrganization.Contracts\Emcore.UserOrganization.Contracts.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

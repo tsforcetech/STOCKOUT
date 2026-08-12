@@ -81,6 +81,7 @@
   </Folder>
   <Folder Name="/services/identity-access/">
     <Project Path="services/identity-access/Emcore.IdentityAccess.Migrator/Emcore.IdentityAccess.Migrator.csproj" />
+    <Project Path="services/user-organization/Emcore.UserOrganization.Migrator/Emcore.UserOrganization.Migrator.csproj" />
   </Folder>
   <Folder Name="/services/identity-access/src/">
     <Project Path="services/identity-access/src/Emcore.IdentityAccess.Api/Emcore.IdentityAccess.Api.csproj" />

@@ -45,333 +45,333 @@
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/.well-known/jwks.json",
+    "Route": "api/v1/auth/account/status",
     "Method": "GET",
-    "DisplayName": "HTTP: GET /.well-known/jwks.json",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AccountController.GetAccountStatusAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/auth/.well-known/jwks.json",
+    "Route": "api/v1/identity/me",
     "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/auth/.well-known/jwks.json",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AccountController.GetCurrentIdentityAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/auth/register",
+    "Route": "api/v1/identity/admin/users/status",
     "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/register",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AdminController.AdminUpdateUserStatusPostAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/auth/verification/email/send",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/verification/email/send",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/verification/email/confirm",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/verification/email/confirm",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/verification/mobile/send",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/verification/mobile/send",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/verification/mobile/confirm",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/verification/mobile/confirm",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/login",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/login",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/token/refresh",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/token/refresh",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/logout",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/logout",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/logout-all",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/logout-all",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/password/forgot",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/password/forgot",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/password/reset",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/password/reset",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/password/change",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/password/change",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/sessions",
-    "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/auth/sessions",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/sessions/{sessionId}",
-    "Method": "DELETE",
-    "DisplayName": "HTTP: DELETE /api/v1/auth/sessions/{sessionId}",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/account/status",
-    "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/auth/account/status",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/me",
-    "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/identity/me",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/mfa/verify",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/mfa/verify",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/mfa/register",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/mfa/register",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/mfa/confirm",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/mfa/confirm",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/stepup/initiate",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/stepup/initiate",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/stepup/verify",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/stepup/verify",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/auth/token",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/auth/token",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/service-clients/register",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/service-clients/register",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/service-clients/{id}/rotate",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/service-clients/{id}/rotate",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/service-clients/credentials/revoke",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/service-clients/credentials/revoke",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/service-clients/{id}/credentials",
-    "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/identity/service-clients/{id}/credentials",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/admin/users/status",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/admin/users/status",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/admin/users/{id}/status",
+    "Route": "api/v1/identity/admin/users/{id}/status",
     "Method": "PUT",
-    "DisplayName": "HTTP: PUT /api/v1/identity/admin/users/{id}/status",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AdminController.AdminUpdateUserStatusPutAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/identity/register",
+    "Route": "api/v1/auth/register",
     "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/register",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.RegisterUserAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/identity/verify",
+    "Route": "api/v1/auth/login",
     "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/verify",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.LoginAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/identity/resend-verification",
+    "Route": "api/v1/auth/token/refresh",
     "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/resend-verification",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.RefreshTokenAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/identity/login",
+    "Route": "api/v1/auth/logout",
     "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/login",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.LogoutAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/identity/refresh",
+    "Route": "api/v1/auth/logout-all",
     "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/refresh",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.LogoutAllAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/identity/logout",
-    "Method": "POST",
-    "DisplayName": "HTTP: POST /api/v1/identity/logout",
-    "AuthMetadata": "AllowAnonymous",
-    "RateLimitPolicy": null,
-    "EndpointCategory": "BUSINESS_API",
-    "OpenApiDisposition": "DOCUMENTABLE"
-  },
-  {
-    "Route": "/api/v1/identity/users/{id}",
+    "Route": "api/v1/auth/sessions",
     "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/identity/users/{id}",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.GetSessionsAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/sessions/{sessionId}",
+    "Method": "DELETE",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.AuthController.RevokeSessionAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": ".well-known/jwks.json",
+    "Method": "GET",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.JwksController.GetPublicJwks (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/.well-known/jwks.json",
+    "Method": "GET",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.JwksController.GetAuthJwks (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/register",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyRegisterAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/verify",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyVerifyAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/resend-verification",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyResendVerificationAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/login",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyLoginAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/refresh",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyRefreshAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/logout",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyLogoutAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/users/{id}",
+    "Method": "GET",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.LegacyController.LegacyGetUserByIdAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/mfa/verify",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.VerifyMfaLoginAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/mfa/register",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.RegisterMfaAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/mfa/confirm",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.ConfirmMfaAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/stepup/initiate",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.InitiateStepUpAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/stepup/verify",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.VerifyStepUpAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/password/forgot",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.PasswordController.ForgotPasswordAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/password/reset",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.PasswordController.ResetPasswordAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/password/change",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.PasswordController.ChangePasswordAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/token",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.ServiceClientController.IssueServiceTokenAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/service-clients/register",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.ServiceClientController.RegisterServiceClientAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/service-clients/{id}/rotate",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.ServiceClientController.RotateServiceClientCredentialAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/service-clients/credentials/revoke",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.ServiceClientController.RevokeServiceClientCredentialAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/identity/service-clients/{id}/credentials",
+    "Method": "GET",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.ServiceClientController.ListServiceClientCredentialsAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/verification/email/send",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.VerificationController.SendEmailVerificationAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/verification/email/confirm",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.VerificationController.ConfirmEmailVerificationAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/verification/mobile/send",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.VerificationController.SendMobileVerificationAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/auth/verification/mobile/confirm",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.VerificationController.ConfirmMobileVerificationAsync (Emcore.IdentityAccess.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "BUSINESS_API",

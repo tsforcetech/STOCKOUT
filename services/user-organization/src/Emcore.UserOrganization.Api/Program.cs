@@ -10,6 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddEmcoreOpenApi("v1", "EMCORE User & Organization API", "Manages user profiles, organizations, multi-branch hierarchies, operational teams, member invitations, granular roles, permissions, and organization settings. Owns organizational structure and authorization attributes; does not own authentication or cryptographic credentials.", "1.0.0", "User & Organization Core Team", "Platform clients, BFFs, and partner applications");
 
+builder.Services.AddScoped<Emcore.UserOrganization.Domain.Repositories.IOrganizationRepository, Emcore.UserOrganization.Infrastructure.Repositories.OrganizationRepository>();
+builder.Services.AddScoped<Emcore.UserOrganization.Application.Organizations.IOrganizationService, Emcore.UserOrganization.Application.Organizations.OrganizationService>();
 var app = builder.Build();
 app.UseEmcoreOpenApi();
 
