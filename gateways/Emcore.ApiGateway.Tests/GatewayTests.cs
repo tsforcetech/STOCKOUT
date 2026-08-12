@@ -528,6 +528,45 @@ public class GatewayTests
         csp.Should().Contain("upgrade-insecure-requests");
     }
 
+    [Fact]
+    public async Task GatewayAuthenticatedUser_IsPropagated_ToDownstreamService()
+    {
+        await using var fixture = new GatewayTestFixture();
+        await fixture.InitializeAsync();
+
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/profile");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test-token");
+
+        var response = await fixture.Client.SendAsync(req);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var content = await response.Content.ReadAsStringAsync();
+        // The Gateway adds X-User-Id derived from the test token ("usr_test_123")
+        content.Should().Contain("usr_test_123");
+    }
+
+    [Fact]
+    public async Task ClientSuppliedUserIdHeader_CannotOverrideAuthenticatedUser()
+    {
+        await using var fixture = new GatewayTestFixture();
+        await fixture.InitializeAsync();
+
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/profile");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test-token");
+        // Attacker attempts to spoof X-User-Id
+        req.Headers.Add("X-User-Id", "attacker-user");
+        req.Headers.Add("x-user-id", "another-attacker-user");
+
+        var response = await fixture.Client.SendAsync(req);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var content = await response.Content.ReadAsStringAsync();
+        // The Gateway strips the attacker's header and inserts the genuine one
+        content.Should().NotContain("attacker-user");
+        content.Should().NotContain("another-attacker-user");
+        content.Should().Contain("usr_test_123");
+    }
+
     private class MockEnvironment : Microsoft.Extensions.Hosting.IHostEnvironment
     {
         public string EnvironmentName { get; set; } = "Production";

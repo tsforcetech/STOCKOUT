@@ -13,6 +13,7 @@ using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using Emcore.ApiGateway.Security;
 using Emcore.ServiceDefaults;
+using Yarp.ReverseProxy.Transforms;
 
 namespace Emcore.ApiGateway.Extensions;
 
@@ -201,7 +202,26 @@ public static class GatewayExtensions
 
         // 6. Register YARP Reverse Proxy
         builder.Services.AddReverseProxy()
-               .LoadFromConfig(configuration.GetSection("ReverseProxy"));
+               .LoadFromConfig(configuration.GetSection("ReverseProxy"))
+               .AddTransforms(builderContext =>
+               {
+                   builderContext.AddRequestTransform(transformContext =>
+                   {
+                       var user = transformContext.HttpContext.User;
+                       if (user?.Identity?.IsAuthenticated == true)
+                       {
+                           var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                        ?? user.FindFirst("sub")?.Value;
+
+                           if (!string.IsNullOrWhiteSpace(userId))
+                           {
+                               transformContext.ProxyRequest.Headers.Remove("X-User-Id");
+                               transformContext.ProxyRequest.Headers.TryAddWithoutValidation("X-User-Id", userId);
+                           }
+                       }
+                       return ValueTask.CompletedTask;
+                   });
+               });
 
         return builder;
     }

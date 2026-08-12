@@ -45,7 +45,7 @@ public class RabbitMqOutboxRelayWorker : BackgroundService
         var outboxEnabled = _configuration.GetValue<bool>("Outbox:Enabled", true);
         var rabbitMqEnabled = _configuration.GetValue<bool>("RabbitMq:Enabled", true);
         var pollingInterval = _configuration.GetValue<int>("Outbox:PollingIntervalSeconds", 5);
-        var connectionString = _configuration.GetConnectionString("IdentityDatabase") ?? _configuration["ConnectionStrings__IdentityDatabase"];
+        var connectionString = _configuration.GetConnectionString("IdentityDatabase");
 
         _logger.LogInformation("Identity Outbox Relay Worker starting. Outbox Enabled: {OutboxEnabled}, RabbitMQ Enabled: {RabbitMqEnabled}", outboxEnabled, rabbitMqEnabled);
 
@@ -125,7 +125,7 @@ public class IdentitySecurityDataCleanupWorker : BackgroundService
     {
         var intervalHours = _configuration.GetValue<int>("Cleanup:IntervalHours", 1);
         var retentionHours = _configuration.GetValue<int>("Cleanup:RetentionHours", 24);
-        var connectionString = _configuration.GetConnectionString("IdentityDatabase") ?? _configuration["ConnectionStrings__IdentityDatabase"];
+        var connectionString = _configuration.GetConnectionString("IdentityDatabase");
 
         _logger.LogInformation("Identity Security Data Cleanup Worker started. Interval: {Interval}h, Retention: {Retention}h.", intervalHours, retentionHours);
 

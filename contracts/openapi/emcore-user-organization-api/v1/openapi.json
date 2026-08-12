@@ -14,7 +14,7 @@
   "servers": [
     {
       "url": "http://localhost",
-      "description": "EMCORE Local Standalone Host Server"
+      "description": "EMCORE Development Standalone Host Server"
     },
     {
       "url": "https://api.emcore.platform/v1",
@@ -52,10 +52,316 @@
         }
       }
     },
+    "/api/v1/organizations": {
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "operationId": "postApiV1Organizations",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          },
+          {
+            "name": "X-Tenant-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          },
+          {
+            "name": "X-Organization-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/{id}": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "operationId": "getApiV1OrganizationsId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          },
+          {
+            "name": "X-Tenant-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          },
+          {
+            "name": "X-Organization-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/system/version": {
       "get": {
         "tags": [
-          "Emcore.UserOrganization.Api"
+          "System"
         ],
         "summary": "Retrieve service deployment release metadata",
         "description": "Returns executable release metadata including service logical identifier, semantic version string, and runtime environment designation. Used for contract compatibility validation and diagnostic tracing.",
@@ -161,6 +467,29 @@
           }
         },
         "description": "RFC 7807 standardized problem details error payload."
+      },
+      "CreateOrganizationRequest": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -200,6 +529,12 @@
   "tags": [
     {
       "name": "Emcore.UserOrganization.Api"
+    },
+    {
+      "name": "Organizations"
+    },
+    {
+      "name": "System"
     }
   ]
 }

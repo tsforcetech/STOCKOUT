@@ -36,9 +36,9 @@
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/system/version",
+    "Route": "api/v1/system/version",
     "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/system/version",
+    "DisplayName": "Emcore.AuditReporting.Api.Controllers.SystemController.GetVersion (Emcore.AuditReporting.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "FRAMEWORK_API",

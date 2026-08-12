@@ -6,6 +6,7 @@ using Emcore.BuildingBlocks.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddEmcoreOpenApi("v1", "EMCORE Workflow & Scheduler API", "Manages platform distributed workflows, executing workflow instances, state machine steps, scheduled background jobs, timing triggers, saga compensation execution, and administrative manual intervention controls.", "1.0.0", "Workflow & Scheduler Core Team", "Orchestration engine workers, scheduled job dispatchers, admin operational dashboards");
 
@@ -14,7 +15,9 @@ app.UseEmcoreOpenApi();
 
 app.MapGet("/health/live", () => Results.Ok(new { Status = "Healthy" }));
 app.MapGet("/health/ready", () => Results.Ok(new { Status = "Ready", Dependencies = new { } }));
-app.MapGet("/api/v1/system/version", () => Results.Ok(new Emcore.WorkflowScheduler.Contracts.SystemVersionResponse("emcore-workflow-scheduler-api", "0.1.0", builder.Environment.EnvironmentName)));
+
+
+app.MapControllers();
 
 app.Run();
 

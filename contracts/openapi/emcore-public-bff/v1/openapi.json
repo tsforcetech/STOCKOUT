@@ -14,7 +14,7 @@
   "servers": [
     {
       "url": "http://localhost",
-      "description": "EMCORE Local Standalone Host Server"
+      "description": "EMCORE Development Standalone Host Server"
     },
     {
       "url": "https://api.emcore.platform/v1",
@@ -55,7 +55,7 @@
     "/api/v1/system/version": {
       "get": {
         "tags": [
-          "Emcore.PublicBff"
+          "System"
         ],
         "summary": "Retrieve service deployment release metadata",
         "description": "Returns executable release metadata including service logical identifier, semantic version string, and runtime environment designation. Used for contract compatibility validation and diagnostic tracing.",
@@ -200,6 +200,9 @@
   "tags": [
     {
       "name": "Emcore.PublicBff"
+    },
+    {
+      "name": "System"
     }
   ]
 }

@@ -18,8 +18,8 @@ public static class DependencyInjection
         services.AddSingleton<IJwksService>(sp => sp.GetRequiredService<JwtTokenGenerator>());
         services.AddScoped<IIdentityRepository, IdentityRepository>();
 
-        string? env = configuration["ASPNETCORE_ENVIRONMENT"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (string.Equals(env, "Production", StringComparison.OrdinalIgnoreCase))
+        string? provider = configuration["VerificationDelivery:Provider"];
+        if (string.Equals(provider, "Production", StringComparison.OrdinalIgnoreCase))
         {
             services.AddScoped<IVerificationDeliveryService, ProductionVerificationDeliveryService>();
         }

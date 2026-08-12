@@ -53,7 +53,8 @@ public static class OpenApiExtensions
                     TermsOfService = new Uri("https://emcore.platform/terms-of-service")
                 };
 
-                var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Local";
+                var env = context.ApplicationServices.GetService<IHostEnvironment>();
+                var envName = env?.EnvironmentName ?? "Local";
                 if (string.Equals(envName, "Production", StringComparison.OrdinalIgnoreCase) || isInternal)
                 {
                     document.Servers = new List<OpenApiServer>

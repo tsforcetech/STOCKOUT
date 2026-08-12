@@ -14,14 +14,17 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
         var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile($"appsettings.{env}.json", optional: true)
             .AddEnvironmentVariables()
             .AddCommandLine(args)
             .Build();
 
-        var connectionString = config.GetConnectionString("IdentityDatabase") ?? config["ConnectionStrings__IdentityDatabase"];
+        var connectionString = config.GetConnectionString("IdentityDatabase");
 
         bool isList = args.Contains("--list");
         bool isValidate = args.Contains("--validate");

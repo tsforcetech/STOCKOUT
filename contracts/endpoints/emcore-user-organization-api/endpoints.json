@@ -36,9 +36,27 @@
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
-    "Route": "/api/v1/system/version",
+    "Route": "api/v1/organizations",
+    "Method": "POST",
+    "DisplayName": "Emcore.UserOrganization.Api.Controllers.OrganizationsController.CreateOrganization (Emcore.UserOrganization.Api)",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/organizations/{id}",
     "Method": "GET",
-    "DisplayName": "HTTP: GET /api/v1/system/version",
+    "DisplayName": "Emcore.UserOrganization.Api.Controllers.OrganizationsController.GetOrganization (Emcore.UserOrganization.Api)",
+    "AuthMetadata": "Authorize",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
+    "Route": "api/v1/system/version",
+    "Method": "GET",
+    "DisplayName": "Emcore.UserOrganization.Api.Controllers.SystemController.GetVersion (Emcore.UserOrganization.Api)",
     "AuthMetadata": "AllowAnonymous",
     "RateLimitPolicy": null,
     "EndpointCategory": "FRAMEWORK_API",
