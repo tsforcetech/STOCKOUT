@@ -12,5 +12,6 @@
     <ProjectReference Include="..\Emcore.UserOrganization.Contracts\Emcore.UserOrganization.Contracts.csproj" />
     <ProjectReference Include="..\Emcore.UserOrganization.Infrastructure\Emcore.UserOrganization.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Api\Emcore.BuildingBlocks.Api.csproj" />
+    <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Security\Emcore.BuildingBlocks.Security.csproj" />
   </ItemGroup>
 </Project>

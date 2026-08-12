@@ -66,4 +66,38 @@ public class OrganizationServiceTests
 
         await Assert.ThrowsAsync<ArgumentException>(() => service.CreateOrganizationAsync("user-2", request));
     }
+
+    [Fact]
+    public async Task CreateOrganization_InvalidEntityType_Throws()
+    {
+        var repo = new MockOrganizationRepository();
+        var service = new OrganizationService(repo);
+
+        var request = new CreateOrganizationRequest
+        {
+            EntityType = 999, // Invalid
+            DisplayName = "Bad Org",
+            Capabilities = new List<int> { 1 }
+        };
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.CreateOrganizationAsync("user-2", request));
+        Assert.Equal("INVALID_ORGANIZATION_TYPE", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateOrganization_InvalidCapability_Throws()
+    {
+        var repo = new MockOrganizationRepository();
+        var service = new OrganizationService(repo);
+
+        var request = new CreateOrganizationRequest
+        {
+            EntityType = 1,
+            DisplayName = "John Doe",
+            Capabilities = new List<int> { 999 } // Invalid
+        };
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.CreateOrganizationAsync("user-2", request));
+        Assert.Equal("INVALID_MARKETPLACE_CAPABILITY", ex.Message);
+    }
 }

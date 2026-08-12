@@ -140,8 +140,75 @@
           },
           "500": {
             "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{id}": {
@@ -220,8 +287,75 @@
           },
           "500": {
             "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/401",
+                  "title": "Unauthorized",
+                  "status": 401,
+                  "code": "AUTH_REQUIRED",
+                  "detail": "Valid authentication token or credentials were not provided.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmcoreProblemDetails"
+                },
+                "example": {
+                  "type": "https://emcore.platform/errors/403",
+                  "title": "Forbidden",
+                  "status": 403,
+                  "code": "ACCESS_DENIED",
+                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
+                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/api/v1/system/version": {

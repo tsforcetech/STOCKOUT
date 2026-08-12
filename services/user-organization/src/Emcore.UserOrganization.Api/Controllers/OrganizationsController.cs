@@ -3,18 +3,23 @@ using Microsoft.AspNetCore.Mvc;
 using Emcore.UserOrganization.Contracts.Organizations;
 using Emcore.UserOrganization.Application.Organizations;
 using System;
+using Microsoft.AspNetCore.Authorization;
+using Emcore.BuildingBlocks.Security;
 
 namespace Emcore.UserOrganization.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/organizations")]
 public class OrganizationsController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
+    private readonly ICurrentUser _currentUser;
 
-    public OrganizationsController(IOrganizationService organizationService)
+    public OrganizationsController(IOrganizationService organizationService, ICurrentUser currentUser)
     {
         _organizationService = organizationService;
+        _currentUser = currentUser;
     }
 
     [HttpPost]
@@ -22,8 +27,12 @@ public class OrganizationsController : ControllerBase
     {
         try
         {
-            // In a real app, this would come from the JWT claims or context
-            var ownerUserId = Guid.NewGuid().ToString(); 
+            var ownerUserId = _currentUser.UserId;
+            if (string.IsNullOrEmpty(ownerUserId))
+            {
+                return Unauthorized(new { Error = "User context missing" });
+            }
+            
             var response = await _organizationService.CreateOrganizationAsync(ownerUserId, request);
             return CreatedAtAction(nameof(GetOrganization), new { id = response.Id }, response);
         }

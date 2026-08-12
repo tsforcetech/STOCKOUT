@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
 using Emcore.BuildingBlocks.Api;
+using Emcore.BuildingBlocks.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +13,16 @@ builder.Services.AddEmcoreOpenApi("v1", "EMCORE User & Organization API", "Manag
 
 builder.Services.AddScoped<Emcore.UserOrganization.Domain.Repositories.IOrganizationRepository, Emcore.UserOrganization.Infrastructure.Repositories.OrganizationRepository>();
 builder.Services.AddScoped<Emcore.UserOrganization.Application.Organizations.IOrganizationService, Emcore.UserOrganization.Application.Organizations.OrganizationService>();
+builder.Services.AddEmcoreSecurity();
 var app = builder.Build();
 app.UseEmcoreOpenApi();
 
 app.MapGet("/health/live", () => Results.Ok(new { Status = "Healthy" }));
 app.MapGet("/health/ready", () => Results.Ok(new { Status = "Ready", Dependencies = new { } }));
 
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

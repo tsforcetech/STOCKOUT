@@ -19,7 +19,11 @@ public class OrganizationService : IOrganizationService
 
     public async Task<OrganizationResponse> CreateOrganizationAsync(string ownerUserId, CreateOrganizationRequest request)
     {
-        // Validation: Individual accounts will not require LegalName
+        if (!Enum.IsDefined(typeof(OrganizationEntityType), request.EntityType))
+        {
+            throw new ArgumentException("INVALID_ORGANIZATION_TYPE");
+        }
+        
         var entityType = (OrganizationEntityType)request.EntityType;
         if (entityType == OrganizationEntityType.Business && string.IsNullOrWhiteSpace(request.LegalName))
         {
@@ -29,6 +33,14 @@ public class OrganizationService : IOrganizationService
         if (request.Capabilities == null || !request.Capabilities.Any())
         {
             throw new ArgumentException("Organization must have at least one capability.");
+        }
+
+        foreach (var cap in request.Capabilities)
+        {
+            if (!Enum.IsDefined(typeof(MarketplaceCapability), cap))
+            {
+                throw new ArgumentException("INVALID_MARKETPLACE_CAPABILITY");
+            }
         }
 
         var orgId = Guid.NewGuid().ToString();
