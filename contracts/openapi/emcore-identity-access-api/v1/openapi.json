@@ -1087,6 +1087,759 @@
         }
       }
     },
+    "/.well-known/jwks.json": {
+      "get": {
+        "tags": [
+          "Public Security Metadata"
+        ],
+        "operationId": "get.wellKnownJwks.json",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {}
+              },
+              "application/json": {
+                "schema": {}
+              },
+              "text/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/.well-known/jwks.json": {
+      "get": {
+        "tags": [
+          "Public Security Metadata"
+        ],
+        "operationId": "getApiV1Auth.wellKnownJwks.json",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {}
+              },
+              "application/json": {
+                "schema": {}
+              },
+              "text/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/register": {
+      "post": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "postApiV1IdentityRegister",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/verify": {
+      "post": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "postApiV1IdentityVerify",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/resend-verification": {
+      "post": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "postApiV1IdentityResendVerification",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/login": {
+      "post": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "postApiV1IdentityLogin",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/refresh": {
+      "post": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "postApiV1IdentityRefresh",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/logout": {
+      "post": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "postApiV1IdentityLogout",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardSuccessResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/users/{id}": {
+      "get": {
+        "tags": [
+          "Legacy Compatibility"
+        ],
+        "operationId": "getApiV1IdentityUsersId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          },
+          {
+            "name": "X-Tenant-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          },
+          {
+            "name": "X-Organization-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentIdentityResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
     "/api/v1/auth/mfa/verify": {
       "post": {
         "tags": [
@@ -3520,6 +4273,23 @@
           }
         }
       },
+      "ResendVerificationRequest": {
+        "required": [
+          "userId",
+          "channel"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Opaque unique identity reference identifier (ULID/UUID format). Must not be treated as a sequential database key.",
+            "example": "usr_01HPX7K7R5YZ2X90WY0001"
+          },
+          "channel": {
+            "type": "string"
+          }
+        }
+      },
       "ResetPasswordRequest": {
         "required": [
           "token",
@@ -3768,6 +4538,29 @@
           }
         }
       },
+      "VerifyRequest": {
+        "required": [
+          "userId",
+          "token",
+          "channel"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Opaque unique identity reference identifier (ULID/UUID format). Must not be treated as a sequential database key.",
+            "example": "usr_01HPX7K7R5YZ2X90WY0001"
+          },
+          "token": {
+            "type": "string",
+            "description": "Cryptographically secure verification or session authorization token. Treated as sensitive credential.",
+            "example": "sample_sanitized_token_value"
+          },
+          "channel": {
+            "type": "string"
+          }
+        }
+      },
       "VerifyStepUpRequest": {
         "required": [
           "stepUpId",
@@ -3842,6 +4635,12 @@
     },
     {
       "name": "Auth"
+    },
+    {
+      "name": "Public Security Metadata"
+    },
+    {
+      "name": "Legacy Compatibility"
     },
     {
       "name": "Mfa"

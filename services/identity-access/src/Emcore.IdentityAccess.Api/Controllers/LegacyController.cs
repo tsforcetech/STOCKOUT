@@ -11,7 +11,7 @@ namespace Emcore.IdentityAccess.Api.Controllers;
 
 [Route("api/v1/identity")]
 [ApiController]
-[ApiExplorerSettings(GroupName = "Legacy Compatibility")]
+[Microsoft.AspNetCore.Http.Tags("Legacy Compatibility")]
 public sealed class LegacyController : BaseApiController
 {
     private readonly IdentityApplicationService _service;

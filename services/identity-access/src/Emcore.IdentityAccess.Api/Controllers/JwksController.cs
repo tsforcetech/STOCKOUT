@@ -21,7 +21,7 @@ public sealed class JwksController : ControllerBase
     /// Retrieve public JSON Web Key Set (JWKS)
     /// </summary>
     [HttpGet("/.well-known/jwks.json")]
-    [ApiExplorerSettings(GroupName = "Public Security Metadata")]
+    [Microsoft.AspNetCore.Http.Tags("Public Security Metadata")]
     [ProducesResponseType(typeof(object), 200)]
     public IActionResult GetPublicJwks()
     {
@@ -32,7 +32,7 @@ public sealed class JwksController : ControllerBase
     /// Retrieve versioned public JWKS under auth prefix
     /// </summary>
     [HttpGet("/api/v1/auth/.well-known/jwks.json")]
-    [ApiExplorerSettings(GroupName = "Public Security Metadata")]
+    [Microsoft.AspNetCore.Http.Tags("Public Security Metadata")]
     [ProducesResponseType(typeof(object), 200)]
     public IActionResult GetAuthJwks()
     {
