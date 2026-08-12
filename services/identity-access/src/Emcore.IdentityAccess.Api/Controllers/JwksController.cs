@@ -4,10 +4,12 @@ using Emcore.BuildingBlocks.Core;
 using Emcore.BuildingBlocks.Api;
 using Microsoft.AspNetCore.Mvc;
 using Emcore.IdentityAccess.Application.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 public sealed class JwksController : ControllerBase
 {
     private readonly IJwksService _jwks;

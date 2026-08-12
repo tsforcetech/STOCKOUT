@@ -5,11 +5,13 @@ using Emcore.IdentityAccess.Application;
 using Emcore.IdentityAccess.Application.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [Route("api/v1/auth/verification")]
 [ApiController]
+[AllowAnonymous]
 public sealed class VerificationController : BaseApiController
 {
     private readonly IdentityApplicationService _service;

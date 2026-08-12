@@ -4,11 +4,14 @@ using Emcore.IdentityAccess.Application;
 using Emcore.IdentityAccess.Application.Commands;
 using Emcore.IdentityAccess.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [Route("api/v1/auth/password")]
 [ApiController]
+[Authorize]
 public sealed class PasswordController : BaseApiController
 {
     private readonly IdentityApplicationService _service;
@@ -22,6 +25,7 @@ public sealed class PasswordController : BaseApiController
     /// Initiate password reset
     /// </summary>
     [HttpPost("forgot")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ForgotPasswordResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 429)]
@@ -34,6 +38,7 @@ public sealed class PasswordController : BaseApiController
     /// Complete password reset
     /// </summary>
     [HttpPost("reset")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ResetPasswordResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]

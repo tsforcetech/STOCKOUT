@@ -1,5 +1,6 @@
 using Emcore.BuildingBlocks.Api;
 using Emcore.BuildingBlocks.Core;
+using Emcore.BuildingBlocks.Security;
 using Emcore.IdentityAccess.Api.Middleware;
 using Emcore.IdentityAccess.Application;
 using Emcore.IdentityAccess.Infrastructure;
@@ -11,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Register application and infrastructure services
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Register security
+builder.Services.AddEmcoreSecurity();
 
 // Register controllers and health checks
 builder.Services.AddControllers();
@@ -45,6 +49,9 @@ app.Use(async (context, next) =>
 
 // Database check for /api/v1 endpoints
 app.UseMiddleware<DatabaseCheckMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Map all standard MVC controllers
 app.MapControllers();

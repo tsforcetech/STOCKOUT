@@ -6,10 +6,12 @@ using Emcore.IdentityAccess.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [ApiController]
+[Authorize]
 public sealed class ServiceClientController : BaseApiController
 {
     private readonly IdentityApplicationService _service;
@@ -23,6 +25,7 @@ public sealed class ServiceClientController : BaseApiController
     /// Issue OAuth2 client credentials token
     /// </summary>
     [HttpPost("api/v1/auth/token")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ServiceTokenResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]

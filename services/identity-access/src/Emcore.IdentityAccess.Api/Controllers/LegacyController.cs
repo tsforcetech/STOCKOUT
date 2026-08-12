@@ -6,11 +6,13 @@ using Emcore.IdentityAccess.Application.Commands;
 using Emcore.IdentityAccess.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [Route("api/v1/identity")]
 [ApiController]
+[Authorize]
 [Microsoft.AspNetCore.Http.Tags("Legacy Compatibility")]
 public sealed class LegacyController : BaseApiController
 {
@@ -25,6 +27,7 @@ public sealed class LegacyController : BaseApiController
     /// Legacy identity registration alias
     /// </summary>
     [HttpPost("register")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(RegisterResponse), 201)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     public async Task<IActionResult> LegacyRegisterAsync([FromBody] RegisterRequest req, CancellationToken ct)
@@ -36,6 +39,7 @@ public sealed class LegacyController : BaseApiController
     /// Legacy identity verification alias
     /// </summary>
     [HttpPost("verify")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(StandardSuccessResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     public async Task<IActionResult> LegacyVerifyAsync([FromBody] VerifyRequest req, CancellationToken ct)
@@ -51,6 +55,7 @@ public sealed class LegacyController : BaseApiController
     /// Legacy resend verification alias
     /// </summary>
     [HttpPost("resend-verification")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(StandardSuccessResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     public async Task<IActionResult> LegacyResendVerificationAsync([FromBody] ResendVerificationRequest req, CancellationToken ct)
@@ -66,6 +71,7 @@ public sealed class LegacyController : BaseApiController
     /// Legacy login authentication alias
     /// </summary>
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]
@@ -78,6 +84,7 @@ public sealed class LegacyController : BaseApiController
     /// Legacy token refresh alias
     /// </summary>
     [HttpPost("refresh")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(RefreshResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]
     public async Task<IActionResult> LegacyRefreshAsync([FromBody] RefreshRequest req, CancellationToken ct)

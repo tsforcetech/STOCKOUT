@@ -6,10 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emcore.IdentityAccess.Application;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
+[Route("")]
 [ApiController]
+[Authorize]
 public sealed class AccountController : BaseApiController
 {
     private readonly IdentityApplicationService _service;
