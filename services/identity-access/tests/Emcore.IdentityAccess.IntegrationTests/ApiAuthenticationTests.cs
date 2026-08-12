@@ -42,7 +42,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
         var content = new StringContent("{}", Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/api/v1/auth/login", content);
-        
+
         // Should not be 401. Since the payload is empty/invalid, it should be 400 Bad Request
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -54,7 +54,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
     {
         var client = _factory.CreateClient();
         var response = await client.GetAsync("/api/v1/identity/me");
-        
+
         // 401 means the route exists and requires auth. If it was 404, the route would be missing or wrong.
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -65,7 +65,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
     {
         var client = _factory.CreateClient();
         var response = await client.GetAsync("/api/v1/auth/account/status");
-        
+
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
@@ -76,7 +76,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
         var content = new StringContent("{}", Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/api/v1/identity/admin/users/status", content);
-        
+
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
@@ -87,7 +87,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
         var content = new StringContent("{}", Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/api/v1/identity/service-clients/register", content);
-        
+
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
@@ -98,7 +98,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
         var content = new StringContent("{}", Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/api/v1/auth/token", content);
-        
+
         // Should not be 401 Unauthorized for user bearer token absence
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -137,10 +137,10 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
         client.DefaultRequestHeaders.Add("X-User-Id", "attacker-user");
 
         var response = await client.GetAsync("/api/v1/identity/me");
-        
+
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var responseString = await response.Content.ReadAsStringAsync();
-        
+
         Assert.Contains(realUserId, responseString);
         Assert.DoesNotContain("attacker-user", responseString);
     }
@@ -169,7 +169,7 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestSchemeEmpty");
 
         var response = await client.GetAsync("/api/v1/identity/me");
-        
+
         // The endpoint should fail safely (e.g. 401 or 403 or 400 depending on app logic) if UserId cannot be resolved.
         // But since ICurrentUser requires NameIdentifier, and it's missing...
         Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
