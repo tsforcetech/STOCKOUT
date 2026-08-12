@@ -48,15 +48,33 @@ Organization owner source: JWT / authenticated CurrentUser (via X-User-Id Gatewa
 Restore: PASS
 Release Build: PASS
 
-Unit Tests: PASS
-Integration Tests: PASS
-Architecture Tests: PASS
-Contract/OpenAPI Tests: PASS
 Gateway Tests: PASS
+UserOrganization Unit Tests: PASS
+UserOrganization Integration Tests: PASS
+Architecture Tests: PASS
+OpenAPI Tests: PASS
+Contract Tests: PASS
 
-## GATEWAY
-Gateway code modified: NO
-Gateway modification required: NO
+Total Passed: ALL
+Total Failed: 0
+Total Skipped: 0
+## GATEWAY IDENTITY PROPAGATION
+Client-supplied X-User-Id: REMOVED
+Authenticated UserId source: ClaimTypes.NameIdentifier or "sub"
+Outgoing trusted header: X-User-Id
+Downstream authentication: GatewayHeaderAuthenticationHandler
+ICurrentUser source: Authenticated downstream ClaimsPrincipal
+
+## SPOOFING PROTECTION
+Client attempts: X-User-Id = attacker
+Authenticated principal: UserId = real-user
+Downstream received: UserId = real-user
+Result: PASS
+
+## ORGANIZATION OWNERSHIP
+Organization Owner ID source: Authenticated CurrentUser
+Random generated owner ID: REMOVED / NOT PRESENT
+Owner supplied by request: NOT ALLOWED
 
 ## UNRELATED CHANGES
 Unrelated modifications introduced by this task: NONE
