@@ -6,6 +6,7 @@ using Emcore.BuildingBlocks.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddEmcoreOpenApi("v1", "EMCORE MCP Gateway API", "Machine & Copilot Protocol (MCP) tool integration gateway, exposing governed AI agent tools, semantic discovery capabilities, automated workflow inspection, and standardized schema prompts for external AI clients.", "1.0.0", "AI Integration & MCP Team", "AI copilots, autonomous LLM agents, automated developer toolchains");
 
@@ -14,7 +15,9 @@ app.UseEmcoreOpenApi();
 
 app.MapGet("/health/live", () => Results.Ok(new { Status = "Healthy" }));
 app.MapGet("/health/ready", () => Results.Ok(new { Status = "Ready", Dependencies = new { } }));
-app.MapGet("/api/v1/system/version", () => Results.Ok(new { ServiceName = "Emcore.McpGateway", Version = "0.1.0", Environment = builder.Environment.EnvironmentName }));
+
+
+app.MapControllers();
 
 app.Run();
 

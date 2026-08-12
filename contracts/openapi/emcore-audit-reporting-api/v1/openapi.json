@@ -55,7 +55,7 @@
     "/api/v1/system/version": {
       "get": {
         "tags": [
-          "Emcore.AuditReporting.Api"
+          "System"
         ],
         "summary": "Retrieve service deployment release metadata",
         "description": "Returns executable release metadata including service logical identifier, semantic version string, and runtime environment designation. Used for contract compatibility validation and diagnostic tracing.",
@@ -200,6 +200,9 @@
   "tags": [
     {
       "name": "Emcore.AuditReporting.Api"
+    },
+    {
+      "name": "System"
     }
   ]
 }

@@ -6,6 +6,7 @@ using Emcore.BuildingBlocks.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddEmcoreOpenApi("v1", "EMCORE Bidding & Deal API", "Manages interactive marketplace bidding, seller offers, buyer counteroffers, formal bid acceptance, deal creation, deal lifecycle progress, cancellations, and transaction completion. Owns negotiation workflows and agreement state preservation.", "1.0.0", "Bidding & Deal Core Team", "Buyer/seller marketplace frontends, negotiation bots, escrow integrations");
 
@@ -14,7 +15,9 @@ app.UseEmcoreOpenApi();
 
 app.MapGet("/health/live", () => Results.Ok(new { Status = "Healthy" }));
 app.MapGet("/health/ready", () => Results.Ok(new { Status = "Ready", Dependencies = new { } }));
-app.MapGet("/api/v1/system/version", () => Results.Ok(new Emcore.BiddingDeal.Contracts.SystemVersionResponse("emcore-bidding-deal-api", "0.1.0", builder.Environment.EnvironmentName)));
+
+
+app.MapControllers();
 
 app.Run();
 

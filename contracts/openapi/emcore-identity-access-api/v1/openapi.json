@@ -22,14 +22,12 @@
     }
   ],
   "paths": {
-    "/.well-known/jwks.json": {
+    "/api/v1/auth/account/status": {
       "get": {
         "tags": [
-          "Public Security Metadata"
+          "Account"
         ],
-        "summary": "Retrieve public JSON Web Key Set (JWKS)",
-        "description": "Returns public RSA verification keys formatted as standard RFC 7517 JWKS for offline token signature verification by API gateways and federated consumers.",
-        "operationId": "GetPublicJwks",
+        "operationId": "getApiV1AuthAccountStatus",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -73,7 +71,19 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AccountStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           },
@@ -83,14 +93,12 @@
         }
       }
     },
-    "/api/v1/auth/.well-known/jwks.json": {
+    "/api/v1/identity/me": {
       "get": {
         "tags": [
-          "Public Security Metadata"
+          "Account"
         ],
-        "summary": "Retrieve versioned public JWKS under auth prefix",
-        "description": "Returns versioned public RSA verification keys for offline token verification.",
-        "operationId": "GetAuthJwks",
+        "operationId": "getApiV1IdentityMe",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -134,7 +142,285 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentIdentityResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/admin/users/status": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "postApiV1IdentityAdminUsersStatus",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          },
+          {
+            "name": "X-Tenant-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          },
+          {
+            "name": "X-Organization-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/admin/users/{id}/status": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "putApiV1IdentityAdminUsersIdStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          },
+          {
+            "name": "X-Tenant-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          },
+          {
+            "name": "X-Organization-Id",
+            "in": "header",
+            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
+            "schema": {
+              "type": "string",
+              "default": "org_01HPX7K7R5YZ2X90WY0002"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
               }
             }
           },
@@ -147,11 +433,9 @@
     "/api/v1/auth/register": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "Register new user identity",
-        "description": "Registers a new user identity within the system. Generates an account and emits a verification challenge event to the notification outbox.",
-        "operationId": "RegisterUser",
+        "operationId": "postApiV1AuthRegister",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -193,6 +477,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterRequest"
               }
@@ -247,406 +541,12 @@
         }
       }
     },
-    "/api/v1/auth/verification/email/send": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Send email verification challenge",
-        "description": "Triggers a one-time cryptographic verification challenge delivered via email to confirm domain and mailbox control.",
-        "operationId": "SendEmailVerification",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SendEmailVerificationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StandardSuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/verification/email/confirm": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Confirm email verification token",
-        "description": "Validates an email verification token against pending verification records and transitions user account status to Active.",
-        "operationId": "ConfirmEmailVerification",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConfirmEmailVerificationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StandardSuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/verification/mobile/send": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Send mobile verification OTP",
-        "description": "Dispatches a one-time passcode via SMS channel to the registered international E.164 mobile contact number.",
-        "operationId": "SendMobileVerification",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SendMobileVerificationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StandardSuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/verification/mobile/confirm": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Confirm mobile verification OTP",
-        "description": "Verifies the submitted SMS passcode against active challenge records and verifies mobile channel ownership.",
-        "operationId": "ConfirmMobileVerification",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConfirmMobileVerificationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StandardSuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "Authenticate user credentials",
-        "description": "Validates identity credentials (email/password or mobile/password), checks account locking rules, and issues JWT access and refresh token pair upon successful authentication.",
-        "operationId": "Login",
+        "operationId": "postApiV1AuthLogin",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -688,6 +588,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/LoginRequest"
               }
@@ -755,11 +665,9 @@
     "/api/v1/auth/token/refresh": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "Refresh access token",
-        "description": "Exchanges a valid, unexpired refresh token for a fresh JWT access token and rotating refresh token pair. Revokes consumed refresh token.",
-        "operationId": "RefreshToken",
+        "operationId": "postApiV1AuthTokenRefresh",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -801,6 +709,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/RefreshRequest"
               }
@@ -848,11 +766,9 @@
     "/api/v1/auth/logout": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "Terminate current session",
-        "description": "Revokes the specified active refresh token or authenticated session in distributed session storage, terminating immediate token renewal capabilities.",
-        "operationId": "Logout",
+        "operationId": "postApiV1AuthLogout",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -897,6 +813,16 @@
               "schema": {
                 "$ref": "#/components/schemas/LogoutRequest"
               }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
             }
           }
         },
@@ -930,11 +856,9 @@
     "/api/v1/auth/logout-all": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "Revoke all active sessions",
-        "description": "Performs blanket session revocation across all devices and clients for the authenticated identity by incrementing session security timestamps.",
-        "operationId": "LogoutAll",
+        "operationId": "postApiV1AuthLogoutAll",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -1000,303 +924,12 @@
         }
       }
     },
-    "/api/v1/auth/password/forgot": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Initiate password reset",
-        "description": "Generates a secure password reset token delivered via verified communication channels if the provided account identifier exists.",
-        "operationId": "ForgotPassword",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ForgotPasswordResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/password/reset": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Complete password reset",
-        "description": "Applies a new complex user password authenticated by a valid password recovery token and automatically terminates existing sessions.",
-        "operationId": "ResetPassword",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResetPasswordRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResetPasswordResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/password/change": {
-      "post": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Change authenticated user password",
-        "description": "Updates the password for an authenticated identity after verifying current password knowledge. Retires active session tokens.",
-        "operationId": "ChangePassword",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ChangePasswordRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChangePasswordResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
     "/api/v1/auth/sessions": {
       "get": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "List active authentication sessions",
-        "description": "Retrieves all currently active login sessions for the authenticated identity, including IP address, user agent, and creation timestamps.",
-        "operationId": "GetSessions",
+        "operationId": "getApiV1AuthSessions",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -1368,11 +1001,9 @@
     "/api/v1/auth/sessions/{sessionId}": {
       "delete": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Auth"
         ],
-        "summary": "Revoke specific authentication session",
-        "description": "Remotely terminates a specific active login session identified by its session UUID, immediately disallowing future token renewals.",
-        "operationId": "RevokeSession",
+        "operationId": "deleteApiV1AuthSessionsSessionId",
         "parameters": [
           {
             "name": "sessionId",
@@ -1456,160 +1087,12 @@
         }
       }
     },
-    "/api/v1/auth/account/status": {
-      "get": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Inspect user account status",
-        "description": "Returns current operational status indicators (Active, Suspended, Locked, PendingVerification) and lockout expiration timestamps for the caller.",
-        "operationId": "GetAccountStatus",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountStatusResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/me": {
-      "get": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Retrieve profile for authenticated user",
-        "description": "Returns comprehensive profile attributes, organizational membership context, and role assignments for the currently authenticated bearer identity.",
-        "operationId": "GetCurrentIdentity",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentIdentityResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
     "/api/v1/auth/mfa/verify": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Mfa"
         ],
-        "summary": "Verify multi-factor challenge during login",
-        "description": "Verifies an MFA TOTP code or backup verification token during the second phase of user authentication to complete token issuance.",
-        "operationId": "VerifyMfaLogin",
+        "operationId": "postApiV1AuthMfaVerify",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -1651,6 +1134,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaLoginVerifyRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaLoginVerifyRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/MfaLoginVerifyRequest"
               }
@@ -1708,11 +1201,9 @@
     "/api/v1/auth/mfa/register": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Mfa"
         ],
-        "summary": "Initialize MFA authenticator registration",
-        "description": "Generates a secure TOTP secret seed and QR code enrollment URI for connecting hardware or mobile software authenticator applications.",
-        "operationId": "RegisterMfa",
+        "operationId": "postApiV1AuthMfaRegister",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -1754,6 +1245,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterMfaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterMfaRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterMfaRequest"
               }
@@ -1801,11 +1302,9 @@
     "/api/v1/auth/mfa/confirm": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Mfa"
         ],
-        "summary": "Confirm MFA authenticator registration",
-        "description": "Validates an initial TOTP passcode against a pending MFA secret seed to activate multi-factor authentication requirements for the account.",
-        "operationId": "ConfirmMfa",
+        "operationId": "postApiV1AuthMfaConfirm",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -1847,6 +1346,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmMfaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmMfaRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/ConfirmMfaRequest"
               }
@@ -1904,11 +1413,9 @@
     "/api/v1/auth/stepup/initiate": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Mfa"
         ],
-        "summary": "Initiate step-up authorization challenge",
-        "description": "Initiates an elevated step-up verification workflow for protecting sensitive administrative actions or financial transaction changes.",
-        "operationId": "InitiateStepUp",
+        "operationId": "postApiV1AuthStepupInitiate",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -1953,6 +1460,16 @@
               "schema": {
                 "$ref": "#/components/schemas/InitiateStepUpRequest"
               }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitiateStepUpRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/InitiateStepUpRequest"
+              }
             }
           },
           "required": true
@@ -1987,11 +1504,9 @@
     "/api/v1/auth/stepup/verify": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Mfa"
         ],
-        "summary": "Verify step-up authorization challenge",
-        "description": "Confirms a step-up challenge verification passcode and issues an short-lived elevated authorization ticket header (X-StepUp-Token).",
-        "operationId": "VerifyStepUp",
+        "operationId": "postApiV1AuthStepupVerify",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -2033,6 +1548,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyStepUpRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyStepUpRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/VerifyStepUpRequest"
               }
@@ -2087,14 +1612,12 @@
         }
       }
     },
-    "/api/v1/auth/token": {
+    "/api/v1/auth/password/forgot": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Password"
         ],
-        "summary": "Issue OAuth2 client credentials token",
-        "description": "Authenticates machine workload identities and service clients using ID and secret credentials, issuing a short-lived scoped service JWT.",
-        "operationId": "IssueServiceToken",
+        "operationId": "postApiV1AuthPasswordForgot",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -2136,6 +1659,329 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgotPasswordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password/reset": {
+      "post": {
+        "tags": [
+          "Password"
+        ],
+        "operationId": "postApiV1AuthPasswordReset",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password/change": {
+      "post": {
+        "tags": [
+          "Password"
+        ],
+        "operationId": "postApiV1AuthPasswordChange",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePasswordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/token": {
+      "post": {
+        "tags": [
+          "ServiceClient"
+        ],
+        "operationId": "postApiV1AuthToken",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceTokenRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceTokenRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/ServiceTokenRequest"
               }
@@ -2183,11 +2029,9 @@
     "/api/v1/identity/service-clients/register": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "ServiceClient"
         ],
-        "summary": "Register new service workload client",
-        "description": "Creates a dedicated workload machine identity with defined scope permissions and generates an initial high-entropy secret credential.",
-        "operationId": "RegisterServiceClient",
+        "operationId": "postApiV1IdentityServiceClientsRegister",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -2229,6 +2073,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterServiceClientRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterServiceClientRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterServiceClientRequest"
               }
@@ -2286,11 +2140,9 @@
     "/api/v1/identity/service-clients/{id}/rotate": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "ServiceClient"
         ],
-        "summary": "Rotate service client secret credential",
-        "description": "Generates a replacement secret credential for a service client while initiating a grace-period transition window for the legacy secret.",
-        "operationId": "RotateServiceClientCredential",
+        "operationId": "postApiV1IdentityServiceClientsIdRotate",
         "parameters": [
           {
             "name": "id",
@@ -2340,6 +2192,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateServiceClientCredentialRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateServiceClientCredentialRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/RotateServiceClientCredentialRequest"
               }
@@ -2396,11 +2258,9 @@
     "/api/v1/identity/service-clients/credentials/revoke": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "ServiceClient"
         ],
-        "summary": "Revoke specific service client secret",
-        "description": "Immediately revokes and disables an active or retiring secret credential for a workload identity, terminating future token issuance.",
-        "operationId": "RevokeServiceClientCredential",
+        "operationId": "postApiV1IdentityServiceClientsCredentialsRevoke",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -2442,6 +2302,16 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeServiceClientCredentialRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeServiceClientCredentialRequest"
+              }
+            },
+            "application/*\u002Bjson": {
               "schema": {
                 "$ref": "#/components/schemas/RevokeServiceClientCredentialRequest"
               }
@@ -2499,11 +2369,9 @@
     "/api/v1/identity/service-clients/{id}/credentials": {
       "get": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "ServiceClient"
         ],
-        "summary": "List active credentials for service client",
-        "description": "Lists metadata and status (Active, Retiring, Revoked) for all cryptographic credentials associated with a service client identifier. Does not return secret plaintext.",
-        "operationId": "ListServiceClientCredentials",
+        "operationId": "getApiV1IdentityServiceClientsIdCredentials",
         "parameters": [
           {
             "name": "id",
@@ -2590,14 +2458,12 @@
         }
       }
     },
-    "/api/v1/identity/admin/users/status": {
+    "/api/v1/auth/verification/email/send": {
       "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Verification"
         ],
-        "summary": "Administrative user account status modification",
-        "description": "Allows privileged security administrative officers to suspend, lock, unlock, or terminate an arbitrary user identity across the platform.",
-        "operationId": "AdminUpdateUserStatusPost",
+        "operationId": "postApiV1AuthVerificationEmailSend",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -2634,31 +2500,23 @@
               "type": "string",
               "default": "en-AE"
             }
-          },
-          {
-            "name": "X-Tenant-Id",
-            "in": "header",
-            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
-            "schema": {
-              "type": "string",
-              "default": "org_01HPX7K7R5YZ2X90WY0002"
-            }
-          },
-          {
-            "name": "X-Organization-Id",
-            "in": "header",
-            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
-            "schema": {
-              "type": "string",
-              "default": "org_01HPX7K7R5YZ2X90WY0002"
-            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+                "$ref": "#/components/schemas/SendEmailVerificationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendEmailVerificationRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/SendEmailVerificationRequest"
               }
             }
           },
@@ -2677,16 +2535,6 @@
           },
           "400": {
             "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -2705,29 +2553,29 @@
               }
             }
           },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
           }
         }
       }
     },
-    "/api/v1/identity/admin/users/{id}/status": {
-      "put": {
+    "/api/v1/auth/verification/email/confirm": {
+      "post": {
         "tags": [
-          "Emcore.IdentityAccess.Api"
+          "Verification"
         ],
-        "summary": "Administrative user status modification by ID",
-        "description": "Idempotently updates the lock or active operational status for the target user ID specified in the URI path.",
-        "operationId": "AdminUpdateUserStatusPut",
+        "operationId": "postApiV1AuthVerificationEmailConfirm",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "X-Request-Id",
             "in": "header",
@@ -2763,31 +2611,23 @@
               "type": "string",
               "default": "en-AE"
             }
-          },
-          {
-            "name": "X-Tenant-Id",
-            "in": "header",
-            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
-            "schema": {
-              "type": "string",
-              "default": "org_01HPX7K7R5YZ2X90WY0002"
-            }
-          },
-          {
-            "name": "X-Organization-Id",
-            "in": "header",
-            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
-            "schema": {
-              "type": "string",
-              "default": "org_01HPX7K7R5YZ2X90WY0002"
-            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminUpdateUserStatusRequest"
+                "$ref": "#/components/schemas/ConfirmEmailVerificationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmEmailVerificationRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmEmailVerificationRequest"
               }
             }
           },
@@ -2814,8 +2654,99 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden",
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/verification/mobile/send": {
+      "post": {
+        "tags": [
+          "Verification"
+        ],
+        "operationId": "postApiV1AuthVerificationMobileSend",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMobileVerificationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMobileVerificationRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMobileVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
@@ -2834,81 +2765,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/register": {
-      "post": {
-        "tags": [
-          "Legacy Compatibility"
-        ],
-        "summary": "Legacy identity registration alias",
-        "description": "Backward-compatible alias route for /api/v1/auth/register.",
-        "operationId": "LegacyRegister",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegisterResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
+          "429": {
+            "description": "Too Many Requests",
             "content": {
               "application/json": {
                 "schema": {
@@ -2923,14 +2781,12 @@
         }
       }
     },
-    "/api/v1/identity/verify": {
+    "/api/v1/auth/verification/mobile/confirm": {
       "post": {
         "tags": [
-          "Legacy Compatibility"
+          "Verification"
         ],
-        "summary": "Legacy identity verification alias",
-        "description": "Backward-compatible alias route for verification confirmation across mobile and email channels.",
-        "operationId": "LegacyVerify",
+        "operationId": "postApiV1AuthVerificationMobileConfirm",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -2973,7 +2829,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyRequest"
+                "$ref": "#/components/schemas/ConfirmMobileVerificationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmMobileVerificationRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmMobileVerificationRequest"
               }
             }
           },
@@ -3000,419 +2866,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/resend-verification": {
-      "post": {
-        "tags": [
-          "Legacy Compatibility"
-        ],
-        "summary": "Legacy resend verification alias",
-        "description": "Backward-compatible alias route for resending verification challenges.",
-        "operationId": "LegacyResendVerification",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResendVerificationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StandardSuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/login": {
-      "post": {
-        "tags": [
-          "Legacy Compatibility"
-        ],
-        "summary": "Legacy login authentication alias",
-        "description": "Backward-compatible alias route for /api/v1/auth/login.",
-        "operationId": "LegacyLogin",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/refresh": {
-      "post": {
-        "tags": [
-          "Legacy Compatibility"
-        ],
-        "summary": "Legacy token refresh alias",
-        "description": "Backward-compatible alias route for /api/v1/auth/token/refresh.",
-        "operationId": "LegacyRefresh",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefreshResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/logout": {
-      "post": {
-        "tags": [
-          "Legacy Compatibility"
-        ],
-        "summary": "Legacy session logout alias",
-        "description": "Backward-compatible alias route for /api/v1/auth/logout.",
-        "operationId": "LegacyLogout",
-        "parameters": [
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StandardSuccessResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/users/{id}": {
-      "get": {
-        "tags": [
-          "Emcore.IdentityAccess.Api"
-        ],
-        "summary": "Retrieve user profile by explicit ID",
-        "description": "Retrieves public profile attributes and tenant organization role context for the specified identity ID.",
-        "operationId": "LegacyGetUserById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Request-Id",
-            "in": "header",
-            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
-            "schema": {
-              "type": "string",
-              "default": "req_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Correlation-Id",
-            "in": "header",
-            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
-            "schema": {
-              "type": "string",
-              "default": "cor_01HPX7K7R5YZ2X90WY"
-            }
-          },
-          {
-            "name": "X-Client-Version",
-            "in": "header",
-            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
-            "schema": {
-              "type": "string",
-              "default": "1.0.0-build2026"
-            }
-          },
-          {
-            "name": "Accept-Language",
-            "in": "header",
-            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
-            "schema": {
-              "type": "string",
-              "default": "en-AE"
-            }
-          },
-          {
-            "name": "X-Tenant-Id",
-            "in": "header",
-            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
-            "schema": {
-              "type": "string",
-              "default": "org_01HPX7K7R5YZ2X90WY0002"
-            }
-          },
-          {
-            "name": "X-Organization-Id",
-            "in": "header",
-            "description": "Client-supplied requested context. Supplying this value does not grant authorization. Runtime membership validation is not currently verified as active. The authorization layer must validate requested context against the authenticated principal before it can be trusted.",
-            "schema": {
-              "type": "string",
-              "default": "org_01HPX7K7R5YZ2X90WY0002"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentIdentityResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
+          "422": {
+            "description": "Unprocessable Entity",
             "content": {
               "application/json": {
                 "schema": {
@@ -4065,23 +3520,6 @@
           }
         }
       },
-      "ResendVerificationRequest": {
-        "required": [
-          "userId",
-          "channel"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "description": "Opaque unique identity reference identifier (ULID/UUID format). Must not be treated as a sequential database key.",
-            "example": "usr_01HPX7K7R5YZ2X90WY0001"
-          },
-          "channel": {
-            "type": "string"
-          }
-        }
-      },
       "ResetPasswordRequest": {
         "required": [
           "token",
@@ -4330,29 +3768,6 @@
           }
         }
       },
-      "VerifyRequest": {
-        "required": [
-          "userId",
-          "token",
-          "channel"
-        ],
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "description": "Opaque unique identity reference identifier (ULID/UUID format). Must not be treated as a sequential database key.",
-            "example": "usr_01HPX7K7R5YZ2X90WY0001"
-          },
-          "token": {
-            "type": "string",
-            "description": "Cryptographically secure verification or session authorization token. Treated as sensitive credential.",
-            "example": "sample_sanitized_token_value"
-          },
-          "channel": {
-            "type": "string"
-          }
-        }
-      },
       "VerifyStepUpRequest": {
         "required": [
           "stepUpId",
@@ -4420,13 +3835,25 @@
   },
   "tags": [
     {
-      "name": "Public Security Metadata"
+      "name": "Account"
     },
     {
-      "name": "Emcore.IdentityAccess.Api"
+      "name": "Admin"
     },
     {
-      "name": "Legacy Compatibility"
+      "name": "Auth"
+    },
+    {
+      "name": "Mfa"
+    },
+    {
+      "name": "Password"
+    },
+    {
+      "name": "ServiceClient"
+    },
+    {
+      "name": "Verification"
     }
   ]
 }
