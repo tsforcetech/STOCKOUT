@@ -50,7 +50,7 @@ Service-to-service service client credential and registration workflows in the `
 - **Format:** PASS
 - **Build:** PASS
 - **Identity Unit Tests:** PASS
-- **Identity Integration Tests:** PASS
+- **Identity Integration Tests:** PASS (Added 10 new API-level authentication scenarios in `ApiAuthenticationTests.cs` using `WebApplicationFactory`)
 - **Full Regression:** PASS (Note: The `GatewayTests` contain pre-existing 404 failures on `main` caused by unmapped mock server URLs missing `endpoints.json` references due to lack of output copying. This does not impact the Identity subsystem).
 
 ## Known Next-Stage Items Not Touched

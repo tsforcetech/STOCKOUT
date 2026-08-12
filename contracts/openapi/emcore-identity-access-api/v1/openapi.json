@@ -22,12 +22,12 @@
     }
   ],
   "paths": {
-    "/api/v1/auth/api/v1/auth/account/status": {
+    "/api/v1/auth/account/status": {
       "get": {
         "tags": [
           "Account"
         ],
-        "operationId": "getApiV1AuthApiV1AuthAccountStatus",
+        "operationId": "getApiV1AuthAccountStatus",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -129,12 +129,12 @@
         ]
       }
     },
-    "/api/v1/auth/api/v1/identity/me": {
+    "/api/v1/identity/me": {
       "get": {
         "tags": [
           "Account"
         ],
-        "operationId": "getApiV1AuthApiV1IdentityMe",
+        "operationId": "getApiV1IdentityMe",
         "parameters": [
           {
             "name": "X-Request-Id",
@@ -3377,44 +3377,8 @@
           },
           "500": {
             "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmcoreProblemDetails"
-                },
-                "example": {
-                  "type": "https://emcore.platform/errors/403",
-                  "title": "Forbidden",
-                  "status": 403,
-                  "code": "ACCESS_DENIED",
-                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
-                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmcoreProblemDetails"
-                },
-                "example": {
-                  "type": "https://emcore.platform/errors/403",
-                  "title": "Forbidden",
-                  "status": 403,
-                  "code": "ACCESS_DENIED",
-                  "detail": "Authenticated caller lacks sufficient tenant role or delegated permissions for this resource.",
-                  "traceId": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-                }
-              }
-            }
           }
-        },
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/identity/service-clients/register": {

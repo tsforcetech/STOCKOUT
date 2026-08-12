@@ -25,6 +25,7 @@ public sealed class ServiceClientController : BaseApiController
     /// Issue OAuth2 client credentials token
     /// </summary>
     [HttpPost("api/v1/auth/token")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ServiceTokenResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]

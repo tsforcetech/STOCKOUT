@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
-[Route("api/v1/auth")]
+[Route("")]
 [ApiController]
 [Authorize]
 public sealed class AccountController : BaseApiController
