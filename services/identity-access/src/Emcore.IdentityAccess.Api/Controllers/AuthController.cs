@@ -6,11 +6,13 @@ using Emcore.IdentityAccess.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [Route("api/v1/auth")]
 [ApiController]
+[Authorize]
 public sealed class AuthController : BaseApiController
 {
     private readonly IdentityApplicationService _service;
@@ -24,6 +26,7 @@ public sealed class AuthController : BaseApiController
     /// Register new user identity
     /// </summary>
     [HttpPost("register")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(RegisterResponse), 201)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 409)]
@@ -37,6 +40,7 @@ public sealed class AuthController : BaseApiController
     /// Authenticate user credentials
     /// </summary>
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]
@@ -51,6 +55,7 @@ public sealed class AuthController : BaseApiController
     /// Refresh access token
     /// </summary>
     [HttpPost("token/refresh")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(RefreshResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]

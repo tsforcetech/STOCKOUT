@@ -5,11 +5,13 @@ using Emcore.IdentityAccess.Application.Commands;
 using Emcore.IdentityAccess.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [Route("api/v1/auth")]
 [ApiController]
+[Authorize]
 public sealed class MfaController : BaseApiController
 {
     private readonly IdentityApplicationService _service;
@@ -23,6 +25,7 @@ public sealed class MfaController : BaseApiController
     /// Verify multi-factor challenge during login
     /// </summary>
     [HttpPost("mfa/verify")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
     [ProducesResponseType(typeof(ProblemDetails), 401)]

@@ -12,5 +12,6 @@
     <ProjectReference Include="..\Emcore.IdentityAccess.Contracts\Emcore.IdentityAccess.Contracts.csproj" />
     <ProjectReference Include="..\Emcore.IdentityAccess.Infrastructure\Emcore.IdentityAccess.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Api\Emcore.BuildingBlocks.Api.csproj" />
+    <ProjectReference Include="..\..\..\..\building-blocks\Emcore.BuildingBlocks.Security\Emcore.BuildingBlocks.Security.csproj" />
   </ItemGroup>
 </Project>

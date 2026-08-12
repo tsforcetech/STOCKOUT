@@ -6,10 +6,12 @@ using Emcore.IdentityAccess.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Emcore.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Emcore.IdentityAccess.Api.Controllers;
 
 [ApiController]
+[Authorize]
 public sealed class ServiceClientController : BaseApiController
 {
     private readonly IdentityApplicationService _service;
