@@ -94,3 +94,34 @@ feat: support individual and business marketplace sellers
 **Review Notes:**
 - CatalogListing and InspectionTrust currently have no implementation endpoints to enforce capability/listing verification. The capabilities are now correctly bounded at the Organization account level.
 - Ensure the Gateway is appropriately configured to strip client-provided `X-User-Id` to prevent impersonation, as verified by existing Gateway integration tests.
+
+## PR #4 CI Validation Fix
+Failed Run:
+Unknown (failed to fetch via CLI)
+
+Original Failure:
+MSB1011 Specify which project or solution file to use because this folder contains more than one project or solution file
+
+Root Cause:
+Ambiguous root-level solution resolution because multiple solution files (Emcore.Platform.slnx and EmcoreAll.slnx) exist in the repository root and the generic `dotnet restore`, `dotnet format`, and `dotnet build` commands did not explicitly target a solution.
+
+Files Changed:
+.github/workflows/pr-validation.yml
+
+Fix:
+Explicitly added `Emcore.Platform.slnx` to the `dotnet restore`, `dotnet format`, and `dotnet build` commands in the PR Validation workflow.
+
+Local Restore:
+PASS
+
+Local Format:
+PASS (after formatting fixes)
+
+Local Release Build:
+PASS
+
+Tests:
+PASS
+
+GitHub PR Validation:
+WAITING
