@@ -92,14 +92,16 @@ class Program
                     try
                     {
                         var batches = scriptContent.Split(new[] { "\nGO", "\r\nGO", " GO\r\n", " GO\n" }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach(var batch in batches) {
+                        foreach (var batch in batches)
+                        {
                             if (string.IsNullOrWhiteSpace(batch)) continue;
                             await connection.ExecuteAsync(batch, transaction: transaction);
                         }
-                        
+
                         await connection.ExecuteAsync(
                             "INSERT INTO dbo.__EMCORE_MIGRATION_HISTORY (MIGRATION_ID, MIGRATION_NAME, SCRIPT_CHECKSUM, APPLIED_AT_UTC, APPLIED_BY, APPLICATION_VERSION, EXECUTION_DURATION_MS, SUCCESS_YN) VALUES (@Id, @Name, @Checksum, @AppliedAt, @AppliedBy, @AppVersion, @Duration, @Success)",
-                            new {
+                            new
+                            {
                                 Id = Guid.NewGuid().ToString(),
                                 Name = scriptName,
                                 Checksum = checksum,
@@ -118,12 +120,14 @@ class Program
                         transaction.Rollback();
                         Console.Error.WriteLine($"Failed to apply {scriptName}: {ex.Message}");
                         errorRef = ex.Message;
-                        
+
                         // Try to log failure
-                        try {
+                        try
+                        {
                             await connection.ExecuteAsync(
                                 "INSERT INTO dbo.__EMCORE_MIGRATION_HISTORY (MIGRATION_ID, MIGRATION_NAME, SCRIPT_CHECKSUM, APPLIED_AT_UTC, APPLIED_BY, APPLICATION_VERSION, EXECUTION_DURATION_MS, SUCCESS_YN, ERROR_REFERENCE) VALUES (@Id, @Name, @Checksum, @AppliedAt, @AppliedBy, @AppVersion, @Duration, @Success, @ErrorRef)",
-                                new {
+                                new
+                                {
                                     Id = Guid.NewGuid().ToString(),
                                     Name = scriptName,
                                     Checksum = checksum,
@@ -134,7 +138,8 @@ class Program
                                     Success = false,
                                     ErrorRef = errorRef
                                 });
-                        } catch {}
+                        }
+                        catch { }
                         return 1;
                     }
                 }

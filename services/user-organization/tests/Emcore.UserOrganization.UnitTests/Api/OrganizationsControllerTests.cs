@@ -16,7 +16,7 @@ public class OrganizationsControllerTests
     {
         var mockService = new Mock<IOrganizationService>();
         var mockCurrentUser = new Mock<ICurrentUser>();
-        
+
         mockCurrentUser.Setup(c => c.UserId).Returns((string?)null);
 
         var controller = new OrganizationsController(mockService.Object, mockCurrentUser.Object);
@@ -39,7 +39,7 @@ public class OrganizationsControllerTests
     {
         var mockService = new Mock<IOrganizationService>();
         var mockCurrentUser = new Mock<ICurrentUser>();
-        
+
         var userId = "user-123";
         mockCurrentUser.Setup(c => c.UserId).Returns(userId);
 

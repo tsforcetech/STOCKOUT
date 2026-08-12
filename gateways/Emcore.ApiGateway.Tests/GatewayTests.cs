@@ -536,10 +536,10 @@ public class GatewayTests
 
         var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/profile");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test-token");
-        
+
         var response = await fixture.Client.SendAsync(req);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         // The Gateway adds X-User-Id derived from the test token ("usr_test_123")
         content.Should().Contain("usr_test_123");

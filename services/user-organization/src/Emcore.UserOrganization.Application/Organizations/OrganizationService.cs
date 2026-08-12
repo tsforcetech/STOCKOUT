@@ -23,7 +23,7 @@ public class OrganizationService : IOrganizationService
         {
             throw new ArgumentException("INVALID_ORGANIZATION_TYPE");
         }
-        
+
         var entityType = (OrganizationEntityType)request.EntityType;
         if (entityType == OrganizationEntityType.Business && string.IsNullOrWhiteSpace(request.LegalName))
         {

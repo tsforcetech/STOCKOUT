@@ -43,7 +43,7 @@ public class GatewayHeaderAuthenticationHandler : AuthenticationHandler<GatewayH
     public GatewayHeaderAuthenticationHandler(
         IOptionsMonitor<GatewayHeaderAuthenticationOptions> options,
         ILoggerFactory logger,
-        UrlEncoder encoder) 
+        UrlEncoder encoder)
         : base(options, logger, encoder)
     {
     }

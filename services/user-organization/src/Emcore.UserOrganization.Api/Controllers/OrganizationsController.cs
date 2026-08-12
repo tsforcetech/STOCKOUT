@@ -32,7 +32,7 @@ public class OrganizationsController : ControllerBase
             {
                 return Unauthorized(new { Error = "User context missing" });
             }
-            
+
             var response = await _organizationService.CreateOrganizationAsync(ownerUserId, request);
             return CreatedAtAction(nameof(GetOrganization), new { id = response.Id }, response);
         }

@@ -30,7 +30,7 @@ class Program
         bool isValidate = args.Contains("--validate");
         bool isDryRun = args.Contains("--dry-run");
         bool isApply = args.Contains("--apply");
-       
+
         if (!isList && !isValidate && !isDryRun && !isApply)
         {
             Console.WriteLine("Usage: Emcore.IdentityAccess.Migrator [ --list | --validate | --dry-run | --apply ]");
