@@ -15,6 +15,26 @@ public class SecurityHardeningTests
 {
     private readonly IdentityApplicationService _service;
 
+    private class TestTokenGenerator : Emcore.IdentityAccess.Application.Abstractions.ITokenGenerator, Emcore.IdentityAccess.Application.Abstractions.IJwksService
+    {
+        private readonly JwtTokenGenerator _inner = new JwtTokenGenerator();
+        private readonly string _overrideToken;
+
+        public TestTokenGenerator(string overrideToken)
+        {
+            _overrideToken = overrideToken;
+        }
+
+        public string GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd") => _inner.GenerateAccessToken(userId, email, sessionId, emailVerified, amr);
+        public (string Token, string Hash) GenerateRefreshToken() => _inner.GenerateRefreshToken();
+        public (string Token, string Hash) GenerateVerificationToken() => (_overrideToken, HashToken(_overrideToken));
+        public (string Token, string Hash) GenerateKeyedVerificationToken(string verificationId, string normalizedDestination) => (_overrideToken, HashKeyedToken(verificationId, normalizedDestination, _overrideToken));
+        public (string Token, string Hash) GeneratePasswordResetToken() => _inner.GeneratePasswordResetToken();
+        public string HashToken(string rawToken) => _inner.HashToken(rawToken);
+        public string HashKeyedToken(string verificationId, string normalizedDestination, string rawOtp) => _inner.HashKeyedToken(verificationId, normalizedDestination, rawOtp);
+        public string GetJwksJson() => _inner.GetJwksJson();
+    }
+
     public SecurityHardeningTests()
     {
         var config = new ConfigurationBuilder()
@@ -26,9 +46,10 @@ public class SecurityHardeningTests
 
         var repo = new IdentityRepository(config);
         var hasher = new Pbkdf2PasswordHasher();
-        var tokenGen = new JwtTokenGenerator();
+        var tokenGen = new TestTokenGenerator("654321");
         _service = new IdentityApplicationService(repo, tokenGen, hasher);
     }
+
 
     [Fact]
     public async Task Mfa_Registration_Confirmation_And_Mfa_Login_Verification_Flow()
@@ -46,7 +67,7 @@ public class SecurityHardeningTests
         Assert.NotNull(mfaRegRes.Data?.Secret);
 
         // 3. Confirm MFA
-        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "123456"), ct);
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321"), ct);
         Assert.True(confirmRes.IsSuccess);
 
         // 4. Login now requires MFA
@@ -56,7 +77,7 @@ public class SecurityHardeningTests
         Assert.NotEmpty(loginRes.Data.MfaChallengeToken!); // Challenge ID
 
         // 5. Verify MFA to finish login
-        var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data.MfaChallengeToken!, "123456"), ct);
+        var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data.MfaChallengeToken!, "654321"), ct);
         Assert.True(verifyRes.IsSuccess);
         Assert.False(verifyRes.Data!.MfaRequired);
         Assert.StartsWith("eyJ", verifyRes.Data.AccessToken);
@@ -76,7 +97,7 @@ public class SecurityHardeningTests
         Assert.NotNull(initRes.Data?.StepUpId);
 
         // Verify StepUp
-        var verRes = await _service.VerifyStepUpAsync(userId, new VerifyStepUpRequest(initRes.Data!.StepUpId, "123456"), ct);
+        var verRes = await _service.VerifyStepUpAsync(userId, new VerifyStepUpRequest(initRes.Data!.StepUpId, "654321"), ct);
         Assert.True(verRes.IsSuccess);
         Assert.StartsWith("STEPUP_OK_TransferFunds_", verRes.Data!.VerificationToken);
     }
@@ -137,5 +158,64 @@ public class SecurityHardeningTests
         Assert.False(loginRes.IsSuccess);
         Assert.Equal(403, loginRes.StatusCode);
         Assert.Contains("Suspended", loginRes.ErrorDetail);
+    }
+
+    [Fact]
+    public async Task Security_Bypass_123456_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+
+        var regRes = await _service.RegisterAsync(new RegisterRequest("bypass_mfa@emcore.com", "9990004444", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("TOTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321"), ct);
+
+        var loginRes = await _service.LoginAsync(new LoginRequest("bypass_mfa@emcore.com", "SecurePass!23"), ct);
+
+        // Try the bypass literal "123456"
+        var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, "123456"), ct);
+        Assert.False(verifyRes.IsSuccess);
+        Assert.Equal(401, verifyRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Security_Bypass_Password_Hashed_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+
+        await _service.RegisterAsync(new RegisterRequest("bypass_pwd@emcore.com", "9990005555", "SecurePass!23"), ct);
+
+        // Real PBKDF2 hash + correct password -> PASS
+        var correctLogin = await _service.LoginAsync(new LoginRequest("bypass_pwd@emcore.com", "SecurePass!23"), ct);
+        Assert.True(correctLogin.IsSuccess);
+
+        // Real PBKDF2 hash + wrong password -> FAIL
+        var wrongLogin = await _service.LoginAsync(new LoginRequest("bypass_pwd@emcore.com", "WrongPass!23"), ct);
+        Assert.False(wrongLogin.IsSuccess);
+
+        // CorrectPassword_hashed -> FAIL
+        var bypassLogin = await _service.LoginAsync(new LoginRequest("bypass_pwd@emcore.com", "SecurePass!23_hashed"), ct);
+        Assert.False(bypassLogin.IsSuccess);
+        Assert.Equal(401, bypassLogin.StatusCode);
+    }
+
+    [Fact]
+    public async Task Security_Bypass_RECOVERY_ALL_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+
+        var regRes = await _service.RegisterAsync(new RegisterRequest("bypass_rec@emcore.com", "9990006666", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+
+        await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("TOTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321"), ct);
+
+        var loginRes = await _service.LoginAsync(new LoginRequest("bypass_rec@emcore.com", "SecurePass!23"), ct);
+
+        // Try RECOVERY-ALL bypass
+        var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, string.Empty) { RecoveryCode = "RECOVERY-ALL" }, ct);
+        Assert.False(verifyRes.IsSuccess);
+        Assert.Equal(401, verifyRes.StatusCode);
     }
 }
