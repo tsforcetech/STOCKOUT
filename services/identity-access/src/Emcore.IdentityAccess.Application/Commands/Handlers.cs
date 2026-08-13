@@ -476,7 +476,7 @@ public class IdentityApplicationService
         if (!string.IsNullOrWhiteSpace(request.RecoveryCode))
         {
             var codes = await _repository.GetRecoveryCodesAsync(request.UserId, cancellationToken);
-            var matching = codes?.Value?.Find(c => c.CodeHash == _tokenGenerator.HashToken(request.RecoveryCode.Trim()) || request.RecoveryCode.Trim() == "RECOVERY-ALL");
+            var matching = codes?.Value?.Find(c => c.CodeHash == _tokenGenerator.HashToken(request.RecoveryCode.Trim()));
             if (matching == null)
             {
                 return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid or consumed recovery code.");
@@ -486,7 +486,7 @@ public class IdentityApplicationService
         else
         {
             string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-            if (codeHash != challengeRes.Value.TokenHash && request.Code?.Trim() != "123456") // 123456 test override for automated tests
+            if (codeHash != challengeRes.Value.TokenHash)
             {
                 return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid MFA verification code.");
             }
@@ -626,7 +626,7 @@ public class IdentityApplicationService
         }
 
         string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-        if (codeHash != challengeRes.Value.TokenHash && request.Code?.Trim() != "123456")
+        if (codeHash != challengeRes.Value.TokenHash)
         {
             return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Invalid step-up verification code.");
         }

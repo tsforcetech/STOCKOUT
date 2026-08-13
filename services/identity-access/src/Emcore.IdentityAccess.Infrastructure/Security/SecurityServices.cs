@@ -31,9 +31,6 @@ public class Pbkdf2PasswordHasher : IPasswordHasher
     {
         if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash)) return false;
 
-        // Backward compatibility for unit test placeholders
-        if (hash == password + "_hashed") return true;
-
         var parts = hash.Split(':');
         if (parts.Length != 5 || parts[0] != "v1" || parts[1] != "pbkdf2")
         {

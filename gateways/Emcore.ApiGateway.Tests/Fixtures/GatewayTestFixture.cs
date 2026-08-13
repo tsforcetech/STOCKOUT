@@ -93,7 +93,12 @@ public class GatewayTestFixture : IAsyncDisposable
 
         // 3. Start ApiGateway on loopback with overridden configuration
         var gatewayArgs = new[] { "--urls", "http://127.0.0.1:0", "--environment", environment };
-        var builder = WebApplication.CreateBuilder(gatewayArgs);
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = gatewayArgs,
+            EnvironmentName = environment,
+            ContentRootPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "../../../../Emcore.ApiGateway"))
+        });
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
