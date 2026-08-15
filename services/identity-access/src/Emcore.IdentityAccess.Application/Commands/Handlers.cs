@@ -217,7 +217,7 @@ public class IdentityApplicationService
 
         await _repository.RecordLoginAttemptAsync(u.Id, true, 15, 5, null, cancellationToken);
 
-        var mfaRes = await _repository.GetMfaMethodAsync(u.Id, "TOTP", cancellationToken);
+        var mfaRes = await _repository.GetMfaMethodAsync(u.Id, MfaMethodTypes.EmailOtp, cancellationToken);
         if (mfaRes != null && mfaRes.Value != null && mfaRes.Value.IsEnabled)
         {
             var (mfaToken, mfaHash) = _tokenGenerator.GenerateVerificationToken();
@@ -228,14 +228,14 @@ public class IdentityApplicationService
                 TokenHash = mfaHash,
                 TargetAction = "MfaLogin",
                 Status = "Issued",
-                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(10),
+                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5),
                 CreatedAtUtc = DateTime.UtcNow
             };
             await _repository.CreateStepUpChallengeAsync(challenge, cancellationToken);
 
             if (_deliveryService != null)
             {
-                await _deliveryService.SendVerificationOtpAsync(u.Email, "TOTP", mfaToken, cancellationToken);
+                await _deliveryService.SendVerificationOtpAsync(u.Email, MfaMethodTypes.EmailOtp, mfaToken, cancellationToken);
             }
 
             return AppResult<LoginResponse>.Success(new LoginResponse(string.Empty, string.Empty, 0, "Bearer", true, challenge.Id));
@@ -467,12 +467,6 @@ public class IdentityApplicationService
             return AppResult<LoginResponse>.Failure(401, "Unauthorized", "User not found.");
         }
 
-        var challengeRes = await _repository.GetStepUpChallengeAsync(request.ChallengeToken, request.UserId, cancellationToken);
-        if (challengeRes == null || challengeRes.Value == null || challengeRes.Value.Status != "Issued" || challengeRes.Value.ExpiresAtUtc < DateTime.UtcNow)
-        {
-            return AppResult<LoginResponse>.Failure(401, "Unauthorized", "MFA challenge is invalid or expired.");
-        }
-
         if (!string.IsNullOrWhiteSpace(request.RecoveryCode))
         {
             var codes = await _repository.GetRecoveryCodesAsync(request.UserId, cancellationToken);
@@ -482,18 +476,23 @@ public class IdentityApplicationService
                 return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid or consumed recovery code.");
             }
             await _repository.ConsumeRecoveryCodeAsync(matching.Id, null, cancellationToken);
+            
+            var challengeRes = await _repository.GetStepUpChallengeAsync(request.ChallengeToken, request.UserId, cancellationToken);
+            if (challengeRes?.Value != null)
+            {
+                challengeRes.Value.Verify();
+                await _repository.UpdateStepUpChallengeAsync(challengeRes.Value, cancellationToken);
+            }
         }
         else
         {
             string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-            if (codeHash != challengeRes.Value.TokenHash)
+            var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, codeHash, 5, cancellationToken);
+            if (consumeRes == null)
             {
                 return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid MFA verification code.");
             }
         }
-
-        challengeRes.Value.Verify();
-        await _repository.UpdateStepUpChallengeAsync(challengeRes.Value, cancellationToken);
 
         string sessionId = Guid.NewGuid().ToString("N");
         string tokenFamilyId = Guid.NewGuid().ToString("N");
@@ -525,6 +524,49 @@ public class IdentityApplicationService
         return AppResult<LoginResponse>.Success(new LoginResponse(accessToken, refToken, 900, "Bearer", false, null));
     }
 
+    public async Task<AppResult<ResendMfaResponse>> ResendMfaAsync(string userId, ResendMfaRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return AppResult<ResendMfaResponse>.Failure(401, "Unauthorized", "Authentication required.");
+        if (string.IsNullOrWhiteSpace(request.ChallengeId)) return AppResult<ResendMfaResponse>.Failure(400, "Invalid Request", "ChallengeId is required.");
+
+        var challengeRes = await _repository.GetStepUpChallengeAsync(request.ChallengeId, userId, cancellationToken);
+        if (challengeRes == null || challengeRes.Value == null || challengeRes.Value.Status != "Issued")
+        {
+            return AppResult<ResendMfaResponse>.Failure(404, "Not Found", "Challenge not found or already processed.");
+        }
+
+        if (DateTime.UtcNow - challengeRes.Value.CreatedAtUtc < TimeSpan.FromSeconds(60))
+        {
+            return AppResult<ResendMfaResponse>.Failure(429, "Too Many Requests", "Please wait before requesting a new code.");
+        }
+
+        var uRes = await _repository.GetUserByIdAsync(userId, cancellationToken);
+        if (uRes == null || uRes.Value == null) return AppResult<ResendMfaResponse>.Failure(404, "Not Found", "User not found.");
+
+        challengeRes.Value.Status = "Cancelled";
+        await _repository.UpdateStepUpChallengeAsync(challengeRes.Value, cancellationToken);
+
+        var (otp, otpHash) = _tokenGenerator.GenerateVerificationToken();
+        var newChallenge = new StepUpChallenge
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserId = userId,
+            TokenHash = otpHash,
+            TargetAction = challengeRes.Value.TargetAction,
+            Status = "Issued",
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5),
+            CreatedAtUtc = DateTime.UtcNow
+        };
+        await _repository.CreateStepUpChallengeAsync(newChallenge, cancellationToken);
+
+        if (_deliveryService != null)
+        {
+            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, MfaMethodTypes.EmailOtp, otp, cancellationToken);
+        }
+
+        return AppResult<ResendMfaResponse>.Success(new ResendMfaResponse("Verification code resent successfully.", newChallenge.Id));
+    }
+
     public async Task<AppResult<RegisterMfaResponse>> RegisterMfaAsync(string userId, RegisterMfaRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<RegisterMfaResponse>.Failure(401, "Unauthorized", "Authentication required.");
@@ -532,20 +574,21 @@ public class IdentityApplicationService
         var uRes = await _repository.GetUserByIdAsync(userId, cancellationToken);
         if (uRes == null || uRes.Value == null) return AppResult<RegisterMfaResponse>.Failure(404, "Not Found", "User not found.");
 
-        string secret = Guid.NewGuid().ToString("N").ToUpperInvariant()[..16];
-        string qrUri = $"otpauth://totp/Emcore:{uRes.Value.Email}?secret={secret}&issuer=Emcore";
+        if (!uRes.Value.EmailVerified) return AppResult<RegisterMfaResponse>.Failure(400, "Validation Error", "Email must be verified before enrolling in Email OTP MFA.");
+
+        string secret = string.Empty;
+        string qrUri = string.Empty;
 
         var mfaMethod = new MfaMethod
         {
             Id = Guid.NewGuid().ToString("N"),
             UserId = userId,
-            Type = request.Type ?? "TOTP",
-            EncryptedSecret = secret,
+            Type = MfaMethodTypes.EmailOtp,
+            EncryptedSecret = "NO_SECRET_FOR_EMAIL_OTP",
             IsEnabled = false,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow
         };
-
         await _repository.SaveMfaMethodAsync(mfaMethod, null, cancellationToken);
 
         var recoveryCodes = new List<string>();
@@ -565,12 +608,31 @@ public class IdentityApplicationService
         }
         await _repository.SaveRecoveryCodesAsync(recoveryEntities, null, cancellationToken);
 
-        return AppResult<RegisterMfaResponse>.Success(new RegisterMfaResponse(secret, qrUri, recoveryCodes));
+        var (otp, otpHash) = _tokenGenerator.GenerateVerificationToken();
+        var challenge = new StepUpChallenge
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserId = userId,
+            TokenHash = otpHash,
+            TargetAction = "MfaEnrollment",
+            Status = "Issued",
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5),
+            CreatedAtUtc = DateTime.UtcNow
+        };
+        await _repository.CreateStepUpChallengeAsync(challenge, cancellationToken);
+
+        if (_deliveryService != null)
+        {
+            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, MfaMethodTypes.EmailOtp, otp, cancellationToken);
+        }
+
+        return AppResult<RegisterMfaResponse>.Success(new RegisterMfaResponse(secret, qrUri, recoveryCodes, "MFA factor registered. Please confirm with OTP to enable.", challenge.Id));
     }
 
     public async Task<AppResult<StandardSuccessResponse>> ConfirmMfaAsync(string userId, ConfirmMfaRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<StandardSuccessResponse>.Failure(401, "Unauthorized", "Authentication required.");
+        if (string.IsNullOrWhiteSpace(request.ChallengeId)) return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Request", "ChallengeId is required.");
 
         var mfaRes = await _repository.GetMfaMethodAsync(userId, request.Type, cancellationToken);
         if (mfaRes == null || mfaRes.Value == null)
@@ -581,6 +643,13 @@ public class IdentityApplicationService
         if (string.IsNullOrWhiteSpace(request.Code) || request.Code.Length != 6)
         {
             return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Code", "Please provide a valid 6-digit verification code.");
+        }
+
+        string codeHash = _tokenGenerator.HashToken(request.Code.Trim());
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeId, userId, codeHash, 5, cancellationToken);
+        if (consumeRes == null)
+        {
+            return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Code", "The code is incorrect or has expired.");
         }
 
         mfaRes.Value.Enable();

@@ -18,15 +18,16 @@ public static class DependencyInjection
         services.AddSingleton<IJwksService>(sp => sp.GetRequiredService<JwtTokenGenerator>());
         services.AddScoped<IIdentityRepository, IdentityRepository>();
 
-        string? provider = configuration["VerificationDelivery:Provider"];
-        if (string.Equals(provider, "Production", StringComparison.OrdinalIgnoreCase))
+        string? provider = configuration["Email:Provider"];
+        if (string.Equals(provider, "Smtp", StringComparison.OrdinalIgnoreCase))
         {
-            services.AddScoped<IVerificationDeliveryService, ProductionVerificationDeliveryService>();
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
         }
         else
         {
-            services.AddScoped<IVerificationDeliveryService, DevelopmentVerificationDeliveryService>();
+            services.AddSingleton<IEmailSender, FakeEmailSender>();
         }
+        services.AddScoped<IVerificationDeliveryService, VerificationDeliveryService>();
 
         return services;
     }

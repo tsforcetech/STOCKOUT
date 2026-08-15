@@ -678,6 +678,44 @@ public class IdentityRepository : IIdentityRepository
         return new Result();
     }
 
+    public async Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string tokenHash, int maxAttempts, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryStepUpChallenges)
+            {
+                if (InMemoryStepUpChallenges.TryGetValue(id, out var c) && c.UserId == userId)
+                {
+                    if (c.Status != "Issued" || c.ExpiresAtUtc < DateTime.UtcNow) return null;
+                    if (c.AttemptCount >= maxAttempts) { c.Status = "Failed"; return null; }
+                    c.AttemptCount++;
+                    if (c.TokenHash != tokenHash)
+                    {
+                        if (c.AttemptCount >= maxAttempts) c.Status = "Failed";
+                        return null;
+                    }
+                    c.Verify();
+                    return new Result();
+                }
+                return null;
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        var returnCode = await conn.ExecuteScalarAsync<int>("dbo.PR_IDENTITY_CONSUME_STEPUP_CHALLENGE", new
+        {
+            Id = Guid.Parse(id),
+            UserId = Guid.Parse(userId),
+            TokenHash = tokenHash,
+            MaxAttempts = maxAttempts
+        }, commandType: System.Data.CommandType.StoredProcedure);
+
+        if (returnCode < 0)
+        {
+            return null;
+        }
+        return new Result();
+    }
+
     public async Task<Result<ServiceClient>> CreateServiceClientAsync(ServiceClient client, ServiceClientCredential credential, List<ServiceClientScope> scopes, string? outboxPayload, CancellationToken cancellationToken)
     {
         if (_useInMemoryFallback)

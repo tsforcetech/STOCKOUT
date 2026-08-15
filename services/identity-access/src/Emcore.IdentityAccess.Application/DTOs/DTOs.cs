@@ -64,10 +64,12 @@ public record CurrentIdentityResponse(
 public record StandardSuccessResponse(string Message);
 
 // MFA & Step-Up Authentication
-public record RegisterMfaRequest(string Type = "TOTP");
-public record RegisterMfaResponse(string Secret, string QrCodeUri, List<string> RecoveryCodes, string Message = "MFA factor registered. Please confirm with OTP to enable.");
-public record ConfirmMfaRequest(string Type, string Code);
+public record RegisterMfaRequest(string Type = "EMAIL_OTP");
+public record RegisterMfaResponse(string Secret, string QrCodeUri, List<string> RecoveryCodes, string Message = "MFA factor registered. Please confirm with OTP to enable.", string? ChallengeId = null);
+public record ConfirmMfaRequest(string Type, string Code, string? ChallengeId = null);
 public record MfaLoginVerifyRequest(string UserId, string ChallengeToken, string Code, string? RecoveryCode = null);
+public record ResendMfaRequest(string UserId, string ChallengeId);
+public record ResendMfaResponse(string Message, string? ChallengeId = null);
 public record InitiateStepUpRequest(string TargetAction);
 public record InitiateStepUpResponse(string StepUpId, string ChallengeToken, string Message = "Step-up challenge issued. Please verify second factor.");
 public record VerifyStepUpRequest(string StepUpId, string Code);
