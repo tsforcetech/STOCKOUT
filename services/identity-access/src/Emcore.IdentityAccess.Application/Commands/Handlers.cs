@@ -475,29 +475,14 @@ public class IdentityApplicationService
 
         if (!string.IsNullOrWhiteSpace(request.RecoveryCode))
         {
-            var codes = await _repository.GetRecoveryCodesAsync(request.UserId, cancellationToken);
-            var matching = codes?.Value?.Find(c => c.CodeHash == _tokenGenerator.HashToken(request.RecoveryCode.Trim()));
-            if (matching == null)
-            {
-                return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid or consumed recovery code.");
-            }
-            await _repository.ConsumeRecoveryCodeAsync(matching.Id, null, cancellationToken);
-
-            var challengeRes = await _repository.GetStepUpChallengeAsync(request.ChallengeToken, request.UserId, cancellationToken);
-            if (challengeRes?.Value != null)
-            {
-                challengeRes.Value.Verify();
-                await _repository.UpdateStepUpChallengeAsync(challengeRes.Value, cancellationToken);
-            }
+            return AppResult<LoginResponse>.Failure(400, "Unsupported", "Recovery code authentication is not currently supported.");
         }
-        else
+
+        string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, "MfaLogin", codeHash, 5, cancellationToken);
+        if (consumeRes == null)
         {
-            string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-            var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, "MfaLogin", codeHash, 5, cancellationToken);
-            if (consumeRes == null)
-            {
-                return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid MFA verification code.");
-            }
+            return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid MFA verification code.");
         }
 
         string sessionId = Guid.NewGuid().ToString("N");
@@ -637,7 +622,12 @@ public class IdentityApplicationService
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<StandardSuccessResponse>.Failure(401, "Unauthorized", "Authentication required.");
         if (string.IsNullOrWhiteSpace(request.ChallengeId)) return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Request", "ChallengeId is required.");
 
-        var mfaRes = await _repository.GetMfaMethodAsync(userId, request.Type, cancellationToken);
+        if (!string.Equals(request.Type, MfaMethodTypes.EmailOtp, StringComparison.OrdinalIgnoreCase))
+        {
+            return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Request", "Unsupported MFA type. Only EMAIL_OTP is supported.");
+        }
+
+        var mfaRes = await _repository.GetMfaMethodAsync(userId, MfaMethodTypes.EmailOtp, cancellationToken);
         if (mfaRes == null || mfaRes.Value == null)
         {
             return AppResult<StandardSuccessResponse>.Failure(404, "Not Found", "MFA registration not found.");
