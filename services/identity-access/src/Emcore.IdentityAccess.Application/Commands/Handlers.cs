@@ -220,6 +220,12 @@ public class IdentityApplicationService
         var mfaRes = await _repository.GetMfaMethodAsync(u.Id, MfaMethodTypes.EmailOtp, cancellationToken);
         if (mfaRes != null && mfaRes.Value != null && mfaRes.Value.IsEnabled)
         {
+            int recentSends = await _repository.GetRecentStepUpChallengesCountAsync(u.Id, "MfaLogin", TimeSpan.FromMinutes(15), cancellationToken);
+            if (recentSends >= 5)
+            {
+                return AppResult<LoginResponse>.Failure(429, "Too Many Requests", "Maximum OTP send limit reached for login. Try again later.");
+            }
+
             var (mfaToken, mfaHash) = _tokenGenerator.GenerateVerificationToken();
             var challenge = new StepUpChallenge
             {
@@ -476,7 +482,7 @@ public class IdentityApplicationService
                 return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid or consumed recovery code.");
             }
             await _repository.ConsumeRecoveryCodeAsync(matching.Id, null, cancellationToken);
-            
+
             var challengeRes = await _repository.GetStepUpChallengeAsync(request.ChallengeToken, request.UserId, cancellationToken);
             if (challengeRes?.Value != null)
             {
@@ -487,7 +493,7 @@ public class IdentityApplicationService
         else
         {
             string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-            var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, codeHash, 5, cancellationToken);
+            var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, "MfaLogin", codeHash, 5, cancellationToken);
             if (consumeRes == null)
             {
                 return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid MFA verification code.");
@@ -543,6 +549,12 @@ public class IdentityApplicationService
         var uRes = await _repository.GetUserByIdAsync(userId, cancellationToken);
         if (uRes == null || uRes.Value == null) return AppResult<ResendMfaResponse>.Failure(404, "Not Found", "User not found.");
 
+        int recentSends = await _repository.GetRecentStepUpChallengesCountAsync(userId, challengeRes.Value.TargetAction, TimeSpan.FromMinutes(15), cancellationToken);
+        if (recentSends >= 5)
+        {
+            return AppResult<ResendMfaResponse>.Failure(429, "Too Many Requests", "Maximum OTP send limit reached for this purpose. Try again later.");
+        }
+
         challengeRes.Value.Status = "Cancelled";
         await _repository.UpdateStepUpChallengeAsync(challengeRes.Value, cancellationToken);
 
@@ -576,6 +588,12 @@ public class IdentityApplicationService
 
         if (!uRes.Value.EmailVerified) return AppResult<RegisterMfaResponse>.Failure(400, "Validation Error", "Email must be verified before enrolling in Email OTP MFA.");
 
+        int recentSends = await _repository.GetRecentStepUpChallengesCountAsync(userId, "MfaEnrollment", TimeSpan.FromMinutes(15), cancellationToken);
+        if (recentSends >= 5)
+        {
+            return AppResult<RegisterMfaResponse>.Failure(429, "Too Many Requests", "Maximum OTP send limit reached for enrollment. Try again later.");
+        }
+
         string secret = string.Empty;
         string qrUri = string.Empty;
 
@@ -592,21 +610,6 @@ public class IdentityApplicationService
         await _repository.SaveMfaMethodAsync(mfaMethod, null, cancellationToken);
 
         var recoveryCodes = new List<string>();
-        var recoveryEntities = new List<MfaRecoveryCode>();
-        for (int i = 0; i < 8; i++)
-        {
-            string code = $"{Random.Shared.Next(1000, 9999)}-{Random.Shared.Next(1000, 9999)}";
-            recoveryCodes.Add(code);
-            recoveryEntities.Add(new MfaRecoveryCode
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                UserId = userId,
-                CodeHash = _tokenGenerator.HashToken(code),
-                IsConsumed = false,
-                CreatedAtUtc = DateTime.UtcNow
-            });
-        }
-        await _repository.SaveRecoveryCodesAsync(recoveryEntities, null, cancellationToken);
 
         var (otp, otpHash) = _tokenGenerator.GenerateVerificationToken();
         var challenge = new StepUpChallenge
@@ -646,10 +649,10 @@ public class IdentityApplicationService
         }
 
         string codeHash = _tokenGenerator.HashToken(request.Code.Trim());
-        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeId, userId, codeHash, 5, cancellationToken);
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeId, userId, "MfaEnrollment", codeHash, 5, cancellationToken);
         if (consumeRes == null)
         {
-            return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Code", "The code is incorrect or has expired.");
+            return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Code", "The code is incorrect, expired, or belongs to a different purpose.");
         }
 
         mfaRes.Value.Enable();

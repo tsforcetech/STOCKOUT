@@ -25,7 +25,7 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddSingleton<IEmailSender, FakeEmailSender>();
+            throw new InvalidOperationException($"Invalid or missing Email:Provider configuration. Expected 'Smtp' but got '{provider}'. FakeEmailSender is not permitted in runtime.");
         }
         services.AddScoped<IVerificationDeliveryService, VerificationDeliveryService>();
 

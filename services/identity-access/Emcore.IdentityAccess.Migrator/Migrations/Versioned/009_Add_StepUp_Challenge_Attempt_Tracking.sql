@@ -34,6 +34,7 @@ GO
 CREATE PROCEDURE dbo.PR_IDENTITY_CONSUME_STEPUP_CHALLENGE
     @Id UNIQUEIDENTIFIER,
     @UserId UNIQUEIDENTIFIER,
+    @ExpectedPurpose VARCHAR(100),
     @TokenHash VARCHAR(255),
     @MaxAttempts INT
 AS
@@ -46,28 +47,39 @@ BEGIN
         DECLARE @CurrentAttempts INT;
         DECLARE @ExpiresAt DATETIME2;
         DECLARE @ActualTokenHash VARCHAR(255);
+        DECLARE @ActualTargetAction VARCHAR(100);
 
-        SELECT @CurrentStatus = Status, @CurrentAttempts = AttemptCount, @ExpiresAt = ExpiresAtUtc, @ActualTokenHash = TokenHash
+        SELECT @CurrentStatus = Status, @CurrentAttempts = AttemptCount, @ExpiresAt = ExpiresAtUtc, @ActualTokenHash = TokenHash, @ActualTargetAction = TargetAction
         FROM dbo.STEP_UP_CHALLENGE WITH (UPDLOCK, ROWLOCK)
         WHERE Id = @Id AND UserId = @UserId;
 
         IF @CurrentStatus IS NULL
         BEGIN
             COMMIT TRANSACTION;
-            RETURN -1; -- Not Found
+            SELECT CAST(-1 AS INT) AS ResultCode; -- Not Found
+            RETURN;
+        END
+
+        IF @ActualTargetAction <> @ExpectedPurpose
+        BEGIN
+            COMMIT TRANSACTION;
+            SELECT CAST(-5 AS INT) AS ResultCode; -- Purpose Mismatch
+            RETURN;
         END
 
         IF @CurrentStatus <> 'Issued' OR @ExpiresAt < GETUTCDATE()
         BEGIN
             COMMIT TRANSACTION;
-            RETURN -2; -- Invalid or Expired
+            SELECT CAST(-2 AS INT) AS ResultCode; -- Invalid or Expired
+            RETURN;
         END
 
         IF @CurrentAttempts >= @MaxAttempts
         BEGIN
             UPDATE dbo.STEP_UP_CHALLENGE SET Status = 'Failed' WHERE Id = @Id;
             COMMIT TRANSACTION;
-            RETURN -3; -- Max Attempts Reached
+            SELECT CAST(-3 AS INT) AS ResultCode; -- Max Attempts Reached
+            RETURN;
         END
         
         -- Increment attempt count
@@ -82,7 +94,8 @@ BEGIN
                 UPDATE dbo.STEP_UP_CHALLENGE SET Status = 'Failed' WHERE Id = @Id;
             END
             COMMIT TRANSACTION;
-            RETURN -4; -- Invalid Hash
+            SELECT CAST(-4 AS INT) AS ResultCode; -- Invalid Hash
+            RETURN;
         END
 
         -- Mark as consumed/verified
@@ -91,7 +104,8 @@ BEGIN
         WHERE Id = @Id;
 
         COMMIT TRANSACTION;
-        RETURN 0; -- Success
+        SELECT CAST(0 AS INT) AS ResultCode; -- Success
+        RETURN;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;

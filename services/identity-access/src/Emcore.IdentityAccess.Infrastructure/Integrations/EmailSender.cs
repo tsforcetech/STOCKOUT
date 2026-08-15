@@ -25,7 +25,7 @@ public class SmtpEmailSender : IEmailSender, IDisposable
     public SmtpEmailSender(IConfiguration config, ILogger<SmtpEmailSender> logger)
     {
         _logger = logger;
-        
+
         string host = config["Email:Host"] ?? string.Empty;
         int port = int.TryParse(config["Email:Port"], out int p) ? p : 587;
         bool useSsl = bool.TryParse(config["Email:UseSsl"], out bool s) ? s : true;
@@ -62,12 +62,12 @@ public class SmtpEmailSender : IEmailSender, IDisposable
                 Body = htmlBody,
                 IsBodyHtml = true
             };
-            
+
             message.To.Add(toAddress);
 
             var plainTextView = AlternateView.CreateAlternateViewFromString(textBody, null, "text/plain");
             message.AlternateViews.Add(plainTextView);
-            
+
             ct.Register(() => _client.SendAsyncCancel());
             await _client.SendMailAsync(message, ct);
             _logger.LogInformation("Email sent successfully to a secure destination. Subject: {Subject}", subject);
@@ -82,24 +82,5 @@ public class SmtpEmailSender : IEmailSender, IDisposable
     public void Dispose()
     {
         _client?.Dispose();
-    }
-}
-
-public class FakeEmailSender : IEmailSender
-{
-    private readonly ILogger<FakeEmailSender> _logger;
-    public readonly ConcurrentBag<(string To, string Subject, string TextBody, string HtmlBody)> SentEmails = new();
-
-    public FakeEmailSender(ILogger<FakeEmailSender> logger)
-    {
-        _logger = logger;
-    }
-
-    public Task SendEmailAsync(string toAddress, string subject, string textBody, string htmlBody, CancellationToken ct)
-    {
-        SentEmails.Add((toAddress, subject, textBody, htmlBody));
-        // We do NOT log the OTP plaintext to the console per security requirements.
-        _logger.LogInformation("Fake email dispatched to {Destination}. Subject: {Subject}", toAddress, subject);
-        return Task.CompletedTask;
     }
 }
