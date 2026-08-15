@@ -233,8 +233,297 @@ public class SecurityHardeningTests
 
         // Try RECOVERY-ALL bypass
         var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, string.Empty) { RecoveryCode = "RECOVERY-ALL" }, ct);
-        if (verifyRes.StatusCode == 400) throw new Exception($"verifyRes returned 400: {verifyRes.ErrorDetail}");
+        Assert.False(verifyRes.IsSuccess);
+        Assert.Equal(400, verifyRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Mfa_Enrollment_Unverified_Email_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("unverified@emcore.com", "9990001000", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        Assert.False(mfaRegRes.IsSuccess);
+        Assert.Equal(400, mfaRegRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Mfa_Enrollment_Wrong_OTP_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("wrong_otp_reg@emcore.com", "9990001001", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("wrong_otp_reg@emcore.com", "654321"), ct);
+
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "000000", mfaRegRes.Data?.ChallengeId), ct);
+        Assert.False(confirmRes.IsSuccess);
+        Assert.Equal(400, confirmRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Mfa_Enrollment_Unsupported_Mfa_Type_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("unsupported_type@emcore.com", "9990001002", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("unsupported_type@emcore.com", "654321"), ct);
+
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+        Assert.False(confirmRes.IsSuccess);
+        Assert.Equal(400, confirmRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Mfa_Login_Tokens_Withheld_Before_Mfa()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("withheld@emcore.com", "9990001003", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("withheld@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+
+        var loginRes = await _service.LoginAsync(new LoginRequest("withheld@emcore.com", "SecurePass!23"), ct);
+        Assert.True(loginRes.IsSuccess);
+        Assert.True(loginRes.Data!.MfaRequired);
+        Assert.True(string.IsNullOrEmpty(loginRes.Data.AccessToken));
+        Assert.True(string.IsNullOrEmpty(loginRes.Data.RefreshToken));
+        Assert.NotEmpty(loginRes.Data.MfaChallengeToken!);
+    }
+
+    [Fact]
+    public async Task Mfa_Login_Wrong_OTP_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("wrong_otp_login@emcore.com", "9990001004", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("wrong_otp_login@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+
+        var loginRes = await _service.LoginAsync(new LoginRequest("wrong_otp_login@emcore.com", "SecurePass!23"), ct);
+
+        var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, "000000"), ct);
         Assert.False(verifyRes.IsSuccess);
         Assert.Equal(401, verifyRes.StatusCode);
     }
+
+    [Fact]
+    public async Task Mfa_OTP_One_Time_Use_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("otp_reuse@emcore.com", "9990001005", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("otp_reuse@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+
+        var loginRes = await _service.LoginAsync(new LoginRequest("otp_reuse@emcore.com", "SecurePass!23"), ct);
+
+        var verifyRes1 = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, "654321"), ct);
+        Assert.True(verifyRes1.IsSuccess);
+
+        var verifyRes2 = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, "654321"), ct);
+        Assert.False(verifyRes2.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_Purpose_Binding_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("purpose_binding@emcore.com", "9990001006", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("purpose_binding@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        // Attempt to use Enrollment OTP for Login
+        var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, mfaRegRes.Data!.ChallengeId!, "654321"), ct);
+        Assert.False(verifyRes.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_User_Binding_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes1 = await _service.RegisterAsync(new RegisterRequest("user_bind1@emcore.com", "9990001007", "SecurePass!23"), ct);
+        var regRes2 = await _service.RegisterAsync(new RegisterRequest("user_bind2@emcore.com", "9990001008", "SecurePass!23"), ct);
+        string user1 = regRes1.Data!.UserId;
+        string user2 = regRes2.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("user_bind1@emcore.com", "654321"), ct);
+        var mfaRegRes1 = await _service.RegisterMfaAsync(user1, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        // Attempt to use user1's challenge with user2
+        var confirmRes = await _service.ConfirmMfaAsync(user2, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes1.Data?.ChallengeId), ct);
+        Assert.False(confirmRes.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_Challenge_Binding_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("challenge_bind@emcore.com", "9990001009", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("challenge_bind@emcore.com", "654321"), ct);
+
+        var mfaRegRes1 = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        // Bypass cooldown to get second challenge
+        var dictField = typeof(IdentityRepository).GetField("InMemoryStepUpChallenges", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        var dict = dictField!.GetValue(null) as System.Collections.IDictionary;
+        var challenge1 = dict![mfaRegRes1.Data!.ChallengeId!];
+        var prop = challenge1!.GetType().GetProperty("CreatedAtUtc");
+        prop!.SetValue(challenge1, DateTime.UtcNow.AddSeconds(-61));
+
+        var mfaRegRes2 = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        // Try wrong OTP for challenge B
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "000000", mfaRegRes2.Data?.ChallengeId), ct);
+        Assert.False(confirmRes.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_Expired_OTP_Should_Fail()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("expire@emcore.com", "9990001010", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("expire@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        // Manipulate expiry using reflection
+        var dictField = typeof(IdentityRepository).GetField("InMemoryStepUpChallenges", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        var dict = dictField!.GetValue(null) as System.Collections.IDictionary;
+        var challenge = dict![mfaRegRes.Data!.ChallengeId!];
+        var prop = challenge!.GetType().GetProperty("ExpiresAtUtc");
+        prop!.SetValue(challenge, DateTime.UtcNow.AddMinutes(-10));
+
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+        Assert.False(confirmRes.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_Maximum_Verification_Attempts_Should_Lockout()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("lockout@emcore.com", "9990001011", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("lockout@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        // 5 wrong attempts
+        for (int i = 0; i < 5; i++)
+        {
+            await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "000000", mfaRegRes.Data?.ChallengeId), ct);
+        }
+
+        // 6th attempt with CORRECT OTP should fail because it's locked out
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+        Assert.False(confirmRes.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_Resend_Cooldown_Should_Throttle()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("cooldown@emcore.com", "9990001012", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("cooldown@emcore.com", "654321"), ct);
+
+        var mfaRegRes1 = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        Assert.True(mfaRegRes1.IsSuccess);
+
+        // Immediate second request should be throttled
+        var resendRes = await _service.ResendMfaAsync(userId, new ResendMfaRequest(userId, mfaRegRes1.Data!.ChallengeId!), ct);
+        Assert.False(resendRes.IsSuccess);
+        Assert.Equal(429, resendRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Mfa_Send_Rate_Limit_Should_Reject()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("ratelimit@emcore.com", "9990001013", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("ratelimit@emcore.com", "654321"), ct);
+
+        var dictField = typeof(IdentityRepository).GetField("InMemoryStepUpChallenges", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        var dict = dictField!.GetValue(null) as System.Collections.IDictionary;
+
+        for (int i = 0; i < 5; i++)
+        {
+            var res = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+            if (res.IsSuccess)
+            {
+                var challenge = dict![res.Data!.ChallengeId!];
+                var prop = challenge!.GetType().GetProperty("CreatedAtUtc");
+                prop!.SetValue(challenge, DateTime.UtcNow.AddSeconds(-61));
+            }
+        }
+
+        // 6th attempt within 15 mins should hit max limit
+        var mfaRegRes6 = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        Assert.False(mfaRegRes6.IsSuccess);
+        Assert.Equal(429, mfaRegRes6.StatusCode);
+        Assert.Contains("Maximum OTP send limit", mfaRegRes6.ErrorDetail);
+    }
+
+    [Fact]
+    public async Task Mfa_Resend_Invalidates_Old_OTP()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("resend_inv@emcore.com", "9990001014", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("resend_inv@emcore.com", "654321"), ct);
+
+        var mfaRegRes1 = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        var dictField = typeof(IdentityRepository).GetField("InMemoryStepUpChallenges", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        var dict = dictField!.GetValue(null) as System.Collections.IDictionary;
+        var challenge1 = dict![mfaRegRes1.Data!.ChallengeId!];
+        var prop = challenge1!.GetType().GetProperty("CreatedAtUtc");
+        prop!.SetValue(challenge1, DateTime.UtcNow.AddSeconds(-61));
+
+        var resendRes = await _service.ResendMfaAsync(userId, new ResendMfaRequest(userId, mfaRegRes1.Data!.ChallengeId!), ct);
+        Assert.True(resendRes.IsSuccess);
+
+        // Assert it fails to use the first one since it was invalidated
+        var confirmRes1 = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes1.Data?.ChallengeId), ct);
+        Assert.False(confirmRes1.IsSuccess);
+
+        // Assert it succeeds with the new challenge
+        var confirmRes2 = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", resendRes.Data?.ChallengeId), ct);
+        Assert.True(confirmRes2.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Mfa_Concurrent_Consumption_Should_Yield_Single_Success()
+    {
+        var ct = CancellationToken.None;
+        var regRes = await _service.RegisterAsync(new RegisterRequest("concurrent@emcore.com", "9990001015", "SecurePass!23"), ct);
+        string userId = regRes.Data!.UserId;
+        await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("concurrent@emcore.com", "654321"), ct);
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+
+        var t1 = _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+        var t2 = _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+        var results = await Task.WhenAll(t1, t2);
+
+        int successCount = 0;
+        int failCount = 0;
+        foreach (var r in results)
+        {
+            if (r.IsSuccess) successCount++;
+            else failCount++;
+        }
+        Assert.Equal(1, successCount);
+        Assert.Equal(1, failCount);
+    }
+
 }
+
