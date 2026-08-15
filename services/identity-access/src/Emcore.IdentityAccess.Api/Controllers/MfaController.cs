@@ -61,6 +61,20 @@ public sealed class MfaController : BaseApiController
     }
 
     /// <summary>
+    /// Resend MFA OTP
+    /// </summary>
+    [HttpPost("mfa/resend")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ResendMfaResponse), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    [ProducesResponseType(typeof(ProblemDetails), 429)]
+    public async Task<IActionResult> ResendMfaAsync([FromBody] ResendMfaRequest req, CancellationToken ct)
+    {
+        return MapResult(await _service.ResendMfaAsync(req.UserId, req, ct));
+    }
+
+    /// <summary>
     /// Initiate step-up authorization challenge
     /// </summary>
     [HttpPost("stepup/initiate")]

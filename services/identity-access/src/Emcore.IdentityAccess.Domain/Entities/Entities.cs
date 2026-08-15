@@ -259,11 +259,13 @@ public class StepUpChallenge
     public string Status { get; set; } = "Issued";
     public DateTime ExpiresAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public int AttemptCount { get; set; } = 0;
+    public DateTime? ConsumedAtUtc { get; set; }
 
     public bool IsValid(DateTime utcNow, string targetAction) =>
         Status == "Issued" && utcNow <= ExpiresAtUtc && string.Equals(TargetAction, targetAction, StringComparison.OrdinalIgnoreCase);
 
-    public void Verify() { Status = "Verified"; }
+    public void Verify() { Status = "Verified"; ConsumedAtUtc = DateTime.UtcNow; }
 }
 
 public class ServiceClientCredential

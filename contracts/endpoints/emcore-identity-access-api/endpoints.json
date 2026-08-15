@@ -252,6 +252,15 @@
     "OpenApiDisposition": "DOCUMENTABLE"
   },
   {
+    "Route": "api/v1/auth/mfa/resend",
+    "Method": "POST",
+    "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.ResendMfaAsync (Emcore.IdentityAccess.Api)",
+    "AuthMetadata": "AllowAnonymous",
+    "RateLimitPolicy": null,
+    "EndpointCategory": "BUSINESS_API",
+    "OpenApiDisposition": "DOCUMENTABLE"
+  },
+  {
     "Route": "api/v1/auth/stepup/initiate",
     "Method": "POST",
     "DisplayName": "Emcore.IdentityAccess.Api.Controllers.MfaController.InitiateStepUpAsync (Emcore.IdentityAccess.Api)",

@@ -35,6 +35,8 @@ public class SecurityHardeningTests
         public string GetJwksJson() => _inner.GetJwksJson();
     }
 
+    private readonly IdentityRepository _repo;
+
     public SecurityHardeningTests()
     {
         var config = new ConfigurationBuilder()
@@ -44,10 +46,10 @@ public class SecurityHardeningTests
             })
             .Build();
 
-        var repo = new IdentityRepository(config);
+        _repo = new IdentityRepository(config);
         var hasher = new Pbkdf2PasswordHasher();
         var tokenGen = new TestTokenGenerator("654321");
-        _service = new IdentityApplicationService(repo, tokenGen, hasher);
+        _service = new IdentityApplicationService(_repo, tokenGen, hasher);
     }
 
 
@@ -61,13 +63,20 @@ public class SecurityHardeningTests
         Assert.True(regRes.IsSuccess);
         string userId = regRes.Data!.UserId;
 
-        // 2. Register MFA (TOTP)
-        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("TOTP"), ct);
+        // Verify Email
+        var verifyEmailRes = await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("mfa_user@emcore.com", "654321"), ct);
+        if (!verifyEmailRes.IsSuccess) throw new Exception($"VerifyEmail failed: {verifyEmailRes.ErrorDetail}");
+        Assert.True(verifyEmailRes.IsSuccess);
+
+        // 2. Register MFA (EMAIL_OTP)
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        if (!mfaRegRes.IsSuccess) throw new Exception($"mfaRegRes failed: {mfaRegRes.ErrorDetail}");
         Assert.True(mfaRegRes.IsSuccess);
-        Assert.NotNull(mfaRegRes.Data?.Secret);
+        Assert.NotNull(mfaRegRes.Data?.ChallengeId);
 
         // 3. Confirm MFA
-        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321"), ct);
+        var confirmRes = await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
+        if (!confirmRes.IsSuccess) throw new Exception($"confirmRes failed: {confirmRes.ErrorDetail}");
         Assert.True(confirmRes.IsSuccess);
 
         // 4. Login now requires MFA
@@ -168,13 +177,18 @@ public class SecurityHardeningTests
         var regRes = await _service.RegisterAsync(new RegisterRequest("bypass_mfa@emcore.com", "9990004444", "SecurePass!23"), ct);
         string userId = regRes.Data!.UserId;
 
-        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("TOTP"), ct);
-        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321"), ct);
+        var verifyEmailRes1 = await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("bypass_mfa@emcore.com", "654321"), ct);
+        if (!verifyEmailRes1.IsSuccess) throw new Exception($"VerifyEmail failed: {verifyEmailRes1.ErrorDetail}");
+
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
 
         var loginRes = await _service.LoginAsync(new LoginRequest("bypass_mfa@emcore.com", "SecurePass!23"), ct);
+        if (!loginRes.IsSuccess) throw new Exception($"login failed: {loginRes.ErrorDetail}");
 
         // Try the bypass literal "123456"
         var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, "123456"), ct);
+        if (verifyRes.StatusCode == 400) throw new Exception($"verifyRes returned 400: {verifyRes.ErrorDetail}");
         Assert.False(verifyRes.IsSuccess);
         Assert.Equal(401, verifyRes.StatusCode);
     }
@@ -208,13 +222,18 @@ public class SecurityHardeningTests
         var regRes = await _service.RegisterAsync(new RegisterRequest("bypass_rec@emcore.com", "9990006666", "SecurePass!23"), ct);
         string userId = regRes.Data!.UserId;
 
-        await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("TOTP"), ct);
-        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("TOTP", "654321"), ct);
+        var verifyEmailRes2 = await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("bypass_rec@emcore.com", "654321"), ct);
+        if (!verifyEmailRes2.IsSuccess) throw new Exception($"VerifyEmail failed: {verifyEmailRes2.ErrorDetail}");
+
+        var mfaRegRes = await _service.RegisterMfaAsync(userId, new RegisterMfaRequest("EMAIL_OTP"), ct);
+        await _service.ConfirmMfaAsync(userId, new ConfirmMfaRequest("EMAIL_OTP", "654321", mfaRegRes.Data?.ChallengeId), ct);
 
         var loginRes = await _service.LoginAsync(new LoginRequest("bypass_rec@emcore.com", "SecurePass!23"), ct);
+        if (!loginRes.IsSuccess) throw new Exception($"login failed: {loginRes.ErrorDetail}");
 
         // Try RECOVERY-ALL bypass
         var verifyRes = await _service.VerifyMfaLoginAsync(new MfaLoginVerifyRequest(userId, loginRes.Data!.MfaChallengeToken!, string.Empty) { RecoveryCode = "RECOVERY-ALL" }, ct);
+        if (verifyRes.StatusCode == 400) throw new Exception($"verifyRes returned 400: {verifyRes.ErrorDetail}");
         Assert.False(verifyRes.IsSuccess);
         Assert.Equal(401, verifyRes.StatusCode);
     }

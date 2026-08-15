@@ -678,6 +678,62 @@ public class IdentityRepository : IIdentityRepository
         return new Result();
     }
 
+    public async Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string expectedPurpose, string tokenHash, int maxAttempts, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryStepUpChallenges)
+            {
+                if (InMemoryStepUpChallenges.TryGetValue(id, out var c) && c.UserId == userId)
+                {
+                    if (c.TargetAction != expectedPurpose) return null;
+                    if (c.Status != "Issued" || c.ExpiresAtUtc < DateTime.UtcNow) return null;
+                    if (c.AttemptCount >= maxAttempts) { c.Status = "Failed"; return null; }
+                    c.AttemptCount++;
+                    if (c.TokenHash != tokenHash)
+                    {
+                        if (c.AttemptCount >= maxAttempts) c.Status = "Failed";
+                        return null;
+                    }
+                    c.Verify();
+                    return new Result();
+                }
+                return null;
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        var returnCode = await conn.ExecuteScalarAsync<int>("dbo.PR_IDENTITY_CONSUME_STEPUP_CHALLENGE", new
+        {
+            Id = Guid.Parse(id),
+            UserId = Guid.Parse(userId),
+            ExpectedPurpose = expectedPurpose,
+            TokenHash = tokenHash,
+            MaxAttempts = maxAttempts
+        }, commandType: System.Data.CommandType.StoredProcedure);
+
+        if (returnCode < 0)
+        {
+            return null;
+        }
+        return new Result();
+    }
+
+    public async Task<int> GetRecentStepUpChallengesCountAsync(string userId, string purpose, TimeSpan window, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            var cutoff = DateTime.UtcNow.Subtract(window);
+            return InMemoryStepUpChallenges.Values.Count(c => c.UserId == userId && c.TargetAction == purpose && c.CreatedAtUtc >= cutoff);
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        var query = @"
+            SELECT COUNT(1)
+            FROM dbo.STEP_UP_CHALLENGE
+            WHERE UserId = @UserId AND TargetAction = @Purpose AND CreatedAtUtc >= @Cutoff";
+        var cutoffDate = DateTime.UtcNow.Subtract(window);
+        return await conn.ExecuteScalarAsync<int>(query, new { UserId = Guid.Parse(userId), Purpose = purpose, Cutoff = cutoffDate });
+    }
+
     public async Task<Result<ServiceClient>> CreateServiceClientAsync(ServiceClient client, ServiceClientCredential credential, List<ServiceClientScope> scopes, string? outboxPayload, CancellationToken cancellationToken)
     {
         if (_useInMemoryFallback)

@@ -6,48 +6,63 @@ using Microsoft.Extensions.Logging;
 
 namespace Emcore.IdentityAccess.Infrastructure.Integrations;
 
-public class DevelopmentVerificationDeliveryService : IVerificationDeliveryService
+public class VerificationDeliveryService : IVerificationDeliveryService
 {
-    private readonly ILogger<DevelopmentVerificationDeliveryService> _logger;
+    private readonly ILogger<VerificationDeliveryService> _logger;
+    private readonly IEmailSender _emailSender;
 
-    public DevelopmentVerificationDeliveryService(ILogger<DevelopmentVerificationDeliveryService> logger)
+    public VerificationDeliveryService(ILogger<VerificationDeliveryService> logger, IEmailSender emailSender)
     {
         _logger = logger;
+        _emailSender = emailSender;
     }
 
-    public Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, CancellationToken ct)
+    public async Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, CancellationToken ct)
     {
-        // Protected development/test output only. Never used in production or written to outbox or persistent tables.
-        _logger.LogInformation("[DEV/TEST ONLY] Verification OTP to {Destination} via {Channel}: {Otp}", destination, channel, plaintextOtp);
-        return Task.CompletedTask;
+        if (channel == "Email" || channel == "StepUp" || channel == "TOTP" || channel == "EMAIL_OTP")
+        {
+            string subject = "Your STOCKOUT verification code";
+            string textBody = $@"Your verification code is:
+
+{plaintextOtp}
+
+This code expires in 5 minutes.
+
+If you did not attempt to sign in, you can ignore this email.
+This code confirms enabling or accessing multi-factor authentication.";
+
+            string htmlBody = $@"<p>Your verification code is:</p>
+<h2>{plaintextOtp}</h2>
+<p>This code expires in 5 minutes.</p>
+<p>If you did not attempt to sign in, you can ignore this email.</p>
+<p><small>This code confirms enabling or accessing multi-factor authentication.</small></p>";
+
+            await _emailSender.SendEmailAsync(destination, subject, textBody, htmlBody, ct);
+            _logger.LogInformation("Email OTP dispatched. Purpose={Channel} UserId=<safe identifier>", channel);
+        }
+        else
+        {
+            _logger.LogWarning("Unsupported delivery channel requested: {Channel}", channel);
+        }
     }
 
-    public Task SendRecoveryTokenAsync(string destination, string plaintextToken, CancellationToken ct)
+    public async Task SendRecoveryTokenAsync(string destination, string plaintextToken, CancellationToken ct)
     {
-        _logger.LogInformation("[DEV/TEST ONLY] Password Recovery Token to {Destination}: {Token}", destination, plaintextToken);
-        return Task.CompletedTask;
-    }
-}
+        string subject = "STOCKOUT Password Recovery";
+        string textBody = $@"Your password recovery token is:
 
-public class ProductionVerificationDeliveryService : IVerificationDeliveryService
-{
-    private readonly ILogger<ProductionVerificationDeliveryService> _logger;
+{plaintextToken}
 
-    public ProductionVerificationDeliveryService(ILogger<ProductionVerificationDeliveryService> logger)
-    {
-        _logger = logger;
-    }
+This token expires in 1 hour.
 
-    public Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, CancellationToken ct)
-    {
-        // Production implementation: dispatches via secure notification service integration without persisting plaintext OTP in SQL or outbox tables.
-        _logger.LogInformation("Dispatched secure verification challenge to {Channel} destination for user.", channel);
-        return Task.CompletedTask;
-    }
+If you did not request a password reset, you can safely ignore this email.";
 
-    public Task SendRecoveryTokenAsync(string destination, string plaintextToken, CancellationToken ct)
-    {
-        _logger.LogInformation("Dispatched password recovery link to user destination.");
-        return Task.CompletedTask;
+        string htmlBody = $@"<p>Your password recovery token is:</p>
+<h2>{plaintextToken}</h2>
+<p>This token expires in 1 hour.</p>
+<p>If you did not request a password reset, you can safely ignore this email.</p>";
+
+        await _emailSender.SendEmailAsync(destination, subject, textBody, htmlBody, ct);
+        _logger.LogInformation("Recovery Token dispatched. UserId=<safe identifier>");
     }
 }

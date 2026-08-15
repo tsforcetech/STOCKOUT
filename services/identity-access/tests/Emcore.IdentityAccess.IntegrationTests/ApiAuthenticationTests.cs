@@ -29,8 +29,15 @@ public class ApiAuthenticationTests : IClassFixture<WebApplicationFactory<Progra
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:IdentityDatabase"] = "inmemory-auth-api-test-db",
-                    ["Database:Enabled"] = "true"
+                    ["Database:Enabled"] = "true",
+                    ["Email:Provider"] = "Smtp",
+                    ["Email:Host"] = "test",
+                    ["Email:FromAddress"] = "test@example.com"
                 });
+            });
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddSingleton<Emcore.IdentityAccess.Infrastructure.Integrations.IEmailSender, FakeEmailSender>();
             });
         });
     }
