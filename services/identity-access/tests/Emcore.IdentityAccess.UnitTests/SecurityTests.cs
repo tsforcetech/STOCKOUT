@@ -53,7 +53,7 @@ public class SecurityTests
     [Fact]
     public void Verification_Replay_Is_Prevented_By_State_Change()
     {
-        var account = new UserAccount(new UserEmail("test@test.com", new NormalizedEmail("test@test.com"), false), new UserMobile("123", new NormalizedMobile("123"), false));
+        var account = new UserAccount(Guid.NewGuid().ToString(), new UserEmail("test@test.com", new NormalizedEmail("test@test.com"), false), new UserMobile("123", new NormalizedMobile("123"), false));
         account.Verify();
         Assert.Equal(AccountStatus.Active, account.Status);
         Assert.Throws<Exception>(() => account.Verify());
@@ -75,7 +75,7 @@ public class SecurityTests
     [Fact]
     public void Account_Locks_Out_After_Max_Failures()
     {
-        var account = new UserAccount(new UserEmail("test@test.com", new NormalizedEmail("test@test.com"), false), new UserMobile("123", new NormalizedMobile("123"), false));
+        var account = new UserAccount(Guid.NewGuid().ToString(), new UserEmail("test@test.com", new NormalizedEmail("test@test.com"), false), new UserMobile("123", new NormalizedMobile("123"), false));
         account.Lock();
         Assert.Equal(AccountStatus.Locked, account.Status);
     }

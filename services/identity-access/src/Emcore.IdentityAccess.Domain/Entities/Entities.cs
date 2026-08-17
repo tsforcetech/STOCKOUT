@@ -7,7 +7,7 @@ namespace Emcore.IdentityAccess.Domain.Entities;
 
 public class UserAccount
 {
-    public string Id { get; private set; } = Guid.NewGuid().ToString("N");
+    public string Id { get; private set; }
     public string UlidId { get; private set; } = Guid.NewGuid().ToString("N")[..26].ToUpperInvariant();
     public UserEmail Email { get; private set; }
     public UserMobile Mobile { get; private set; }
@@ -18,8 +18,9 @@ public class UserAccount
     public DateTime UpdatedAtUtc { get; private set; }
     public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
-    public UserAccount(UserEmail email, UserMobile mobile)
+    public UserAccount(string id, UserEmail email, UserMobile mobile)
     {
+        Id = id;
         Email = email;
         Mobile = mobile;
         Status = AccountStatus.PendingVerification;

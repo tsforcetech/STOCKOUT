@@ -27,7 +27,7 @@ public class IdentityEndToEndTests
         var repo = new IdentityRepository(config);
         var hasher = new Pbkdf2PasswordHasher();
         var tokenGen = new JwtTokenGenerator();
-        _service = new IdentityApplicationService(repo, tokenGen, hasher);
+        _service = new IdentityApplicationService(repo, tokenGen, hasher, new Emcore.IdentityAccess.Application.Configuration.IdentityOptions(), null);
     }
 
     [Fact]

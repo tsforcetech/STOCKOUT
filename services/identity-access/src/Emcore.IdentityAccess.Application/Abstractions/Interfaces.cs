@@ -29,6 +29,7 @@ public record UserLookupResult(
 public interface IIdentityRepository
 {
     Task<Result<UserAccount>> RegisterUserAsync(
+        string userId,
         string email,
         string mobile,
         string passwordHash,
@@ -58,6 +59,7 @@ public interface IIdentityRepository
     Task<Result> ChangePasswordAsync(string userId, string oldPasswordHash, string newPasswordHash, string hashAlgorithm, string? outboxPayload, CancellationToken cancellationToken);
     Task<int> GetRecentRecoveryCountAsync(string userId, TimeSpan window, CancellationToken cancellationToken);
     Task<PasswordRecovery?> GetLatestRecoveryAsync(string userId, CancellationToken cancellationToken);
+    Task<PasswordRecovery?> GetRecoveryByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
 
     Task<Result<(bool IsCompleted, int StatusCode, string ResponseBody)>> BeginIdempotentRequestAsync(string idempotencyKey, string requestHash, CancellationToken cancellationToken);
     Task<Result> CompleteIdempotentRequestAsync(string idempotencyKey, int statusCode, string responseBody, CancellationToken cancellationToken);

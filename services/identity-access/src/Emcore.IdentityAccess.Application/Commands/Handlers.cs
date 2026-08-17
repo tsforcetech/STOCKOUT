@@ -75,6 +75,7 @@ public class IdentityApplicationService
         string outboxPayload = JsonSerializer.Serialize(evt);
 
         var result = await _repository.RegisterUserAsync(
+            canonicalUserId,
             request.Email ?? string.Empty,
             request.Mobile ?? string.Empty,
             passwordHash,
@@ -110,7 +111,7 @@ public class IdentityApplicationService
 
         string userId = userRes.Value.Id;
 
-        var recentCount = await _repository.GetRecentVerificationCountAsync(userId, "Email", TimeSpan.FromHours(1), cancellationToken);
+        var recentCount = await _repository.GetRecentVerificationCountAsync(userId, "Email", TimeSpan.FromMinutes(15), cancellationToken);
         if (recentCount >= 5)
         {
             return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
@@ -358,15 +359,15 @@ public class IdentityApplicationService
         if (string.IsNullOrWhiteSpace(request.EmailOrMobile)) return AppResult<ForgotPasswordResponse>.Success(response);
 
         var uRes = await _repository.GetUserByIdentifierAsync(request.EmailOrMobile, cancellationToken);
-        if (uRes == null || uRes.Value == null || string.IsNullOrEmpty(uRes.Value.Id))
+        if (uRes == null || uRes.Value == null || string.IsNullOrEmpty(uRes.Value.Id) || !uRes.Value.EmailVerified)
         {
             return AppResult<ForgotPasswordResponse>.Success(response); // anti-enum
         }
 
         string userId = uRes.Value.Id;
 
-        var recentCount = await _repository.GetRecentRecoveryCountAsync(userId, TimeSpan.FromHours(1), cancellationToken);
-        if (recentCount >= 3)
+        var recentCount = await _repository.GetRecentRecoveryCountAsync(userId, TimeSpan.FromMinutes(15), cancellationToken);
+        if (recentCount >= 5)
         {
             return AppResult<ForgotPasswordResponse>.Success(response); // enumerate shield
         }
@@ -412,12 +413,20 @@ public class IdentityApplicationService
         string tokenHash = _tokenGenerator.HashToken(request.Token.Trim());
         string newPassHash = _passwordHasher.HashPassword(request.NewPassword);
 
-        // Find user if identifier passed, otherwise repository procedure locates active recovery challenge by TokenHash
-        string userId = request.EmailOrMobile ?? Guid.Empty.ToString();
-        if (!string.IsNullOrWhiteSpace(request.EmailOrMobile))
+        // Fix secure token-only password reset and canonical UserId resolution
+        string? emailOrMobile = request.EmailOrMobile;
+        string userId = string.Empty;
+        if (string.IsNullOrWhiteSpace(emailOrMobile))
         {
-            var uRes = await _repository.GetUserByIdentifierAsync(request.EmailOrMobile, cancellationToken);
+            var recovery = await _repository.GetRecoveryByTokenHashAsync(tokenHash, cancellationToken);
+            if (recovery == null) return AppResult<ResetPasswordResponse>.Failure(400, "Invalid Token", "The password reset token is incorrect or has expired.");
+            userId = recovery.UserId;
+        }
+        else
+        {
+            var uRes = await _repository.GetUserByIdentifierAsync(emailOrMobile, cancellationToken);
             if (uRes != null && uRes.Value != null) userId = uRes.Value.Id;
+            else return AppResult<ResetPasswordResponse>.Failure(400, "Invalid User", "The specified user could not be found.");
         }
 
         var evt = new UserPasswordChangedV1Event { UserId = userId, Reason = "Reset", ChangedAtUtc = DateTime.UtcNow };

@@ -49,7 +49,7 @@ public class SecurityHardeningTests
         _repo = new IdentityRepository(config);
         var hasher = new Pbkdf2PasswordHasher();
         var tokenGen = new TestTokenGenerator("654321");
-        _service = new IdentityApplicationService(_repo, tokenGen, hasher);
+        _service = new IdentityApplicationService(_repo, tokenGen, hasher, new Emcore.IdentityAccess.Application.Configuration.IdentityOptions(), null);
     }
 
 

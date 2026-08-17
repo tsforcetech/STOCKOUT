@@ -46,6 +46,7 @@ public class IdentityRepository : IIdentityRepository
     }
 
     public async Task<Result<UserAccount>> RegisterUserAsync(
+        string userId,
         string email,
         string mobile,
         string passwordHash,
@@ -58,7 +59,7 @@ public class IdentityRepository : IIdentityRepository
         var normalizedMobile = new NormalizedMobile(mobile.Trim());
         var emailObj = new UserEmail(email, normalizedEmail, false);
         var mobileObj = new UserMobile(mobile, normalizedMobile, false);
-        var userAccount = new UserAccount(emailObj, mobileObj);
+        var userAccount = new UserAccount(userId, emailObj, mobileObj);
 
         if (_useInMemoryFallback)
         {
@@ -75,6 +76,10 @@ public class IdentityRepository : IIdentityRepository
                 {
                     InMemoryLookups[normalizedMobile.Value] = InMemoryLookups[normalizedEmail.Value];
                 }
+            }
+            lock (InMemoryVerifications)
+            {
+                InMemoryVerifications[verification.Id] = verification;
             }
             return userAccount;
         }
@@ -1125,5 +1130,23 @@ public class IdentityRepository : IIdentityRepository
         return await conn.QueryFirstOrDefaultAsync<PasswordRecovery>(
             "SELECT TOP 1 * FROM dbo.ACCOUNT_RECOVERY WHERE UserId = @UserId ORDER BY CreatedAtUtc DESC",
             new { UserId = Guid.Parse(userId) });
+    }
+
+    public async Task<PasswordRecovery?> GetRecoveryByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryRecoveries)
+            {
+                return InMemoryRecoveries.Values
+                    .Where(x => x.TokenHash == tokenHash && x.Status == RecoveryStatus.Created)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefault();
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        return await conn.QueryFirstOrDefaultAsync<PasswordRecovery>(
+            "SELECT TOP 1 * FROM dbo.ACCOUNT_RECOVERY WHERE TokenHash = @TokenHash AND Status = 'Created' ORDER BY CreatedAtUtc DESC",
+            new { TokenHash = tokenHash });
     }
 }
