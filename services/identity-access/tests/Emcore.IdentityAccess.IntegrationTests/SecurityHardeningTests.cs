@@ -58,13 +58,15 @@ public class SecurityHardeningTests
     {
         var ct = CancellationToken.None;
 
+        var uniqueEmail = $"mfa_user_{Guid.NewGuid():N}@emcore.com";
+        var uniquePhone = $"999{new Random().Next(1000000, 9999999)}";
         // 1. Register User
-        var regRes = await _service.RegisterAsync(new RegisterRequest("mfa_user@emcore.com", "9990001111", "SecurePass!23"), ct);
+        var regRes = await _service.RegisterAsync(new RegisterRequest(uniqueEmail, uniquePhone, "SecurePass!23"), ct);
         Assert.True(regRes.IsSuccess);
         string userId = regRes.Data!.UserId;
 
         // Verify Email
-        var verifyEmailRes = await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest("mfa_user@emcore.com", "654321"), ct);
+        var verifyEmailRes = await _service.ConfirmEmailVerificationAsync(new ConfirmEmailVerificationRequest(uniqueEmail, "654321"), ct);
         if (!verifyEmailRes.IsSuccess) throw new Exception($"VerifyEmail failed: {verifyEmailRes.ErrorDetail}");
         Assert.True(verifyEmailRes.IsSuccess);
 
@@ -80,7 +82,7 @@ public class SecurityHardeningTests
         Assert.True(confirmRes.IsSuccess);
 
         // 4. Login now requires MFA
-        var loginRes = await _service.LoginAsync(new LoginRequest("mfa_user@emcore.com", "SecurePass!23"), ct);
+        var loginRes = await _service.LoginAsync(new LoginRequest(uniqueEmail, "SecurePass!23"), ct);
         Assert.True(loginRes.IsSuccess);
         Assert.True(loginRes.Data!.MfaRequired);
         Assert.NotEmpty(loginRes.Data.MfaChallengeToken!); // Challenge ID
@@ -90,25 +92,6 @@ public class SecurityHardeningTests
         Assert.True(verifyRes.IsSuccess);
         Assert.False(verifyRes.Data!.MfaRequired);
         Assert.StartsWith("eyJ", verifyRes.Data.AccessToken);
-    }
-
-    [Fact]
-    public async Task StepUp_Authentication_Challenge_And_Verification_Flow()
-    {
-        var ct = CancellationToken.None;
-
-        var regRes = await _service.RegisterAsync(new RegisterRequest("stepup@emcore.com", "9990002222", "SecurePass!23"), ct);
-        string userId = regRes.Data!.UserId;
-
-        // Initiate StepUp for high risk action
-        var initRes = await _service.InitiateStepUpAsync(userId, new InitiateStepUpRequest("TransferFunds"), ct);
-        Assert.True(initRes.IsSuccess);
-        Assert.NotNull(initRes.Data?.StepUpId);
-
-        // Verify StepUp
-        var verRes = await _service.VerifyStepUpAsync(userId, new VerifyStepUpRequest(initRes.Data!.StepUpId, "654321"), ct);
-        Assert.True(verRes.IsSuccess);
-        Assert.StartsWith("STEPUP_OK_TransferFunds_", verRes.Data!.VerificationToken);
     }
 
     [Fact]

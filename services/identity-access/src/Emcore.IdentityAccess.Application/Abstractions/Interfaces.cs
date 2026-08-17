@@ -71,6 +71,9 @@ public interface IIdentityRepository
     Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string expectedPurpose, string tokenHash, int maxAttempts, CancellationToken cancellationToken);
     Task<int> GetRecentStepUpChallengesCountAsync(string userId, string purpose, TimeSpan window, CancellationToken cancellationToken);
 
+    Task<Result> CreateStepUpProofAsync(StepUpProof proof, CancellationToken cancellationToken);
+    Task<Result<string?>> ConsumeStepUpProofAsync(string proofHash, string userId, string? sessionId, string targetAction, CancellationToken cancellationToken);
+
     // Service Clients & Workload Identities
     Task<Result<ServiceClient>> CreateServiceClientAsync(ServiceClient client, ServiceClientCredential credential, List<ServiceClientScope> scopes, string? outboxPayload, CancellationToken cancellationToken);
     Task<Result<ServiceClientCredential>> RotateServiceClientCredentialAsync(string serviceClientId, ServiceClientCredential newCredential, string? outboxPayload, CancellationToken cancellationToken);

@@ -32,4 +32,5 @@ public abstract class BaseApiController : ControllerBase
     }
 
     protected string UserId => HttpContext.RequestServices.GetRequiredService<ICurrentUser>().UserId ?? string.Empty;
+    protected string? SessionId => HttpContext.RequestServices.GetRequiredService<ICurrentUser>().SessionId;
 }

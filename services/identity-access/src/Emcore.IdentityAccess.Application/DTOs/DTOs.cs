@@ -71,7 +71,7 @@ public record MfaLoginVerifyRequest(string UserId, string ChallengeToken, string
 public record ResendMfaRequest(string UserId, string ChallengeId);
 public record ResendMfaResponse(string Message, string? ChallengeId = null);
 public record InitiateStepUpRequest(string TargetAction);
-public record InitiateStepUpResponse(string StepUpId, string ChallengeToken, string Message = "Step-up challenge issued. Please verify second factor.");
+public record InitiateStepUpResponse(string StepUpId, int ExpiresInSeconds = 300, string Message = "Step-up challenge issued. Please verify second factor.");
 public record VerifyStepUpRequest(string StepUpId, string Code);
 public record VerifyStepUpResponse(string VerificationToken, string Message = "Step-up verified successfully.");
 

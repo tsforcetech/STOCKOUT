@@ -651,7 +651,7 @@ public class IdentityApplicationService
         return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("MFA factor successfully confirmed and enabled."));
     }
 
-    public async Task<AppResult<InitiateStepUpResponse>> InitiateStepUpAsync(string userId, InitiateStepUpRequest request, CancellationToken cancellationToken)
+    public async Task<AppResult<InitiateStepUpResponse>> InitiateStepUpAsync(string userId, string? sessionId, InitiateStepUpRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<InitiateStepUpResponse>.Failure(401, "Unauthorized", "Authentication required.");
 
@@ -660,10 +660,11 @@ public class IdentityApplicationService
         {
             Id = Guid.NewGuid().ToString("N"),
             UserId = userId,
+            SessionId = sessionId,
             TokenHash = hash,
             TargetAction = request.TargetAction,
             Status = "Issued",
-            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(10),
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5), // 5 min expiry
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -674,10 +675,11 @@ public class IdentityApplicationService
             await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, "StepUp", token, cancellationToken);
         }
 
-        return AppResult<InitiateStepUpResponse>.Success(new InitiateStepUpResponse(challenge.Id, token));
+        // Return empty token for security. Include ExpiresInSeconds.
+        return AppResult<InitiateStepUpResponse>.Success(new InitiateStepUpResponse(challenge.Id, 300));
     }
 
-    public async Task<AppResult<VerifyStepUpResponse>> VerifyStepUpAsync(string userId, VerifyStepUpRequest request, CancellationToken cancellationToken)
+    public async Task<AppResult<VerifyStepUpResponse>> VerifyStepUpAsync(string userId, string? sessionId, VerifyStepUpRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Authentication required.");
 
@@ -687,17 +689,47 @@ public class IdentityApplicationService
             return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Step-up challenge invalid or expired.");
         }
 
-        string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-        if (codeHash != challengeRes.Value.TokenHash)
+        // Session binding check
+        bool IsSessionMatch(string? s1, string? s2)
         {
-            return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Invalid step-up verification code.");
+            var g1 = Guid.TryParse(s1, out var p1) ? p1.ToString("N") : s1 ?? string.Empty;
+            var g2 = Guid.TryParse(s2, out var p2) ? p2.ToString("N") : s2 ?? string.Empty;
+            return string.Equals(g1, g2, StringComparison.OrdinalIgnoreCase);
+        }
+        if (!IsSessionMatch(challengeRes.Value.SessionId, sessionId))
+        {
+            return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Session mismatch for step-up challenge.");
         }
 
-        challengeRes.Value.Verify();
-        await _repository.UpdateStepUpChallengeAsync(challengeRes.Value, cancellationToken);
+        string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
+        
+        // Atomic consumption
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.StepUpId, userId, challengeRes.Value.TargetAction, codeHash, 5, cancellationToken);
+        if (consumeRes == null)
+        {
+            return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Invalid step-up verification code or max attempts reached.");
+        }
 
-        string verificationToken = $"STEPUP_OK_{challengeRes.Value.TargetAction}_{Guid.NewGuid():N}";
-        return AppResult<VerifyStepUpResponse>.Success(new VerifyStepUpResponse(verificationToken));
+        // Generate secure proof
+        var proofBytes = new byte[32];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(proofBytes);
+        string proofToken = Convert.ToBase64String(proofBytes);
+        string proofHash = _tokenGenerator.HashToken(proofToken);
+
+        var proof = new StepUpProof
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserId = userId,
+            SessionId = sessionId,
+            TargetAction = challengeRes.Value.TargetAction,
+            ProofHash = proofHash,
+            IssuedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5), // 5 min proof expiry
+            Status = "Issued"
+        };
+        await _repository.CreateStepUpProofAsync(proof, cancellationToken);
+
+        return AppResult<VerifyStepUpResponse>.Success(new VerifyStepUpResponse(proofToken));
     }
 
     public async Task<AppResult<RegisterServiceClientResponse>> RegisterServiceClientAsync(RegisterServiceClientRequest request, CancellationToken cancellationToken)

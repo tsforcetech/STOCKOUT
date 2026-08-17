@@ -4796,16 +4796,17 @@
       },
       "InitiateStepUpResponse": {
         "required": [
-          "stepUpId",
-          "challengeToken"
+          "stepUpId"
         ],
         "type": "object",
         "properties": {
           "stepUpId": {
             "type": "string"
           },
-          "challengeToken": {
-            "type": "string"
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "default": 300
           },
           "message": {
             "type": "string",
