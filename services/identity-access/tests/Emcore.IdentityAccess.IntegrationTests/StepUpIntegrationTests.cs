@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Emcore.IdentityAccess.Api;
+using Emcore.IdentityAccess.Application.Constants;
 
 namespace Emcore.IdentityAccess.IntegrationTests;
 
@@ -39,7 +40,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
         string userId = Guid.NewGuid().ToString("N");
         string sessionId = Guid.NewGuid().ToString("N");
-        string targetAction = "DisableMfa";
+        string targetAction = StepUpActions.DisableMfa;
         string proofToken = "secret_proof_123";
         string proofHash = generator.HashToken(proofToken);
 
@@ -75,7 +76,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
         string userId = Guid.NewGuid().ToString("N");
         string sessionId = Guid.NewGuid().ToString("N");
-        string targetAction = "ChangeEmail";
+        string targetAction = StepUpActions.ChangeEmail;
         string proofToken = "secret_proof_456";
         string proofHash = generator.HashToken(proofToken);
 
@@ -106,7 +107,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
         string userId = Guid.NewGuid().ToString("N");
         string sessionId = Guid.NewGuid().ToString("N");
-        string targetAction = "ChangeEmail";
+        string targetAction = StepUpActions.ChangeEmail;
         string proofToken = "secret_proof_789";
         string proofHash = generator.HashToken(proofToken);
 
@@ -135,7 +136,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
         string userId = Guid.NewGuid().ToString("N");
         string challengeId = Guid.NewGuid().ToString("N");
-        
+
         var mfaChallenge = new StepUpChallenge
         {
             Id = challengeId,
@@ -149,7 +150,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         };
         await db.CreateStepUpChallengeAsync(mfaChallenge, CancellationToken.None);
 
-        var consumeRes = await db.ConsumeStepUpChallengeAsync(challengeId, userId, null, "DisableMfa", "hash123", 5, CancellationToken.None);
+        var consumeRes = await db.ConsumeStepUpChallengeAsync(challengeId, userId, null, StepUpActions.DisableMfa, "hash123", 5, CancellationToken.None);
         Assert.Null(consumeRes);
     }
 
@@ -163,7 +164,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
         string userId = Guid.NewGuid().ToString("N");
         string sessionId = Guid.NewGuid().ToString("N");
-        string targetAction = "DisableMfa";
+        string targetAction = StepUpActions.DisableMfa;
         string proofToken = Guid.NewGuid().ToString();
         string proofHash = generator.HashToken(proofToken);
 
@@ -188,5 +189,75 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
 
         var successCount = (res1.IsSuccess ? 1 : 0) + (res2.IsSuccess ? 1 : 0);
         Assert.Equal(1, successCount);
+    }
+
+    [Fact]
+    public async Task ConsumeStepUpProof_WithWrongUser_ShouldFail()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IIdentityRepository>();
+        var validator = scope.ServiceProvider.GetRequiredService<IStepUpProofValidator>();
+        var generator = scope.ServiceProvider.GetRequiredService<ITokenGenerator>();
+
+        string userA = Guid.NewGuid().ToString("N");
+        string userB = Guid.NewGuid().ToString("N");
+        string sessionId = Guid.NewGuid().ToString("N");
+        string targetAction = StepUpActions.DisableMfa;
+        string proofToken = Guid.NewGuid().ToString();
+        string proofHash = generator.HashToken(proofToken);
+
+        var proof = new StepUpProof
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserId = userA,
+            SessionId = sessionId,
+            TargetAction = targetAction,
+            ProofHash = proofHash,
+            IssuedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5),
+            Status = "Issued"
+        };
+        await db.CreateStepUpProofAsync(proof, CancellationToken.None);
+
+        var resWrongUser = await validator.ValidateAndConsumeStepUpProofAsync(userB, sessionId, targetAction, proofToken, CancellationToken.None);
+        Assert.False(resWrongUser.IsSuccess);
+
+        var resCorrectUser = await validator.ValidateAndConsumeStepUpProofAsync(userA, sessionId, targetAction, proofToken, CancellationToken.None);
+        Assert.True(resCorrectUser.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ConsumeStepUpProof_WithWrongTargetAction_ShouldFail()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IIdentityRepository>();
+        var validator = scope.ServiceProvider.GetRequiredService<IStepUpProofValidator>();
+        var generator = scope.ServiceProvider.GetRequiredService<ITokenGenerator>();
+
+        string userId = Guid.NewGuid().ToString("N");
+        string sessionId = Guid.NewGuid().ToString("N");
+        string issuedAction = StepUpActions.DisableMfa;
+        string wrongAction = StepUpActions.ChangeEmail;
+        string proofToken = Guid.NewGuid().ToString();
+        string proofHash = generator.HashToken(proofToken);
+
+        var proof = new StepUpProof
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserId = userId,
+            SessionId = sessionId,
+            TargetAction = issuedAction,
+            ProofHash = proofHash,
+            IssuedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5),
+            Status = "Issued"
+        };
+        await db.CreateStepUpProofAsync(proof, CancellationToken.None);
+
+        var resWrongAction = await validator.ValidateAndConsumeStepUpProofAsync(userId, sessionId, wrongAction, proofToken, CancellationToken.None);
+        Assert.False(resWrongAction.IsSuccess);
+
+        var resCorrectAction = await validator.ValidateAndConsumeStepUpProofAsync(userId, sessionId, issuedAction, proofToken, CancellationToken.None);
+        Assert.True(resCorrectAction.IsSuccess);
     }
 }

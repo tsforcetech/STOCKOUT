@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emcore.IdentityAccess.Application.Abstractions;
 using Emcore.IdentityAccess.Application.Commands;
+using Emcore.IdentityAccess.Application.Constants;
 using Emcore.IdentityAccess.Application.DTOs;
 using Emcore.IdentityAccess.Domain.Entities;
 using Moq;
@@ -25,7 +26,7 @@ public class HandlersStepUpTests
         _mockGenerator = new Mock<ITokenGenerator>();
         _mockHasher = new Mock<IPasswordHasher>();
         _mockDelivery = new Mock<IVerificationDeliveryService>();
-        
+
         _service = new IdentityApplicationService(
             _mockRepo.Object,
             _mockGenerator.Object,
@@ -39,11 +40,11 @@ public class HandlersStepUpTests
         // Arrange
         var userId = Guid.NewGuid().ToString("N");
         var sessionId = Guid.NewGuid().ToString("N");
-        var req = new InitiateStepUpRequest("DisableMfa");
+        var req = new InitiateStepUpRequest(StepUpActions.DisableMfa);
 
         _mockGenerator.Setup(x => x.GenerateVerificationToken())
             .Returns(("123456", "hashed_123456"));
-            
+
         var userLookup = new Emcore.IdentityAccess.Application.Abstractions.UserLookupResult(
             Id: userId,
             UlidId: "test_ulid",
@@ -61,7 +62,7 @@ public class HandlersStepUpTests
             SecurityVersion: 1,
             MfaEnabled: false
         );
-        
+
         _mockRepo.Setup(x => x.GetUserByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Emcore.BuildingBlocks.Core.Result<Emcore.IdentityAccess.Application.Abstractions.UserLookupResult>.Success(userLookup));
 
@@ -72,8 +73,8 @@ public class HandlersStepUpTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Data);
         Assert.Equal(300, result.Data.ExpiresInSeconds);
-        
-        _mockRepo.Verify(x => x.CreateStepUpChallengeAsync(It.Is<StepUpChallenge>(c => c.SessionId == sessionId && c.TargetAction == "DisableMfa" && c.TokenHash == "hashed_123456"), It.IsAny<CancellationToken>()), Times.Once);
+
+        _mockRepo.Verify(x => x.CreateStepUpChallengeAsync(It.Is<StepUpChallenge>(c => c.SessionId == sessionId && c.TargetAction == StepUpActions.DisableMfa && c.TokenHash == "hashed_123456"), It.IsAny<CancellationToken>()), Times.Once);
         _mockDelivery.Verify(x => x.SendVerificationOtpAsync("test@example.com", "StepUp", "123456", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -91,7 +92,7 @@ public class HandlersStepUpTests
             Id = stepUpId,
             UserId = userId,
             SessionId = sessionId,
-            TargetAction = "ChangeEmail",
+            TargetAction = StepUpActions.ChangeEmail,
             TokenHash = "hashed_123456",
             Status = "Issued",
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5)
@@ -102,9 +103,9 @@ public class HandlersStepUpTests
 
         _mockGenerator.Setup(x => x.HashToken(It.IsAny<string>()))
             .Returns((string s) => s == "123456" ? "hashed_123456" : "proof_hash");
-        
+
         // Mock atomic consumption success
-        _mockRepo.Setup(x => x.ConsumeStepUpChallengeAsync(stepUpId, userId, sessionId, "ChangeEmail", "hashed_123456", 5, It.IsAny<CancellationToken>()))
+        _mockRepo.Setup(x => x.ConsumeStepUpChallengeAsync(stepUpId, userId, sessionId, StepUpActions.ChangeEmail, "hashed_123456", 5, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Result());
 
         // Act
@@ -115,16 +116,16 @@ public class HandlersStepUpTests
         Assert.NotNull(result.Data);
         Assert.False(string.IsNullOrWhiteSpace(result.Data.VerificationToken));
         Assert.DoesNotContain("STEPUP_OK", result.Data.VerificationToken);
-        
-        _mockRepo.Verify(x => x.CreateStepUpProofAsync(It.Is<StepUpProof>(p => p.UserId == userId && p.SessionId == sessionId && p.TargetAction == "ChangeEmail" && p.ProofHash == "proof_hash"), It.IsAny<CancellationToken>()), Times.Once);
+
+        _mockRepo.Verify(x => x.CreateStepUpProofAsync(It.Is<StepUpProof>(p => p.UserId == userId && p.SessionId == sessionId && p.TargetAction == StepUpActions.ChangeEmail && p.ProofHash == "proof_hash"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task InitiateStepUpAsync_WithoutSessionId_ShouldFail()
     {
-        var req = new InitiateStepUpRequest("DisableMfa");
+        var req = new InitiateStepUpRequest(StepUpActions.DisableMfa);
         var result = await _service.InitiateStepUpAsync("user123", null, req, CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal(401, result.StatusCode);
         _mockRepo.Verify(x => x.CreateStepUpChallengeAsync(It.IsAny<StepUpChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -135,7 +136,7 @@ public class HandlersStepUpTests
     {
         var req = new VerifyStepUpRequest("stepUp123", "123456");
         var result = await _service.VerifyStepUpAsync("user123", "", req, CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal(401, result.StatusCode);
         _mockRepo.Verify(x => x.GetStepUpChallengeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -146,7 +147,7 @@ public class HandlersStepUpTests
     {
         var req = new InitiateStepUpRequest("WhateverIWant");
         var result = await _service.InitiateStepUpAsync("user123", "session123", req, CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal(400, result.StatusCode);
         _mockRepo.Verify(x => x.CreateStepUpChallengeAsync(It.IsAny<StepUpChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -160,7 +161,7 @@ public class HandlersStepUpTests
             Id = "stepUp123",
             UserId = "user123",
             SessionId = "sessionA",
-            TargetAction = "DisableMfa",
+            TargetAction = StepUpActions.DisableMfa,
             TokenHash = "hash",
             Status = "Issued",
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5)
@@ -169,7 +170,7 @@ public class HandlersStepUpTests
 
         var req = new VerifyStepUpRequest("stepUp123", "123456");
         var result = await _service.VerifyStepUpAsync("user123", "sessionB", req, CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         _mockRepo.Verify(x => x.ConsumeStepUpChallengeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
