@@ -718,7 +718,7 @@ public class IdentityApplicationService
         }
 
         string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-        
+
         // Atomic consumption
         var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.StepUpId, userId, sessionId, challengeRes.Value.TargetAction, codeHash, 5, cancellationToken);
         if (consumeRes == null)

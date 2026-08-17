@@ -689,7 +689,7 @@ public class IdentityRepository : IIdentityRepository
                 if (InMemoryStepUpChallenges.TryGetValue(id, out var c) && c.UserId == userId)
                 {
                     bool isSessionMatch = true;
-                    if (c.TargetAction != "MfaLogin" && c.TargetAction != "MfaEnrollment") 
+                    if (c.TargetAction != "MfaLogin" && c.TargetAction != "MfaEnrollment")
                     {
                         var g1 = Guid.TryParse(c.SessionId, out var p1) ? p1.ToString("N") : c.SessionId ?? string.Empty;
                         var g2 = Guid.TryParse(sessionId, out var p2) ? p2.ToString("N") : sessionId ?? string.Empty;
@@ -782,11 +782,11 @@ public class IdentityRepository : IIdentityRepository
                         var g2 = Guid.TryParse(sessionId, out var p2) ? p2.ToString("N") : sessionId ?? string.Empty;
                         isSessionMatch = string.Equals(g1, g2, StringComparison.OrdinalIgnoreCase);
                     }
-                    
+
                     if (p.UserId == userId &&
                     isSessionMatch &&
-                    p.TargetAction == targetAction && 
-                    p.Status == "Issued" && 
+                    p.TargetAction == targetAction &&
+                    p.Status == "Issued" &&
                     p.ExpiresAtUtc >= DateTime.UtcNow &&
                     p.ConsumedAtUtc == null)
                     {

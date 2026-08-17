@@ -25,7 +25,7 @@ public class StepUpProofValidator : IStepUpProofValidator
 
         string proofHash = _tokenGenerator.HashToken(proofToken);
         var consumedProofId = await _repository.ConsumeStepUpProofAsync(proofHash, userId, sessionId, targetAction, cancellationToken);
-        
+
         if (consumedProofId == null || !consumedProofId.IsSuccess || consumedProofId.Value == null)
         {
             return new Result { IsSuccess = false };
