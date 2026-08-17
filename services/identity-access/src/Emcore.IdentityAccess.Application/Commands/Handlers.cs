@@ -6,9 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emcore.IdentityAccess.Application.Abstractions;
 using Emcore.IdentityAccess.Application.DTOs;
-using Emcore.IdentityAccess.Contracts.Events;
 using Emcore.IdentityAccess.Domain.Entities;
 using Emcore.IdentityAccess.Domain.Enums;
+using Emcore.IdentityAccess.Application.Configuration;
+using Emcore.IdentityAccess.Contracts.Events;
 
 namespace Emcore.IdentityAccess.Application.Commands;
 
@@ -24,16 +25,19 @@ public class IdentityApplicationService
     private readonly ITokenGenerator _tokenGenerator;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IVerificationDeliveryService? _deliveryService;
+    private readonly IdentityOptions _options;
 
     public IdentityApplicationService(
         IIdentityRepository repository,
         ITokenGenerator tokenGenerator,
         IPasswordHasher passwordHasher,
+        IdentityOptions options,
         IVerificationDeliveryService? deliveryService = null)
     {
         _repository = repository;
         _tokenGenerator = tokenGenerator;
         _passwordHasher = passwordHasher;
+        _options = options;
         _deliveryService = deliveryService;
     }
 
@@ -43,26 +47,27 @@ public class IdentityApplicationService
         {
             return AppResult<RegisterResponse>.Failure(400, "Validation Error", "At least an email address or mobile number must be provided.");
         }
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < _options.MinimumPasswordLength)
         {
-            return AppResult<RegisterResponse>.Failure(400, "Invalid Password", "Password must be at least 8 characters long.");
+            return AppResult<RegisterResponse>.Failure(400, "Invalid Password", $"Password must be at least {_options.MinimumPasswordLength} characters long.");
         }
 
         string passwordHash = _passwordHasher.HashPassword(request.Password);
         var (verificationOtp, otpHash) = _tokenGenerator.GenerateVerificationToken();
+        var canonicalUserId = Guid.NewGuid().ToString("N");
         var verification = new AccountVerification
         {
             Id = Guid.NewGuid().ToString("N"),
-            UserId = Guid.NewGuid().ToString("N"), // placeholder before registration assigns actual ID if needed
+            UserId = canonicalUserId,
             TokenHash = otpHash,
             Channel = !string.IsNullOrWhiteSpace(request.Email) ? "Email" : "Mobile",
             Status = Domain.Enums.VerificationStatus.Issued,
-            ExpiresAtUtc = DateTime.UtcNow.AddHours(2)
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(_options.VerificationLifetimeMinutes)
         };
 
         var evt = new UserRegisteredV1Event
         {
-            UserId = verification.UserId,
+            UserId = canonicalUserId,
             EmailAddress = request.Email ?? string.Empty,
             MobileNumber = request.Mobile ?? string.Empty,
             Status = "PendingVerification"
@@ -103,15 +108,29 @@ public class IdentityApplicationService
             return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
         }
 
+        string userId = userRes.Value.Id;
+
+        var recentCount = await _repository.GetRecentVerificationCountAsync(userId, "Email", TimeSpan.FromHours(1), cancellationToken);
+        if (recentCount >= 5)
+        {
+            return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
+        }
+
+        var latest = await _repository.GetLatestVerificationAsync(userId, "Email", cancellationToken);
+        if (latest != null && latest.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-1))
+        {
+            return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
+        }
+
         var (otp, hash) = _tokenGenerator.GenerateVerificationToken();
         var verification = new AccountVerification
         {
             Id = Guid.NewGuid().ToString("N"),
-            UserId = userRes.Value.Id,
+            UserId = userId,
             TokenHash = hash,
             Channel = "Email",
             Status = Domain.Enums.VerificationStatus.Issued,
-            ExpiresAtUtc = DateTime.UtcNow.AddHours(2)
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(_options.VerificationLifetimeMinutes)
         };
 
         await _repository.CreateVerificationAsync(verification, cancellationToken);
@@ -124,10 +143,12 @@ public class IdentityApplicationService
 
     public async Task<AppResult<StandardSuccessResponse>> ConfirmEmailVerificationAsync(ConfirmEmailVerificationRequest request, CancellationToken cancellationToken)
     {
+        await Task.Delay(500, cancellationToken); // Thwart brute force
+
         var userRes = await _repository.GetUserByIdentifierAsync(request.Email, cancellationToken);
         if (userRes == null || userRes.Value == null)
         {
-            return AppResult<StandardSuccessResponse>.Failure(400, "Verification Failed", "Invalid verification attempt.");
+            return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Verification Code", "The verification code is incorrect or has expired.");
         }
 
         string tokenHash = _tokenGenerator.HashToken(request.Token.Trim());
@@ -337,22 +358,38 @@ public class IdentityApplicationService
         if (string.IsNullOrWhiteSpace(request.EmailOrMobile)) return AppResult<ForgotPasswordResponse>.Success(response);
 
         var uRes = await _repository.GetUserByIdentifierAsync(request.EmailOrMobile, cancellationToken);
-        if (uRes != null && uRes.Value != null && !string.IsNullOrEmpty(uRes.Value.Id))
+        if (uRes == null || uRes.Value == null || string.IsNullOrEmpty(uRes.Value.Id))
         {
-            var (resetToken, hash) = _tokenGenerator.GeneratePasswordResetToken();
-            var recovery = new PasswordRecovery
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                UserId = uRes.Value.Id,
-                TokenHash = hash,
-                Status = Domain.Enums.RecoveryStatus.Created,
-                ExpiresAtUtc = DateTime.UtcNow.AddHours(1)
-            };
-            await _repository.CreateRecoveryRequestAsync(recovery, cancellationToken);
-            if (_deliveryService != null)
-            {
-                await _deliveryService.SendRecoveryTokenAsync(uRes.Value.Email, resetToken, cancellationToken);
-            }
+            return AppResult<ForgotPasswordResponse>.Success(response); // anti-enum
+        }
+
+        string userId = uRes.Value.Id;
+
+        var recentCount = await _repository.GetRecentRecoveryCountAsync(userId, TimeSpan.FromHours(1), cancellationToken);
+        if (recentCount >= 3)
+        {
+            return AppResult<ForgotPasswordResponse>.Success(response); // enumerate shield
+        }
+
+        var latest = await _repository.GetLatestRecoveryAsync(userId, cancellationToken);
+        if (latest != null && latest.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-1))
+        {
+            return AppResult<ForgotPasswordResponse>.Success(response);
+        }
+
+        var (resetToken, hash) = _tokenGenerator.GeneratePasswordResetToken();
+        var recovery = new PasswordRecovery
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserId = userId,
+            TokenHash = hash,
+            Status = Domain.Enums.RecoveryStatus.Created,
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(_options.PasswordResetLifetimeMinutes)
+        };
+        await _repository.CreateRecoveryRequestAsync(recovery, cancellationToken);
+        if (_deliveryService != null)
+        {
+            await _deliveryService.SendRecoveryTokenAsync(uRes.Value.Email, resetToken, cancellationToken);
         }
 
         return AppResult<ForgotPasswordResponse>.Success(response);
@@ -360,9 +397,16 @@ public class IdentityApplicationService
 
     public async Task<AppResult<ResetPasswordResponse>> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken)
     {
+        await Task.Delay(500, cancellationToken); // Thwart brute force
+
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
         {
             return AppResult<ResetPasswordResponse>.Failure(400, "Invalid Request", "Token and new password are required.");
+        }
+
+        if (request.NewPassword.Length < _options.MinimumPasswordLength)
+        {
+            return AppResult<ResetPasswordResponse>.Failure(400, "Invalid Password", $"Password must be at least {_options.MinimumPasswordLength} characters long.");
         }
 
         string tokenHash = _tokenGenerator.HashToken(request.Token.Trim());
@@ -379,6 +423,11 @@ public class IdentityApplicationService
         var evt = new UserPasswordChangedV1Event { UserId = userId, Reason = "Reset", ChangedAtUtc = DateTime.UtcNow };
         var res = await _repository.ResetPasswordAsync(userId, tokenHash, newPassHash, _passwordHasher.AlgorithmName, JsonSerializer.Serialize(evt), cancellationToken);
 
+        if (res == null)
+        {
+            return AppResult<ResetPasswordResponse>.Failure(400, "Invalid Token", "The password reset token is incorrect or has expired.");
+        }
+
         return AppResult<ResetPasswordResponse>.Success(new ResetPasswordResponse());
     }
 
@@ -388,6 +437,11 @@ public class IdentityApplicationService
         if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
         {
             return AppResult<ChangePasswordResponse>.Failure(400, "Invalid Request", "Both current and new password must be provided.");
+        }
+
+        if (request.NewPassword.Length < _options.MinimumPasswordLength)
+        {
+            return AppResult<ChangePasswordResponse>.Failure(400, "Invalid Password", $"Password must be at least {_options.MinimumPasswordLength} characters long.");
         }
 
         var uRes = await _repository.GetUserByIdAsync(userId, cancellationToken);

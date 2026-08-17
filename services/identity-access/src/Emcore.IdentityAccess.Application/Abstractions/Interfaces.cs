@@ -42,6 +42,8 @@ public interface IIdentityRepository
 
     Task<Result> CreateVerificationAsync(AccountVerification verification, CancellationToken cancellationToken);
     Task<Result> VerifyAccountAsync(string userId, string channel, string tokenHash, string? outboxPayload, CancellationToken cancellationToken);
+    Task<int> GetRecentVerificationCountAsync(string userId, string channel, TimeSpan window, CancellationToken cancellationToken);
+    Task<AccountVerification?> GetLatestVerificationAsync(string userId, string channel, CancellationToken cancellationToken);
 
     Task<Result> RecordLoginAttemptAsync(string userId, bool isSuccess, int lockoutMinutes, int maxFailures, string? outboxPayload, CancellationToken cancellationToken);
 
@@ -54,6 +56,8 @@ public interface IIdentityRepository
     Task<Result> CreateRecoveryRequestAsync(PasswordRecovery recovery, CancellationToken cancellationToken);
     Task<Result> ResetPasswordAsync(string userId, string tokenHash, string newPasswordHash, string hashAlgorithm, string? outboxPayload, CancellationToken cancellationToken);
     Task<Result> ChangePasswordAsync(string userId, string oldPasswordHash, string newPasswordHash, string hashAlgorithm, string? outboxPayload, CancellationToken cancellationToken);
+    Task<int> GetRecentRecoveryCountAsync(string userId, TimeSpan window, CancellationToken cancellationToken);
+    Task<PasswordRecovery?> GetLatestRecoveryAsync(string userId, CancellationToken cancellationToken);
 
     Task<Result<(bool IsCompleted, int StatusCode, string ResponseBody)>> BeginIdempotentRequestAsync(string idempotencyKey, string requestHash, CancellationToken cancellationToken);
     Task<Result> CompleteIdempotentRequestAsync(string idempotencyKey, int statusCode, string responseBody, CancellationToken cancellationToken);

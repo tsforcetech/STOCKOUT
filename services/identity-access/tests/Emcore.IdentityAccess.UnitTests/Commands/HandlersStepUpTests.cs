@@ -31,6 +31,7 @@ public class HandlersStepUpTests
             _mockRepo.Object,
             _mockGenerator.Object,
             _mockHasher.Object,
+            new Emcore.IdentityAccess.Application.Configuration.IdentityOptions(),
             _mockDelivery.Object);
     }
 
