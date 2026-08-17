@@ -82,7 +82,7 @@ public sealed class MfaController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), 401)]
     public async Task<IActionResult> InitiateStepUpAsync([FromBody] InitiateStepUpRequest req, CancellationToken ct)
     {
-        return MapResult(await _service.InitiateStepUpAsync(UserId, req, ct));
+        return MapResult(await _service.InitiateStepUpAsync(UserId, SessionId, req, ct));
     }
 
     /// <summary>
@@ -95,6 +95,6 @@ public sealed class MfaController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), 422)]
     public async Task<IActionResult> VerifyStepUpAsync([FromBody] VerifyStepUpRequest req, CancellationToken ct)
     {
-        return MapResult(await _service.VerifyStepUpAsync(UserId, req, ct));
+        return MapResult(await _service.VerifyStepUpAsync(UserId, SessionId, req, ct));
     }
 }

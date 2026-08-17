@@ -37,7 +37,8 @@ public class GatewayTestFixture : IAsyncDisposable
             var reqId = ctx.Request.Headers["X-Request-Id"].ToString();
             var corrId = ctx.Request.Headers["X-Correlation-Id"].ToString();
             var unsafeHeader = ctx.Request.Headers["X-User-Id"].ToString();
-            return Results.Ok(new { Service = "MockIdentity-Auth", Path = ctx.Request.Path.ToString(), AuthHeader = authHeader, ReqId = reqId, CorrId = corrId, UnsafeHeader = unsafeHeader });
+            var sessionHeader = ctx.Request.Headers["X-Session-Id"].ToString();
+            return Results.Ok(new { Service = "MockIdentity-Auth", Path = ctx.Request.Path.ToString(), AuthHeader = authHeader, ReqId = reqId, CorrId = corrId, UnsafeHeader = unsafeHeader, SessionHeader = sessionHeader });
         });
         _mockIdentityServer.MapAny("/api/v1/identity/{**path}", (HttpContext ctx) =>
         {
@@ -62,6 +63,7 @@ public class GatewayTestFixture : IAsyncDisposable
             var tenantHeader = ctx.Request.Headers["X-Tenant-Id"].ToString();
             var internalSecret = ctx.Request.Headers["X-Internal-SuperSecret"].ToString();
             var traceParent = ctx.Request.Headers["traceparent"].ToString();
+            var sessionHeader = ctx.Request.Headers["X-Session-Id"].ToString();
             return Results.Ok(new
             {
                 Service = "MockOrg-Users",
@@ -72,7 +74,8 @@ public class GatewayTestFixture : IAsyncDisposable
                 UnsafeHeader = unsafeHeader,
                 TenantHeader = tenantHeader,
                 InternalSecret = internalSecret,
-                TraceParent = traceParent
+                TraceParent = traceParent,
+                SessionHeader = sessionHeader
             });
         });
         _mockOrgServer.MapAny("/api/v1/organizations/{**path}", (HttpContext ctx) =>

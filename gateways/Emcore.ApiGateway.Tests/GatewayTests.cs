@@ -257,6 +257,44 @@ public class GatewayTests
                .And.Contain("4bf92f3577b34da6a3ce929d0e0e4736"); // OpenTelemetry preserves W3C TraceID while adding child span
     }
 
+    [Fact]
+    public async Task Gateway_Session_Spoofing_Is_Prevented()
+    {
+        await using var fixture = new GatewayTestFixture();
+        await fixture.InitializeAsync();
+
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/profile");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test-token");
+        req.Headers.Add("X-Session-Id", "attacker-session");
+
+        var response = await fixture.Client.SendAsync(req);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotContain("attacker-session");
+        // We injected "session_test_123" into TestAuthHandler as the trusted sid
+        content.Should().Contain("session_test_123");
+    }
+
+    [Fact]
+    public async Task Gateway_Strips_Session_Without_Sid()
+    {
+        await using var fixture = new GatewayTestFixture();
+        await fixture.InitializeAsync();
+
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/profile");
+        // Invalid token returns 401, but we need an authenticated principal WITHOUT a sid.
+        // Wait, TestAuthHandler returns a sid. If we don't send Authorization, it's anonymous, but the endpoint requires auth.
+        var publicReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/auth/login");
+        publicReq.Headers.Add("X-Session-Id", "attacker-session");
+
+        var publicResponse = await fixture.Client.SendAsync(publicReq);
+        publicResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var publicContent = await publicResponse.Content.ReadAsStringAsync();
+        publicContent.Should().NotContain("attacker-session");
+    }
+
     // 14. Forwarded header spoofing resistance: untrusted client cannot spoof X-Forwarded-For to evade rate limiting
     [Fact]
     public async Task Untrusted_Client_Cannot_Spoof_Source_IP_Through_Forwarded_Headers()

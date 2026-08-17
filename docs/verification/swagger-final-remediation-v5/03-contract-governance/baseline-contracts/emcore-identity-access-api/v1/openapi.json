@@ -2657,6 +2657,117 @@
         ]
       }
     },
+    "/api/v1/auth/mfa/resend": {
+      "post": {
+        "tags": [
+          "Mfa"
+        ],
+        "operationId": "postApiV1AuthMfaResend",
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "description": "Unique per-request tracing identifier (ULID or UUID). Max length 64 chars. Propagated through middleware to backend logs.",
+            "schema": {
+              "type": "string",
+              "default": "req_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Correlation-Id",
+            "in": "header",
+            "description": "Distributed transaction correlation identifier across multiple services. Preserved across outbox domain events and message boundaries.",
+            "schema": {
+              "type": "string",
+              "default": "cor_01HPX7K7R5YZ2X90WY"
+            }
+          },
+          {
+            "name": "X-Client-Version",
+            "in": "header",
+            "description": "Calling consumer version string for diagnostics and feature deprecation telemetry.",
+            "schema": {
+              "type": "string",
+              "default": "1.0.0-build2026"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred locale for user-facing validation and problem details messaging (e.g., en-AE, ar-AE).",
+            "schema": {
+              "type": "string",
+              "default": "en-AE"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendMfaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendMfaRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendMfaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResendMfaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error (unhandled exception without Problem Details schema formatting)"
+          }
+        }
+      }
+    },
     "/api/v1/auth/stepup/initiate": {
       "post": {
         "tags": [
@@ -4574,6 +4685,11 @@
           },
           "code": {
             "type": "string"
+          },
+          "challengeId": {
+            "type": "string",
+            "default": null,
+            "nullable": true
           }
         }
       },
@@ -4680,16 +4796,17 @@
       },
       "InitiateStepUpResponse": {
         "required": [
-          "stepUpId",
-          "challengeToken"
+          "stepUpId"
         ],
         "type": "object",
         "properties": {
           "stepUpId": {
             "type": "string"
           },
-          "challengeToken": {
-            "type": "string"
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "default": 300
           },
           "message": {
             "type": "string",
@@ -4869,7 +4986,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "default": "TOTP"
+            "default": "EMAIL_OTP"
           }
         }
       },
@@ -4896,6 +5013,11 @@
           "message": {
             "type": "string",
             "default": "MFA factor registered. Please confirm with OTP to enable."
+          },
+          "challengeId": {
+            "type": "string",
+            "default": null,
+            "nullable": true
           }
         }
       },
@@ -5016,6 +5138,39 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "ResendMfaRequest": {
+        "required": [
+          "userId",
+          "challengeId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Opaque unique identity reference identifier (ULID/UUID format). Must not be treated as a sequential database key.",
+            "example": "usr_01HPX7K7R5YZ2X90WY0001"
+          },
+          "challengeId": {
+            "type": "string"
+          }
+        }
+      },
+      "ResendMfaResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "challengeId": {
+            "type": "string",
+            "default": null,
+            "nullable": true
           }
         }
       },

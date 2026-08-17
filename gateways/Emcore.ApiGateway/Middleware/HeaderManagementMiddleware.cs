@@ -16,6 +16,7 @@ public class HeaderManagementMiddleware
     private static readonly string[] UnsafeInternalHeaders =
     [
         "X-User-Id",
+        "X-Session-Id",
         "X-Tenant-Id",
         "X-Organization-Id",
         "X-Internal-Identity",

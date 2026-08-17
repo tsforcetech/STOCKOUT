@@ -35,7 +35,8 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
             new Claim(ClaimTypes.NameIdentifier, "usr_test_123"),
             new Claim(ClaimTypes.Name, "test-client-id"),
             new Claim("client_id", "test_client_app"),
-            new Claim(ClaimTypes.Role, "User")
+            new Claim(ClaimTypes.Role, "User"),
+            new Claim("sid", "session_test_123")
         };
 
         var identity = new ClaimsIdentity(claims, SchemeName);

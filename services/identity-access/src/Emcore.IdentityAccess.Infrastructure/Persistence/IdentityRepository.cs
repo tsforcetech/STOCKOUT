@@ -26,6 +26,7 @@ public class IdentityRepository : IIdentityRepository
     private static readonly Dictionary<string, MfaMethod> InMemoryMfaMethods = new();
     private static readonly List<MfaRecoveryCode> InMemoryRecoveryCodes = new();
     private static readonly Dictionary<string, StepUpChallenge> InMemoryStepUpChallenges = new();
+    private static readonly Dictionary<string, StepUpProof> InMemoryStepUpProofs = new();
     private static readonly Dictionary<string, (ServiceClient Client, List<ServiceClientCredential> Credentials, List<ServiceClientScope> Scopes)> InMemoryServiceClients = new();
     private static readonly List<SecurityEvent> InMemorySecurityEvents = new();
 
@@ -637,6 +638,7 @@ public class IdentityRepository : IIdentityRepository
         {
             Id = Guid.Parse(challenge.Id),
             UserId = Guid.Parse(challenge.UserId),
+            SessionId = string.IsNullOrWhiteSpace(challenge.SessionId) ? (Guid?)null : Guid.Parse(challenge.SessionId),
             TokenHash = challenge.TokenHash,
             TargetAction = challenge.TargetAction,
             ExpiresAtUtc = challenge.ExpiresAtUtc
@@ -678,7 +680,7 @@ public class IdentityRepository : IIdentityRepository
         return new Result();
     }
 
-    public async Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string expectedPurpose, string tokenHash, int maxAttempts, CancellationToken cancellationToken)
+    public async Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string? sessionId, string expectedPurpose, string tokenHash, int maxAttempts, CancellationToken cancellationToken)
     {
         if (_useInMemoryFallback)
         {
@@ -686,6 +688,14 @@ public class IdentityRepository : IIdentityRepository
             {
                 if (InMemoryStepUpChallenges.TryGetValue(id, out var c) && c.UserId == userId)
                 {
+                    bool isSessionMatch = true;
+                    if (c.TargetAction != "MfaLogin" && c.TargetAction != "MfaEnrollment")
+                    {
+                        var g1 = Guid.TryParse(c.SessionId, out var p1) ? p1.ToString("N") : c.SessionId ?? string.Empty;
+                        var g2 = Guid.TryParse(sessionId, out var p2) ? p2.ToString("N") : sessionId ?? string.Empty;
+                        isSessionMatch = string.Equals(g1, g2, StringComparison.OrdinalIgnoreCase);
+                    }
+                    if (!isSessionMatch) return null;
                     if (c.TargetAction != expectedPurpose) return null;
                     if (c.Status != "Issued" || c.ExpiresAtUtc < DateTime.UtcNow) return null;
                     if (c.AttemptCount >= maxAttempts) { c.Status = "Failed"; return null; }
@@ -706,6 +716,7 @@ public class IdentityRepository : IIdentityRepository
         {
             Id = Guid.Parse(id),
             UserId = Guid.Parse(userId),
+            SessionId = sessionId != null && Guid.TryParse(sessionId, out var parsedSession) ? (Guid?)parsedSession : null,
             ExpectedPurpose = expectedPurpose,
             TokenHash = tokenHash,
             MaxAttempts = maxAttempts
@@ -732,6 +743,71 @@ public class IdentityRepository : IIdentityRepository
             WHERE UserId = @UserId AND TargetAction = @Purpose AND CreatedAtUtc >= @Cutoff";
         var cutoffDate = DateTime.UtcNow.Subtract(window);
         return await conn.ExecuteScalarAsync<int>(query, new { UserId = Guid.Parse(userId), Purpose = purpose, Cutoff = cutoffDate });
+    }
+
+    public async Task<Result> CreateStepUpProofAsync(StepUpProof proof, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryStepUpProofs) { InMemoryStepUpProofs[proof.ProofHash] = proof; }
+            return new Result();
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        await conn.ExecuteAsync("dbo.PR_IDENTITY_CREATE_STEPUP_PROOF", new
+        {
+            ProofId = Guid.Parse(proof.Id),
+            UserId = Guid.Parse(proof.UserId),
+            SessionId = string.IsNullOrWhiteSpace(proof.SessionId) ? (Guid?)null : Guid.Parse(proof.SessionId),
+            TargetAction = proof.TargetAction,
+            ProofHash = proof.ProofHash,
+            IssuedAtUtc = proof.IssuedAtUtc,
+            ExpiresAtUtc = proof.ExpiresAtUtc,
+            Status = proof.Status
+        }, commandType: System.Data.CommandType.StoredProcedure);
+        return new Result();
+    }
+
+    public async Task<Result<string?>> ConsumeStepUpProofAsync(string proofHash, string userId, string? sessionId, string targetAction, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryStepUpProofs)
+            {
+                if (InMemoryStepUpProofs.TryGetValue(proofHash, out var p))
+                {
+                    bool isSessionMatch = true;
+                    if (!string.IsNullOrWhiteSpace(sessionId) || !string.IsNullOrWhiteSpace(p.SessionId))
+                    {
+                        var g1 = Guid.TryParse(p.SessionId, out var p1) ? p1.ToString("N") : p.SessionId ?? string.Empty;
+                        var g2 = Guid.TryParse(sessionId, out var p2) ? p2.ToString("N") : sessionId ?? string.Empty;
+                        isSessionMatch = string.Equals(g1, g2, StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    if (p.UserId == userId &&
+                    isSessionMatch &&
+                    p.TargetAction == targetAction &&
+                    p.Status == "Issued" &&
+                    p.ExpiresAtUtc >= DateTime.UtcNow &&
+                    p.ConsumedAtUtc == null)
+                    {
+                        p.Status = "Consumed";
+                        p.ConsumedAtUtc = DateTime.UtcNow;
+                        return p.Id;
+                    }
+                }
+                return (string?)null;
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        var id = await conn.QuerySingleOrDefaultAsync<Guid?>("dbo.PR_IDENTITY_CONSUME_STEPUP_PROOF", new
+        {
+            ProofHash = proofHash,
+            UserId = Guid.Parse(userId),
+            SessionId = string.IsNullOrWhiteSpace(sessionId) ? (Guid?)null : Guid.Parse(sessionId),
+            TargetAction = targetAction
+        }, commandType: System.Data.CommandType.StoredProcedure);
+
+        return id.HasValue ? id.Value.ToString("N") : (string?)null;
     }
 
     public async Task<Result<ServiceClient>> CreateServiceClientAsync(ServiceClient client, ServiceClientCredential credential, List<ServiceClientScope> scopes, string? outboxPayload, CancellationToken cancellationToken)

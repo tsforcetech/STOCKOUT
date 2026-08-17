@@ -254,6 +254,7 @@ public class StepUpChallenge
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string UserId { get; set; } = string.Empty;
+    public string? SessionId { get; set; }
     public string TokenHash { get; set; } = string.Empty;
     public string TargetAction { get; set; } = string.Empty;
     public string Status { get; set; } = "Issued";
@@ -266,6 +267,19 @@ public class StepUpChallenge
         Status == "Issued" && utcNow <= ExpiresAtUtc && string.Equals(TargetAction, targetAction, StringComparison.OrdinalIgnoreCase);
 
     public void Verify() { Status = "Verified"; ConsumedAtUtc = DateTime.UtcNow; }
+}
+
+public class StepUpProof
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string UserId { get; set; } = string.Empty;
+    public string? SessionId { get; set; }
+    public string TargetAction { get; set; } = string.Empty;
+    public string ProofHash { get; set; } = string.Empty;
+    public DateTime IssuedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime ExpiresAtUtc { get; set; }
+    public DateTime? ConsumedAtUtc { get; set; }
+    public string Status { get; set; } = "Issued";
 }
 
 public class ServiceClientCredential
