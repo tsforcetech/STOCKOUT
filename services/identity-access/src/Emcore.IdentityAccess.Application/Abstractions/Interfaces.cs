@@ -68,7 +68,7 @@ public interface IIdentityRepository
     Task<Result> CreateStepUpChallengeAsync(StepUpChallenge challenge, CancellationToken cancellationToken);
     Task<Result<StepUpChallenge?>> GetStepUpChallengeAsync(string id, string userId, CancellationToken cancellationToken);
     Task<Result> UpdateStepUpChallengeAsync(StepUpChallenge challenge, CancellationToken cancellationToken);
-    Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string expectedPurpose, string tokenHash, int maxAttempts, CancellationToken cancellationToken);
+    Task<Result?> ConsumeStepUpChallengeAsync(string id, string userId, string? sessionId, string expectedPurpose, string tokenHash, int maxAttempts, CancellationToken cancellationToken);
     Task<int> GetRecentStepUpChallengesCountAsync(string userId, string purpose, TimeSpan window, CancellationToken cancellationToken);
 
     Task<Result> CreateStepUpProofAsync(StepUpProof proof, CancellationToken cancellationToken);
@@ -96,6 +96,11 @@ public interface ITokenGenerator
     (string Token, string Hash) GeneratePasswordResetToken();
     string HashToken(string rawToken);
     string HashKeyedToken(string verificationId, string normalizedDestination, string rawOtp);
+}
+
+public interface IStepUpProofValidator
+{
+    Task<Result> ValidateAndConsumeStepUpProofAsync(string userId, string? sessionId, string targetAction, string proofToken, CancellationToken cancellationToken);
 }
 
 public interface IJwksService

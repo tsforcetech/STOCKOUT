@@ -98,6 +98,7 @@ GO
 ALTER PROCEDURE dbo.PR_IDENTITY_CONSUME_STEPUP_CHALLENGE
     @Id UNIQUEIDENTIFIER,
     @UserId UNIQUEIDENTIFIER,
+    @SessionId UNIQUEIDENTIFIER = NULL,
     @TargetAction NVARCHAR(100),
     @TokenHash NVARCHAR(255),
     @MaxAttempts INT
@@ -117,7 +118,10 @@ BEGIN
            @CurrentAttempts = AttemptCount,
            @ExpiresAt = ExpiresAtUtc
         FROM dbo.STEP_UP_CHALLENGE WITH (UPDLOCK, ROWLOCK)
-        WHERE Id = @Id AND UserId = @UserId AND TargetAction = @TargetAction;
+        WHERE Id = @Id 
+          AND UserId = @UserId 
+          AND (SessionId = @SessionId OR (@SessionId IS NULL AND SessionId IS NULL))
+          AND TargetAction = @TargetAction;
 
     IF @@ROWCOUNT = 0
     BEGIN

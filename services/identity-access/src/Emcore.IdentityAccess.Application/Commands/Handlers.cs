@@ -479,7 +479,7 @@ public class IdentityApplicationService
         }
 
         string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
-        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, "MfaLogin", codeHash, 5, cancellationToken);
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeToken, request.UserId, null, "MfaLogin", codeHash, 5, cancellationToken);
         if (consumeRes == null)
         {
             return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid MFA verification code.");
@@ -639,7 +639,7 @@ public class IdentityApplicationService
         }
 
         string codeHash = _tokenGenerator.HashToken(request.Code.Trim());
-        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeId, userId, "MfaEnrollment", codeHash, 5, cancellationToken);
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.ChallengeId, userId, null, "MfaEnrollment", codeHash, 5, cancellationToken);
         if (consumeRes == null)
         {
             return AppResult<StandardSuccessResponse>.Failure(400, "Invalid Code", "The code is incorrect, expired, or belongs to a different purpose.");
@@ -654,6 +654,21 @@ public class IdentityApplicationService
     public async Task<AppResult<InitiateStepUpResponse>> InitiateStepUpAsync(string userId, string? sessionId, InitiateStepUpRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<InitiateStepUpResponse>.Failure(401, "Unauthorized", "Authentication required.");
+        if (string.IsNullOrWhiteSpace(sessionId)) return AppResult<InitiateStepUpResponse>.Failure(401, "Unauthorized", "Session required for Step-Up.");
+
+        string? canonicalAction = request.TargetAction switch
+        {
+            var a when string.Equals(a, Constants.StepUpActions.DisableMfa, StringComparison.OrdinalIgnoreCase) => Constants.StepUpActions.DisableMfa,
+            var a when string.Equals(a, Constants.StepUpActions.ChangeEmail, StringComparison.OrdinalIgnoreCase) => Constants.StepUpActions.ChangeEmail,
+            var a when string.Equals(a, Constants.StepUpActions.DeleteAccount, StringComparison.OrdinalIgnoreCase) => Constants.StepUpActions.DeleteAccount,
+            var a when string.Equals(a, Constants.StepUpActions.RotateServiceCredential, StringComparison.OrdinalIgnoreCase) => Constants.StepUpActions.RotateServiceCredential,
+            _ => null
+        };
+
+        if (canonicalAction == null)
+        {
+            return AppResult<InitiateStepUpResponse>.Failure(400, "ValidationError", "Invalid TargetAction specified.");
+        }
 
         var (token, hash) = _tokenGenerator.GenerateVerificationToken();
         var challenge = new StepUpChallenge
@@ -662,7 +677,7 @@ public class IdentityApplicationService
             UserId = userId,
             SessionId = sessionId,
             TokenHash = hash,
-            TargetAction = request.TargetAction,
+            TargetAction = canonicalAction!,
             Status = "Issued",
             ExpiresAtUtc = DateTime.UtcNow.AddMinutes(5), // 5 min expiry
             CreatedAtUtc = DateTime.UtcNow
@@ -682,6 +697,7 @@ public class IdentityApplicationService
     public async Task<AppResult<VerifyStepUpResponse>> VerifyStepUpAsync(string userId, string? sessionId, VerifyStepUpRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId)) return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Authentication required.");
+        if (string.IsNullOrWhiteSpace(sessionId)) return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Session required for Step-Up.");
 
         var challengeRes = await _repository.GetStepUpChallengeAsync(request.StepUpId, userId, cancellationToken);
         if (challengeRes?.Value == null || challengeRes.Value.Status != "Issued" || challengeRes.Value.ExpiresAtUtc < DateTime.UtcNow)
@@ -704,7 +720,7 @@ public class IdentityApplicationService
         string codeHash = _tokenGenerator.HashToken(request.Code?.Trim() ?? string.Empty);
         
         // Atomic consumption
-        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.StepUpId, userId, challengeRes.Value.TargetAction, codeHash, 5, cancellationToken);
+        var consumeRes = await _repository.ConsumeStepUpChallengeAsync(request.StepUpId, userId, sessionId, challengeRes.Value.TargetAction, codeHash, 5, cancellationToken);
         if (consumeRes == null)
         {
             return AppResult<VerifyStepUpResponse>.Failure(401, "Unauthorized", "Invalid step-up verification code or max attempts reached.");

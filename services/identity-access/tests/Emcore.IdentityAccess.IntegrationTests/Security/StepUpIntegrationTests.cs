@@ -67,7 +67,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         var emailSender = (FakeEmailSender)_factory.Services.GetRequiredService<Emcore.IdentityAccess.Infrastructure.Integrations.IEmailSender>();
         emailSender.SentEmails.Clear();
 
-        var initReq = new InitiateStepUpRequest("SensitiveAction");
+        var initReq = new InitiateStepUpRequest("DisableMfa");
         var initRes = await client.PostAsJsonAsync("/api/v1/auth/stepup/initiate", initReq);
         initRes.EnsureSuccessStatusCode();
         var initData = await initRes.Content.ReadFromJsonAsync<InitiateStepUpResponse>();
@@ -109,7 +109,7 @@ public class StepUpIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         client.DefaultRequestHeaders.Add("X-User-Id", userId);
         client.DefaultRequestHeaders.Add("X-Session-Id", sessionId);
 
-        var initRes = await client.PostAsJsonAsync("/api/v1/auth/stepup/initiate", new InitiateStepUpRequest("SensitiveAction"));
+        var initRes = await client.PostAsJsonAsync("/api/v1/auth/stepup/initiate", new InitiateStepUpRequest("DisableMfa"));
         var stepUpId = (await initRes.Content.ReadFromJsonAsync<InitiateStepUpResponse>())!.StepUpId;
         
         // Try wrong OTP 5 times

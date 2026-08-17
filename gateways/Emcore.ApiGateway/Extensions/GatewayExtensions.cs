@@ -219,10 +219,10 @@ public static class GatewayExtensions
                                transformContext.ProxyRequest.Headers.TryAddWithoutValidation("X-User-Id", userId);
                            }
 
+                           transformContext.ProxyRequest.Headers.Remove("X-Session-Id");
                            var sessionId = user.FindFirst("sid")?.Value;
                            if (!string.IsNullOrWhiteSpace(sessionId))
                            {
-                               transformContext.ProxyRequest.Headers.Remove("X-Session-Id");
                                transformContext.ProxyRequest.Headers.TryAddWithoutValidation("X-Session-Id", sessionId);
                            }
                        }
