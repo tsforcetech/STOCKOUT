@@ -31,6 +31,7 @@ public class HandlersStepUpTests
             _mockRepo.Object,
             _mockGenerator.Object,
             _mockHasher.Object,
+            new Emcore.IdentityAccess.Application.Configuration.IdentityOptions(),
             _mockDelivery.Object);
     }
 
@@ -75,7 +76,7 @@ public class HandlersStepUpTests
         Assert.Equal(300, result.Data.ExpiresInSeconds);
 
         _mockRepo.Verify(x => x.CreateStepUpChallengeAsync(It.Is<StepUpChallenge>(c => c.SessionId == sessionId && c.TargetAction == StepUpActions.DisableMfa && c.TokenHash == "hashed_123456"), It.IsAny<CancellationToken>()), Times.Once);
-        _mockDelivery.Verify(x => x.SendVerificationOtpAsync("test@example.com", "StepUp", "123456", It.IsAny<CancellationToken>()), Times.Once);
+        _mockDelivery.Verify(x => x.SendVerificationOtpAsync("test@example.com", "StepUp", "123456", 5, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

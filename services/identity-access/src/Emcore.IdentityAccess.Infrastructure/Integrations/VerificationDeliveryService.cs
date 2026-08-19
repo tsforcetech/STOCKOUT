@@ -10,14 +10,21 @@ public class VerificationDeliveryService : IVerificationDeliveryService
 {
     private readonly ILogger<VerificationDeliveryService> _logger;
     private readonly IEmailSender _emailSender;
+    private readonly int _verificationLifetimeMinutes;
+    private readonly int _passwordResetLifetimeMinutes;
 
-    public VerificationDeliveryService(ILogger<VerificationDeliveryService> logger, IEmailSender emailSender)
+    public VerificationDeliveryService(
+        ILogger<VerificationDeliveryService> logger,
+        IEmailSender emailSender,
+        Emcore.IdentityAccess.Application.Configuration.IdentityOptions options)
     {
         _logger = logger;
         _emailSender = emailSender;
+        _verificationLifetimeMinutes = options?.VerificationLifetimeMinutes ?? 10;
+        _passwordResetLifetimeMinutes = options?.PasswordResetLifetimeMinutes ?? 15;
     }
 
-    public async Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, CancellationToken ct)
+    public async Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, int expiryMinutes, CancellationToken ct)
     {
         if (channel == "Email" || channel == "StepUp" || channel == "TOTP" || channel == "EMAIL_OTP")
         {
@@ -26,14 +33,14 @@ public class VerificationDeliveryService : IVerificationDeliveryService
 
 {plaintextOtp}
 
-This code expires in 5 minutes.
+This code expires in {expiryMinutes} minutes.
 
 If you did not attempt to sign in, you can ignore this email.
 This code confirms enabling or accessing multi-factor authentication.";
 
             string htmlBody = $@"<p>Your verification code is:</p>
 <h2>{plaintextOtp}</h2>
-<p>This code expires in 5 minutes.</p>
+<p>This code expires in {expiryMinutes} minutes.</p>
 <p>If you did not attempt to sign in, you can ignore this email.</p>
 <p><small>This code confirms enabling or accessing multi-factor authentication.</small></p>";
 
@@ -46,20 +53,20 @@ This code confirms enabling or accessing multi-factor authentication.";
         }
     }
 
-    public async Task SendRecoveryTokenAsync(string destination, string plaintextToken, CancellationToken ct)
+    public async Task SendRecoveryTokenAsync(string destination, string plaintextToken, int expiryMinutes, CancellationToken ct)
     {
         string subject = "STOCKOUT Password Recovery";
         string textBody = $@"Your password recovery token is:
 
 {plaintextToken}
 
-This token expires in 1 hour.
+This token expires in {expiryMinutes} minutes.
 
 If you did not request a password reset, you can safely ignore this email.";
 
         string htmlBody = $@"<p>Your password recovery token is:</p>
 <h2>{plaintextToken}</h2>
-<p>This token expires in 1 hour.</p>
+<p>This token expires in {expiryMinutes} minutes.</p>
 <p>If you did not request a password reset, you can safely ignore this email.</p>";
 
         await _emailSender.SendEmailAsync(destination, subject, textBody, htmlBody, ct);

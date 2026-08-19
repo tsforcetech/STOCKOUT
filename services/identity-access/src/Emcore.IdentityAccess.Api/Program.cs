@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register application and infrastructure services
+builder.Services.AddSingleton(builder.Configuration.GetSection(Emcore.IdentityAccess.Application.Configuration.IdentityOptions.SectionName).Get<Emcore.IdentityAccess.Application.Configuration.IdentityOptions>() ?? new Emcore.IdentityAccess.Application.Configuration.IdentityOptions());
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 

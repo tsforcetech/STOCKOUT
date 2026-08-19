@@ -29,6 +29,7 @@ public record UserLookupResult(
 public interface IIdentityRepository
 {
     Task<Result<UserAccount>> RegisterUserAsync(
+        string userId,
         string email,
         string mobile,
         string passwordHash,
@@ -42,6 +43,8 @@ public interface IIdentityRepository
 
     Task<Result> CreateVerificationAsync(AccountVerification verification, CancellationToken cancellationToken);
     Task<Result> VerifyAccountAsync(string userId, string channel, string tokenHash, string? outboxPayload, CancellationToken cancellationToken);
+    Task<int> GetRecentVerificationCountAsync(string userId, string channel, TimeSpan window, CancellationToken cancellationToken);
+    Task<AccountVerification?> GetLatestVerificationAsync(string userId, string channel, CancellationToken cancellationToken);
 
     Task<Result> RecordLoginAttemptAsync(string userId, bool isSuccess, int lockoutMinutes, int maxFailures, string? outboxPayload, CancellationToken cancellationToken);
 
@@ -54,6 +57,9 @@ public interface IIdentityRepository
     Task<Result> CreateRecoveryRequestAsync(PasswordRecovery recovery, CancellationToken cancellationToken);
     Task<Result> ResetPasswordAsync(string userId, string tokenHash, string newPasswordHash, string hashAlgorithm, string? outboxPayload, CancellationToken cancellationToken);
     Task<Result> ChangePasswordAsync(string userId, string oldPasswordHash, string newPasswordHash, string hashAlgorithm, string? outboxPayload, CancellationToken cancellationToken);
+    Task<int> GetRecentRecoveryCountAsync(string userId, TimeSpan window, CancellationToken cancellationToken);
+    Task<PasswordRecovery?> GetLatestRecoveryAsync(string userId, CancellationToken cancellationToken);
+    Task<PasswordRecovery?> GetRecoveryByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
 
     Task<Result<(bool IsCompleted, int StatusCode, string ResponseBody)>> BeginIdempotentRequestAsync(string idempotencyKey, string requestHash, CancellationToken cancellationToken);
     Task<Result> CompleteIdempotentRequestAsync(string idempotencyKey, int statusCode, string responseBody, CancellationToken cancellationToken);
@@ -117,6 +123,6 @@ public interface IPasswordHasher
 
 public interface IVerificationDeliveryService
 {
-    Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, CancellationToken ct);
-    Task SendRecoveryTokenAsync(string destination, string plaintextToken, CancellationToken ct);
+    Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, int expiryMinutes, CancellationToken ct);
+    Task SendRecoveryTokenAsync(string destination, string plaintextToken, int expiryMinutes, CancellationToken ct);
 }

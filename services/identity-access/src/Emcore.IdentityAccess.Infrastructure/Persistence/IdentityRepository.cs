@@ -29,6 +29,8 @@ public class IdentityRepository : IIdentityRepository
     private static readonly Dictionary<string, StepUpProof> InMemoryStepUpProofs = new();
     private static readonly Dictionary<string, (ServiceClient Client, List<ServiceClientCredential> Credentials, List<ServiceClientScope> Scopes)> InMemoryServiceClients = new();
     private static readonly List<SecurityEvent> InMemorySecurityEvents = new();
+    private static readonly Dictionary<string, AccountVerification> InMemoryVerifications = new();
+    private static readonly Dictionary<string, PasswordRecovery> InMemoryRecoveries = new();
 
     public IdentityRepository(IConfiguration configuration)
     {
@@ -44,6 +46,7 @@ public class IdentityRepository : IIdentityRepository
     }
 
     public async Task<Result<UserAccount>> RegisterUserAsync(
+        string userId,
         string email,
         string mobile,
         string passwordHash,
@@ -56,7 +59,7 @@ public class IdentityRepository : IIdentityRepository
         var normalizedMobile = new NormalizedMobile(mobile.Trim());
         var emailObj = new UserEmail(email, normalizedEmail, false);
         var mobileObj = new UserMobile(mobile, normalizedMobile, false);
-        var userAccount = new UserAccount(emailObj, mobileObj);
+        var userAccount = new UserAccount(userId, emailObj, mobileObj);
 
         if (_useInMemoryFallback)
         {
@@ -74,33 +77,38 @@ public class IdentityRepository : IIdentityRepository
                     InMemoryLookups[normalizedMobile.Value] = InMemoryLookups[normalizedEmail.Value];
                 }
             }
+            lock (InMemoryVerifications)
+            {
+                InMemoryVerifications[verification.Id] = verification;
+            }
             return userAccount;
         }
 
         using var connection = await OpenConnectionAsync(cancellationToken);
-        var parameters = new
-        {
-            Id = Guid.Parse(userAccount.Id),
-            UlidId = userAccount.UlidId,
-            EmailAddress = email,
-            NormalizedEmail = normalizedEmail.Value,
-            MobileNumber = mobile,
-            NormalizedMobile = normalizedMobile.Value,
-            PasswordHash = passwordHash,
-            HashAlgorithm = hashAlgorithm,
-            VerificationId = Guid.Parse(verification.Id),
-            VerificationTokenHash = verification.TokenHash,
-            VerificationChannel = verification.Channel,
-            VerificationExpiresAtUtc = verification.ExpiresAtUtc,
-            OutboxId = Guid.NewGuid(),
-            OutboxMessageType = "identity.user.registered.v1",
-            OutboxPayload = outboxPayload ?? "{}"
-        };
+        var parameters = new DynamicParameters();
+        parameters.Add("Id", Guid.Parse(userAccount.Id));
+        parameters.Add("UlidId", userAccount.UlidId);
+        parameters.Add("EmailAddress", email);
+        parameters.Add("NormalizedEmail", normalizedEmail.Value);
+        parameters.Add("MobileNumber", mobile);
+        parameters.Add("NormalizedMobile", normalizedMobile.Value);
+        parameters.Add("PasswordHash", passwordHash);
+        parameters.Add("HashAlgorithm", hashAlgorithm);
+        parameters.Add("VerificationId", Guid.Parse(verification.Id));
+        parameters.Add("VerificationTokenHash", verification.TokenHash);
+        parameters.Add("VerificationChannel", verification.Channel);
+        parameters.Add("VerificationExpiresAtUtc", verification.ExpiresAtUtc);
+        parameters.Add("OutboxId", Guid.NewGuid());
+        parameters.Add("OutboxMessageType", "identity.user.registered.v1");
+        parameters.Add("OutboxPayload", outboxPayload ?? "{}");
+        parameters.Add("ReturnValue", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.ReturnValue);
 
-        var returnCode = await connection.ExecuteScalarAsync<int>(
+        await connection.ExecuteAsync(
             "dbo.PR_IDENTITY_REGISTER_USER",
             parameters,
             commandType: System.Data.CommandType.StoredProcedure);
+
+        int returnCode = parameters.Get<int>("ReturnValue");
 
         if (returnCode == -1 || returnCode == -2)
         {
@@ -162,7 +170,18 @@ public class IdentityRepository : IIdentityRepository
 
     public async Task<Result> CreateVerificationAsync(AccountVerification verification, CancellationToken cancellationToken)
     {
-        if (_useInMemoryFallback) return new Result();
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryVerifications)
+            {
+                foreach (var v in InMemoryVerifications.Values.Where(x => x.UserId == verification.UserId && x.Channel == verification.Channel && x.Status == VerificationStatus.Issued))
+                {
+                    v.Status = VerificationStatus.Cancelled;
+                }
+                InMemoryVerifications[verification.Id] = verification;
+            }
+            return new Result();
+        }
 
         using var connection = await OpenConnectionAsync(cancellationToken);
         await connection.ExecuteAsync(
@@ -184,32 +203,51 @@ public class IdentityRepository : IIdentityRepository
     {
         if (_useInMemoryFallback)
         {
+            lock (InMemoryVerifications)
+            {
+                var v = InMemoryVerifications.Values
+                    .Where(x => x.UserId == userId && x.Channel == channel && x.Status == VerificationStatus.Issued)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefault();
+
+                if (v == null || v.ExpiresAtUtc < DateTime.UtcNow || v.TokenHash != tokenHash || v.AttemptCount >= 5)
+                {
+                    if (v != null) v.AttemptCount++;
+                    return null!; // fail
+                }
+                v.Status = VerificationStatus.Verified;
+            }
+
             lock (InMemoryLookups)
             {
-                var kvp = InMemoryLookups.FirstOrDefault(x => x.Value.Id == userId);
-                if (kvp.Value != null)
+                var lookup = InMemoryLookups.Values.FirstOrDefault(l => l.Id == userId);
+                if (lookup != null)
                 {
-                    var old = kvp.Value;
-                    var upd = old with { Status = "Active", EmailVerified = (channel == "Email") || old.EmailVerified, MobileVerified = (channel == "Mobile") || old.MobileVerified };
-                    InMemoryLookups[kvp.Key] = upd;
+                    var updated = lookup with { Status = "Active", EmailVerified = (channel == "Email") || lookup.EmailVerified, MobileVerified = (channel == "Mobile") || lookup.MobileVerified };
+                    if (!string.IsNullOrEmpty(lookup.NormalizedEmail)) InMemoryLookups[lookup.NormalizedEmail] = updated;
+                    if (!string.IsNullOrEmpty(lookup.NormalizedMobile)) InMemoryLookups[lookup.NormalizedMobile] = updated;
                 }
             }
             return new Result();
         }
 
         using var connection = await OpenConnectionAsync(cancellationToken);
-        var res = await connection.ExecuteScalarAsync<int>(
+        var parameters = new DynamicParameters();
+        parameters.Add("UserId", Guid.Parse(userId));
+        parameters.Add("Channel", channel);
+        parameters.Add("TokenHash", tokenHash);
+        parameters.Add("OutboxId", outboxPayload != null ? (Guid?)Guid.NewGuid() : null);
+        parameters.Add("OutboxMessageType", channel == "Email" ? "identity.user.email-verified.v1" : "identity.user.mobile-verified.v1");
+        parameters.Add("OutboxPayload", outboxPayload);
+        parameters.Add("ReturnValue", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.ReturnValue);
+
+        await connection.ExecuteAsync(
             "dbo.PR_IDENTITY_VERIFY_ACCOUNT",
-            new
-            {
-                UserId = Guid.Parse(userId),
-                Channel = channel,
-                TokenHash = tokenHash,
-                OutboxId = outboxPayload != null ? (Guid?)Guid.NewGuid() : null,
-                OutboxMessageType = channel == "Email" ? "identity.user.email-verified.v1" : "identity.user.mobile-verified.v1",
-                OutboxPayload = outboxPayload
-            },
+            parameters,
             commandType: System.Data.CommandType.StoredProcedure);
+
+        int returnCode = parameters.Get<int>("ReturnValue");
+        if (returnCode == -1) return null!;
 
         return new Result();
     }
@@ -389,7 +427,18 @@ public class IdentityRepository : IIdentityRepository
 
     public async Task<Result> CreateRecoveryRequestAsync(PasswordRecovery recovery, CancellationToken cancellationToken)
     {
-        if (_useInMemoryFallback) return new Result();
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryRecoveries)
+            {
+                foreach (var r in InMemoryRecoveries.Values.Where(x => x.UserId == recovery.UserId && x.Status == RecoveryStatus.Created))
+                {
+                    r.Status = RecoveryStatus.Cancelled;
+                }
+                InMemoryRecoveries[recovery.Id] = recovery;
+            }
+            return new Result();
+        }
 
         using var connection = await OpenConnectionAsync(cancellationToken);
         await connection.ExecuteAsync(
@@ -410,6 +459,21 @@ public class IdentityRepository : IIdentityRepository
     {
         if (_useInMemoryFallback)
         {
+            lock (InMemoryRecoveries)
+            {
+                var r = InMemoryRecoveries.Values
+                    .Where(x => x.TokenHash == tokenHash && x.Status == RecoveryStatus.Created && x.ExpiresAtUtc > DateTime.UtcNow)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefault();
+
+                if (r == null || (userId != Guid.Empty.ToString() && r.UserId != userId))
+                {
+                    return null!; // fail
+                }
+                userId = r.UserId; // Resolve token-only user
+                r.Status = RecoveryStatus.Completed;
+            }
+
             lock (InMemoryLookups)
             {
                 InMemoryCredentials[userId] = newPasswordHash;
@@ -424,19 +488,23 @@ public class IdentityRepository : IIdentityRepository
         }
 
         using var connection = await OpenConnectionAsync(cancellationToken);
-        await connection.ExecuteScalarAsync<int>(
+        var parameters = new DynamicParameters();
+        parameters.Add("UserId", userId == Guid.Empty.ToString() ? (Guid?)null : Guid.Parse(userId));
+        parameters.Add("TokenHash", tokenHash);
+        parameters.Add("NewPasswordHash", newPasswordHash);
+        parameters.Add("HashAlgorithm", hashAlgorithm);
+        parameters.Add("OutboxId", outboxPayload != null ? (Guid?)Guid.NewGuid() : null);
+        parameters.Add("OutboxMessageType", "identity.user.password-changed.v1");
+        parameters.Add("OutboxPayload", outboxPayload);
+        parameters.Add("ReturnValue", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.ReturnValue);
+
+        await connection.ExecuteAsync(
             "dbo.PR_IDENTITY_RESET_PASSWORD",
-            new
-            {
-                UserId = Guid.Parse(userId),
-                TokenHash = tokenHash,
-                NewPasswordHash = newPasswordHash,
-                HashAlgorithm = hashAlgorithm,
-                OutboxId = outboxPayload != null ? (Guid?)Guid.NewGuid() : null,
-                OutboxMessageType = "identity.user.password-changed.v1",
-                OutboxPayload = outboxPayload
-            },
+            parameters,
             commandType: System.Data.CommandType.StoredProcedure);
+
+        int returnCode = parameters.Get<int>("ReturnValue");
+        if (returnCode == -1) return null!;
 
         return new Result();
     }
@@ -995,5 +1063,90 @@ public class IdentityRepository : IIdentityRepository
             CorrelationId = securityEvent.CorrelationId ?? string.Empty
         }, commandType: System.Data.CommandType.StoredProcedure);
         return new Result();
+    }
+    public async Task<int> GetRecentVerificationCountAsync(string userId, string channel, TimeSpan window, CancellationToken cancellationToken)
+    {
+        var cutoff = DateTime.UtcNow.Subtract(window);
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryVerifications)
+            {
+                return InMemoryVerifications.Values.Count(x => x.UserId == userId && x.Channel == channel && x.CreatedAtUtc >= cutoff);
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        return await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(1) FROM dbo.ACCOUNT_VERIFICATION WHERE UserId = @UserId AND Channel = @Channel AND CreatedAtUtc >= @Cutoff",
+            new { UserId = Guid.Parse(userId), Channel = channel, Cutoff = cutoff });
+    }
+
+    public async Task<AccountVerification?> GetLatestVerificationAsync(string userId, string channel, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryVerifications)
+            {
+                return InMemoryVerifications.Values
+                    .Where(x => x.UserId == userId && x.Channel == channel)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefault();
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        return await conn.QueryFirstOrDefaultAsync<AccountVerification>(
+            "SELECT TOP 1 * FROM dbo.ACCOUNT_VERIFICATION WHERE UserId = @UserId AND Channel = @Channel ORDER BY CreatedAtUtc DESC",
+            new { UserId = Guid.Parse(userId), Channel = channel });
+    }
+
+    public async Task<int> GetRecentRecoveryCountAsync(string userId, TimeSpan window, CancellationToken cancellationToken)
+    {
+        var cutoff = DateTime.UtcNow.Subtract(window);
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryRecoveries)
+            {
+                return InMemoryRecoveries.Values.Count(x => x.UserId == userId && x.CreatedAtUtc >= cutoff);
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        return await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(1) FROM dbo.ACCOUNT_RECOVERY WHERE UserId = @UserId AND CreatedAtUtc >= @Cutoff",
+            new { UserId = Guid.Parse(userId), Cutoff = cutoff });
+    }
+
+    public async Task<PasswordRecovery?> GetLatestRecoveryAsync(string userId, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryRecoveries)
+            {
+                return InMemoryRecoveries.Values
+                    .Where(x => x.UserId == userId)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefault();
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        return await conn.QueryFirstOrDefaultAsync<PasswordRecovery>(
+            "SELECT TOP 1 * FROM dbo.ACCOUNT_RECOVERY WHERE UserId = @UserId ORDER BY CreatedAtUtc DESC",
+            new { UserId = Guid.Parse(userId) });
+    }
+
+    public async Task<PasswordRecovery?> GetRecoveryByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
+    {
+        if (_useInMemoryFallback)
+        {
+            lock (InMemoryRecoveries)
+            {
+                return InMemoryRecoveries.Values
+                    .Where(x => x.TokenHash == tokenHash && x.Status == RecoveryStatus.Created)
+                    .OrderByDescending(x => x.CreatedAtUtc)
+                    .FirstOrDefault();
+            }
+        }
+        using var conn = await OpenConnectionAsync(cancellationToken);
+        return await conn.QueryFirstOrDefaultAsync<PasswordRecovery>(
+            "SELECT TOP 1 * FROM dbo.ACCOUNT_RECOVERY WHERE TokenHash = @TokenHash AND Status = 'Created' ORDER BY CreatedAtUtc DESC",
+            new { TokenHash = tokenHash });
     }
 }
