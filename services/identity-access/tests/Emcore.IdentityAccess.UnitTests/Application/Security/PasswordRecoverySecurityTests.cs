@@ -39,7 +39,7 @@ public class PasswordRecoverySecurityTests
         var lookup = new UserLookupResult("user_id", "ulid", "Active", "test@example.com", "test@example.com", false, null, null, false, null, null, 0, null);
         _repoMock.Setup(r => r.GetUserByIdentifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(lookup);
-        
+
         var result = await _sut.ForgotPasswordAsync(req, CancellationToken.None);
 
         Assert.True(result.IsSuccess); // Anti-enum returns success
@@ -53,7 +53,7 @@ public class PasswordRecoverySecurityTests
         var lookup = new UserLookupResult("user_id", "ulid", "Active", "test@example.com", "test@example.com", true, null, null, false, null, null, 0, null);
         _repoMock.Setup(r => r.GetUserByIdentifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(lookup);
-        
+
         // Setup recent count >= 5
         _repoMock.Setup(r => r.GetRecentRecoveryCountAsync("user_id", TimeSpan.FromMinutes(15), It.IsAny<CancellationToken>()))
             .ReturnsAsync(5);

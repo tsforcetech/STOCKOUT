@@ -93,7 +93,7 @@ public class IdentityApplicationService
         if (_deliveryService != null)
         {
             string dest = !string.IsNullOrEmpty(user.Email.Original) ? user.Email.Original : (user.Mobile?.Original ?? string.Empty);
-            await _deliveryService.SendVerificationOtpAsync(dest, verification.Channel, verificationOtp, cancellationToken);
+            await _deliveryService.SendVerificationOtpAsync(dest, verification.Channel, verificationOtp, _options.VerificationLifetimeMinutes, cancellationToken);
         }
         return AppResult<RegisterResponse>.Success(
             new RegisterResponse(user.Id, user.Email.Original, user.Mobile?.Original ?? string.Empty, "PendingVerification"),
@@ -102,11 +102,13 @@ public class IdentityApplicationService
 
     public async Task<AppResult<StandardSuccessResponse>> SendEmailVerificationAsync(SendEmailVerificationRequest request, CancellationToken cancellationToken)
     {
+        var genericSuccess = AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists and requires verification, a verification code has been sent."));
+
         var userRes = await _repository.GetUserByIdentifierAsync(request.Email, cancellationToken);
-        if (userRes == null || userRes.Value == null)
+        if (userRes == null || userRes.Value == null || userRes.Value.EmailVerified)
         {
-            // Generic response to prevent enumeration
-            return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
+            // Generic response to prevent enumeration, and suppress already verified emails
+            return genericSuccess;
         }
 
         string userId = userRes.Value.Id;
@@ -114,13 +116,13 @@ public class IdentityApplicationService
         var recentCount = await _repository.GetRecentVerificationCountAsync(userId, "Email", TimeSpan.FromMinutes(15), cancellationToken);
         if (recentCount >= 5)
         {
-            return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
+            return genericSuccess; // enumerate shield and rate limit
         }
 
         var latest = await _repository.GetLatestVerificationAsync(userId, "Email", cancellationToken);
         if (latest != null && latest.CreatedAtUtc > DateTime.UtcNow.AddMinutes(-1))
         {
-            return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("If an account exists with this email, a verification code has been sent."));
+            return genericSuccess; // enumerate shield and cooldown
         }
 
         var (otp, hash) = _tokenGenerator.GenerateVerificationToken();
@@ -137,9 +139,9 @@ public class IdentityApplicationService
         await _repository.CreateVerificationAsync(verification, cancellationToken);
         if (_deliveryService != null)
         {
-            await _deliveryService.SendVerificationOtpAsync(userRes.Value.Email, "Email", otp, cancellationToken);
+            await _deliveryService.SendVerificationOtpAsync(userRes.Value.Email, "Email", otp, _options.VerificationLifetimeMinutes, cancellationToken);
         }
-        return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("Verification code sent successfully."));
+        return genericSuccess;
     }
 
     public async Task<AppResult<StandardSuccessResponse>> ConfirmEmailVerificationAsync(ConfirmEmailVerificationRequest request, CancellationToken cancellationToken)
@@ -186,7 +188,7 @@ public class IdentityApplicationService
         await _repository.CreateVerificationAsync(verification, cancellationToken);
         if (_deliveryService != null)
         {
-            await _deliveryService.SendVerificationOtpAsync(userRes.Value.Mobile ?? string.Empty, "Mobile", otp, cancellationToken);
+            await _deliveryService.SendVerificationOtpAsync(userRes.Value.Mobile ?? string.Empty, "Mobile", otp, _options.VerificationLifetimeMinutes, cancellationToken);
         }
         return AppResult<StandardSuccessResponse>.Success(new StandardSuccessResponse("Verification code sent successfully."));
     }
@@ -263,7 +265,7 @@ public class IdentityApplicationService
 
             if (_deliveryService != null)
             {
-                await _deliveryService.SendVerificationOtpAsync(u.Email, MfaMethodTypes.EmailOtp, mfaToken, cancellationToken);
+                await _deliveryService.SendVerificationOtpAsync(u.Email, MfaMethodTypes.EmailOtp, mfaToken, 5, cancellationToken);
             }
 
             return AppResult<LoginResponse>.Success(new LoginResponse(string.Empty, string.Empty, 0, "Bearer", true, challenge.Id));
@@ -390,7 +392,7 @@ public class IdentityApplicationService
         await _repository.CreateRecoveryRequestAsync(recovery, cancellationToken);
         if (_deliveryService != null)
         {
-            await _deliveryService.SendRecoveryTokenAsync(uRes.Value.Email, resetToken, cancellationToken);
+            await _deliveryService.SendRecoveryTokenAsync(uRes.Value.Email, resetToken, _options.PasswordResetLifetimeMinutes, cancellationToken);
         }
 
         return AppResult<ForgotPasswordResponse>.Success(response);
@@ -621,7 +623,7 @@ public class IdentityApplicationService
 
         if (_deliveryService != null)
         {
-            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, MfaMethodTypes.EmailOtp, otp, cancellationToken);
+            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, MfaMethodTypes.EmailOtp, otp, 5, cancellationToken);
         }
 
         return AppResult<ResendMfaResponse>.Success(new ResendMfaResponse("Verification code resent successfully.", newChallenge.Id));
@@ -674,7 +676,7 @@ public class IdentityApplicationService
 
         if (_deliveryService != null)
         {
-            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, MfaMethodTypes.EmailOtp, otp, cancellationToken);
+            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, MfaMethodTypes.EmailOtp, otp, 5, cancellationToken);
         }
 
         return AppResult<RegisterMfaResponse>.Success(new RegisterMfaResponse(secret, qrUri, recoveryCodes, "MFA factor registered. Please confirm with OTP to enable.", challenge.Id));
@@ -750,7 +752,7 @@ public class IdentityApplicationService
         var uRes = await _repository.GetUserByIdAsync(userId, cancellationToken);
         if (uRes?.Value != null && _deliveryService != null)
         {
-            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, "StepUp", token, cancellationToken);
+            await _deliveryService.SendVerificationOtpAsync(uRes.Value.Email, "StepUp", token, 5, cancellationToken);
         }
 
         // Return empty token for security. Include ExpiresInSeconds.

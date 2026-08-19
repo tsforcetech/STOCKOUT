@@ -52,7 +52,6 @@ public class SecurityHardeningTests
         _service = new IdentityApplicationService(_repo, tokenGen, hasher, new Emcore.IdentityAccess.Application.Configuration.IdentityOptions(), null);
     }
 
-
     [Fact]
     public async Task Mfa_Registration_Confirmation_And_Mfa_Login_Verification_Flow()
     {
@@ -508,5 +507,25 @@ public class SecurityHardeningTests
         Assert.Equal(1, failCount);
     }
 
-}
+    [Fact]
+    public async Task Registration_Uses_Canonical_UserId_Across_All_Entities()
+    {
+        var ct = CancellationToken.None;
 
+        var req = new RegisterRequest("canonical@emcore.com", "9990001234", "SecurePass!23");
+        var regRes = await _service.RegisterAsync(req, ct);
+
+        Assert.True(regRes.IsSuccess);
+        string canonicalId = regRes.Data!.UserId;
+
+        // Verify USER_ACCOUNT.Id
+        var userRes = await _repo.GetUserByIdAsync(canonicalId, ct);
+        Assert.NotNull(userRes?.Value);
+        Assert.Equal(canonicalId, userRes!.Value.Id);
+
+        // Verify ACCOUNT_VERIFICATION.UserId
+        var verification = await _repo.GetLatestVerificationAsync(canonicalId, "Email", ct);
+        Assert.NotNull(verification);
+        Assert.Equal(canonicalId, verification!.UserId);
+    }
+}

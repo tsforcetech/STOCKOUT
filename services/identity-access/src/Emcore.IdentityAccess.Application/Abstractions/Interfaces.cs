@@ -123,6 +123,6 @@ public interface IPasswordHasher
 
 public interface IVerificationDeliveryService
 {
-    Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, CancellationToken ct);
-    Task SendRecoveryTokenAsync(string destination, string plaintextToken, CancellationToken ct);
+    Task SendVerificationOtpAsync(string destination, string channel, string plaintextOtp, int expiryMinutes, CancellationToken ct);
+    Task SendRecoveryTokenAsync(string destination, string plaintextToken, int expiryMinutes, CancellationToken ct);
 }

@@ -39,7 +39,7 @@ public class EmailVerificationSecurityTests
         var lookup = new UserLookupResult("user_id", "ulid", "PendingVerification", "test@example.com", "test@example.com", false, null, null, false, null, null, 0, null);
         _repoMock.Setup(r => r.GetUserByIdentifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(lookup);
-        
+
         // Setup recent count >= 5
         _repoMock.Setup(r => r.GetRecentVerificationCountAsync("user_id", "Email", TimeSpan.FromMinutes(15), It.IsAny<CancellationToken>()))
             .ReturnsAsync(5);
@@ -49,7 +49,7 @@ public class EmailVerificationSecurityTests
         Assert.True(result.IsSuccess);
         // Expect enumerate shield
         _repoMock.Verify(r => r.CreateVerificationAsync(It.IsAny<AccountVerification>(), It.IsAny<CancellationToken>()), Times.Never);
-        _deliveryMock.Verify(d => d.SendVerificationOtpAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _deliveryMock.Verify(d => d.SendVerificationOtpAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class EmailVerificationSecurityTests
         var lookup = new UserLookupResult("user_id", "ulid", "PendingVerification", "test@example.com", "test@example.com", false, null, null, false, null, null, 0, null);
         _repoMock.Setup(r => r.GetUserByIdentifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(lookup);
-        
+
         _repoMock.Setup(r => r.GetRecentVerificationCountAsync("user_id", "Email", TimeSpan.FromMinutes(15), It.IsAny<CancellationToken>()))
             .ReturnsAsync(2);
 
@@ -72,5 +72,35 @@ public class EmailVerificationSecurityTests
         Assert.True(result.IsSuccess);
         // Expect enumerate shield
         _repoMock.Verify(r => r.CreateVerificationAsync(It.IsAny<AccountVerification>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+    [Fact]
+    public async Task SendEmailVerification_UnknownEmail_ReturnsGenericResponse_CreatesNothing()
+    {
+        var req = new SendEmailVerificationRequest("unknown@example.com");
+        _repoMock.Setup(r => r.GetUserByIdentifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Result<UserLookupResult>)null!);
+
+        var result = await _sut.SendEmailVerificationAsync(req, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("If an account exists and requires verification, a verification code has been sent.", result.Data?.Message);
+        _repoMock.Verify(r => r.CreateVerificationAsync(It.IsAny<AccountVerification>(), It.IsAny<CancellationToken>()), Times.Never);
+        _deliveryMock.Verify(d => d.SendVerificationOtpAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendEmailVerification_AlreadyVerified_ReturnsGenericResponse_CreatesNothing()
+    {
+        var req = new SendEmailVerificationRequest("verified@example.com");
+        var lookup = new UserLookupResult("user_id", "ulid", "Active", "verified@example.com", "verified@example.com", true, null, null, false, null, null, 0, null);
+        _repoMock.Setup(r => r.GetUserByIdentifierAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(lookup);
+
+        var result = await _sut.SendEmailVerificationAsync(req, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("If an account exists and requires verification, a verification code has been sent.", result.Data?.Message);
+        _repoMock.Verify(r => r.CreateVerificationAsync(It.IsAny<AccountVerification>(), It.IsAny<CancellationToken>()), Times.Never);
+        _deliveryMock.Verify(d => d.SendVerificationOtpAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
