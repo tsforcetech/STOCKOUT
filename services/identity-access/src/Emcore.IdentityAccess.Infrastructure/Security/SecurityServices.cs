@@ -67,18 +67,18 @@ public class JwtTokenGenerator : ITokenGenerator, IJwksService
     public JwtTokenGenerator(IConfiguration? configuration = null)
     {
         _configuration = configuration;
-        
-        bool isTest = configuration == null || 
+
+        bool isTest = configuration == null ||
                       configuration.GetConnectionString("IdentityDatabase") == "inmemory-test-db";
 
         bool jwtEnabled = configuration?.GetValue<bool>("Jwt:Enabled") ?? (configuration != null);
-        
+
         _issuer = configuration?["Jwt:Issuer"] ?? "";
         _audience = configuration?["Jwt:Audience"] ?? "";
         _keyId = configuration?["Jwt:KeyId"] ?? "";
         string? configuredKey = configuration?["Jwt:SigningKey"];
         int tokenLifetime = configuration?.GetValue<int>("Jwt:AccessTokenLifetimeMinutes") ?? 0;
-        
+
         string? otpPepper = configuration?["Otp:HmacPepper"] ?? configuration?["Security:OtpPepper"];
 
         if (configuration != null && jwtEnabled)
@@ -203,7 +203,7 @@ public class JwtTokenGenerator : ITokenGenerator, IJwksService
     {
         if (string.IsNullOrEmpty(rawOtp)) return string.Empty;
         string? pepper = _configuration?["Otp:HmacPepper"] ?? _configuration?["Security:OtpPepper"];
-        if (string.IsNullOrEmpty(pepper)) 
+        if (string.IsNullOrEmpty(pepper))
         {
             if (_configuration == null) pepper = "default-dev-test-hmac-pepper-do-not-use-in-prod";
             else throw new InvalidOperationException("Otp:HmacPepper is missing.");

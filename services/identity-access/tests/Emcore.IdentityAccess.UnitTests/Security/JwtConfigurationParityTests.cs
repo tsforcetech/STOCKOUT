@@ -16,7 +16,7 @@ public class JwtConfigurationParityTests
         using var rsa = RSA.Create(2048);
         return Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
     }
-    
+
     [Fact]
     public void DevelopmentAndProduction_ShouldUseSameJwtGenerator()
     {

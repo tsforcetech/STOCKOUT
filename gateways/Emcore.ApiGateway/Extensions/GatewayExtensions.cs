@@ -173,9 +173,9 @@ public static class GatewayExtensions
 
         // 5. Authentication and Authorization
         bool jwtEnabled = configuration.GetValue<bool>("Jwt:Enabled");
-        
+
         var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme);
-        
+
         if (jwtEnabled)
         {
             var issuer = configuration["Jwt:Issuer"];
