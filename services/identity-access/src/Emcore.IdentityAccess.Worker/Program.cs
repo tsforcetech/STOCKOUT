@@ -16,7 +16,7 @@ builder.ConfigureServices((hostContext, services) =>
 {
     services.AddOptions<RabbitMqOptions>()
         .Bind(hostContext.Configuration.GetSection("RabbitMq"))
-        .Validate(opts => 
+        .Validate(opts =>
         {
             if (!opts.Enabled) return true;
             return !string.IsNullOrWhiteSpace(opts.HostName) &&

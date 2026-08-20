@@ -19,7 +19,6 @@ BEGIN
     UPDATE dbo.IDENTITY_OUTBOX
     SET Status = CASE 
         WHEN IsPublished = 1 THEN 'Published'
-        WHEN AttemptCount >= 10 THEN 'Failed'
         ELSE 'Pending'
     END
     WHERE Status = 'Pending';
@@ -66,7 +65,7 @@ GO
 
 ALTER PROCEDURE dbo.PR_IDENTITY_MARK_OUTBOX_PUBLISHED
     @Id UNIQUEIDENTIFIER,
-    @ClaimRowVersion TIMESTAMP
+    @ClaimRowVersion BINARY(8)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -86,7 +85,7 @@ GO
 
 ALTER PROCEDURE dbo.PR_IDENTITY_MARK_OUTBOX_FAILED
     @Id UNIQUEIDENTIFIER,
-    @ClaimRowVersion TIMESTAMP,
+    @ClaimRowVersion BINARY(8),
     @LastError NVARCHAR(MAX),
     @MaxAttempts INT = 10
 AS

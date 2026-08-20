@@ -43,7 +43,7 @@ public class OutboxRepository : IOutboxRepository
             "dbo.PR_IDENTITY_MARK_OUTBOX_PUBLISHED",
             new { Id = id, ClaimRowVersion = claimRowVersion },
             commandType: System.Data.CommandType.StoredProcedure);
-            
+
         return affected.GetValueOrDefault() > 0;
     }
 
@@ -56,7 +56,7 @@ public class OutboxRepository : IOutboxRepository
             "dbo.PR_IDENTITY_MARK_OUTBOX_FAILED",
             new { Id = id, ClaimRowVersion = claimRowVersion, LastError = error, MaxAttempts = maxAttempts },
             commandType: System.Data.CommandType.StoredProcedure);
-            
+
         return affected.GetValueOrDefault() > 0;
     }
 }
