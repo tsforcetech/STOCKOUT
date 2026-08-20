@@ -14,7 +14,21 @@ var builder = Host.CreateDefaultBuilder(args);
 
 builder.ConfigureServices((hostContext, services) =>
 {
-    services.Configure<RabbitMqOptions>(hostContext.Configuration.GetSection("RabbitMq"));
+    services.AddOptions<RabbitMqOptions>()
+        .Bind(hostContext.Configuration.GetSection("RabbitMq"))
+        .Validate(opts => 
+        {
+            if (!opts.Enabled) return true;
+            return !string.IsNullOrWhiteSpace(opts.HostName) &&
+                   !string.IsNullOrWhiteSpace(opts.UserName) &&
+                   !string.IsNullOrWhiteSpace(opts.Password) &&
+                   !string.IsNullOrWhiteSpace(opts.Exchange) &&
+                   !string.IsNullOrWhiteSpace(opts.ConnectionName) &&
+                   opts.Port > 0 && opts.Port <= 65535 &&
+                   opts.PublisherConfirmTimeoutSeconds > 0;
+        }, "Invalid RabbitMQ configuration. HostName, UserName, Password, Exchange, and ConnectionName must not be empty when RabbitMQ is enabled.")
+        .ValidateOnStart();
+
     services.AddSingleton<IIntegrationEventPublisher, RabbitMqIntegrationEventPublisher>();
     services.AddSingleton<IOutboxRepository>(sp => new OutboxRepository(hostContext.Configuration.GetConnectionString("IdentityDatabase") ?? ""));
     services.AddHostedService<RabbitMqOutboxRelayWorker>();
@@ -33,6 +47,8 @@ public class OutboxRow
     public int AttemptCount { get; set; }
     public string? CorrelationId { get; set; }
     public string? TraceId { get; set; }
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+    public DateTime CreatedAtUtc { get; set; }
 }
 
 public class RabbitMqOutboxRelayWorker : BackgroundService
@@ -65,13 +81,17 @@ public class RabbitMqOutboxRelayWorker : BackgroundService
         {
             try
             {
-                if (outboxEnabled && !string.IsNullOrWhiteSpace(connectionString) && !connectionString.Contains("dummy") && !connectionString.Contains("inmemory"))
+                if (!outboxEnabled || string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("dummy") || connectionString.Contains("inmemory"))
                 {
-                    await ProcessOutboxBatchAsync(rabbitMqEnabled, batchSize, maxAttempts, stoppingToken);
+                    _logger.LogDebug("Outbox polling bypassed (disabled or in-memory fallback mode).");
+                }
+                else if (!rabbitMqEnabled)
+                {
+                    _logger.LogDebug("RabbitMQ is disabled. Outbox polling bypassed.");
                 }
                 else
                 {
-                    _logger.LogDebug("Outbox polling bypassed (disabled or in-memory fallback mode).");
+                    await ProcessOutboxBatchAsync(batchSize, maxAttempts, stoppingToken);
                 }
             }
             catch (Exception ex)
@@ -83,32 +103,32 @@ public class RabbitMqOutboxRelayWorker : BackgroundService
         }
     }
 
-    private async Task ProcessOutboxBatchAsync(bool rabbitMqEnabled, int batchSize, int maxAttempts, CancellationToken stoppingToken)
+    private async Task ProcessOutboxBatchAsync(int batchSize, int maxAttempts, CancellationToken stoppingToken)
     {
-        var pending = await _repository.GetPendingBatchAsync(batchSize, stoppingToken);
+        var pending = await _repository.GetPendingBatchAsync(batchSize, maxAttempts, stoppingToken);
 
         foreach (var item in pending)
         {
             try
             {
-                if (rabbitMqEnabled)
-                {
-                    await _publisher.PublishAsync(item, stoppingToken);
-                }
-                else
-                {
-                    _logger.LogWarning("RabbitMQ is disabled. Skipping publish for event {Id}. Leaving as Pending.", item.Id);
-                    continue; // Do NOT mark published if RabbitMQ is disabled
-                }
+                await _publisher.PublishAsync(item, stoppingToken);
 
-                await _repository.MarkPublishedAsync(item.Id, stoppingToken);
+                var marked = await _repository.MarkPublishedAsync(item.Id, item.RowVersion, stoppingToken);
+                if (!marked)
+                {
+                    _logger.LogWarning("Outbox claim no longer owned when marking published. EventId={EventId}", item.Id);
+                }
             }
             catch (Exception pubEx)
             {
                 var sanitizedError = pubEx.Message;
                 if (sanitizedError.Length > 2000) sanitizedError = sanitizedError.Substring(0, 2000);
 
-                await _repository.MarkFailedAsync(item.Id, sanitizedError, maxAttempts, stoppingToken);
+                var marked = await _repository.MarkFailedAsync(item.Id, item.RowVersion, sanitizedError, maxAttempts, stoppingToken);
+                if (!marked)
+                {
+                    _logger.LogWarning("Outbox claim no longer owned when marking failed. EventId={EventId}", item.Id);
+                }
             }
         }
     }

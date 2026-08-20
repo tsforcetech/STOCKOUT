@@ -101,7 +101,8 @@ public class RabbitMqIntegrationEventPublisher : IIntegrationEventPublisher, IAs
             { "x-event-id", message.Id.ToString() },
             { "x-message-type", message.MessageType },
             { "x-schema-version", message.SchemaVersion },
-            { "x-source-service", "IdentityAccess" }
+            { "x-source-service", "IdentityAccess" },
+            { "x-occurred-at-utc", message.CreatedAtUtc.ToString("O") }
         };
 
         if (message.GetType().GetProperty("CorrelationId")?.GetValue(message) is string correlationId && !string.IsNullOrEmpty(correlationId))

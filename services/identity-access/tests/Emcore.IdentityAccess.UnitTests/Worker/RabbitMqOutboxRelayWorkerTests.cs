@@ -55,9 +55,14 @@ public class RabbitMqOutboxRelayWorkerTests
     {
         // Arrange
         var msgId = Guid.NewGuid();
-        var row = new OutboxRow { Id = msgId, MessageType = "test.event", Payload = "{}" };
-        _repositoryMock.Setup(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var rowVersion = new byte[] { 1, 2, 3 };
+        var row = new OutboxRow { Id = msgId, MessageType = "test.event", Payload = "{}", RowVersion = rowVersion };
+        
+        _repositoryMock.Setup(x => x.GetPendingBatchAsync(10, 3, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { row });
+
+        _repositoryMock.Setup(x => x.MarkPublishedAsync(msgId, rowVersion, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
@@ -65,8 +70,8 @@ public class RabbitMqOutboxRelayWorkerTests
 
         // Assert
         _publisherMock.Verify(x => x.PublishAsync(row, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
-        _repositoryMock.Verify(x => x.MarkPublishedAsync(msgId, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
-        _repositoryMock.Verify(x => x.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.MarkPublishedAsync(msgId, rowVersion, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _repositoryMock.Verify(x => x.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -74,12 +79,17 @@ public class RabbitMqOutboxRelayWorkerTests
     {
         // Arrange
         var msgId = Guid.NewGuid();
-        var row = new OutboxRow { Id = msgId, MessageType = "test.event", Payload = "{}" };
-        _repositoryMock.Setup(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var rowVersion = new byte[] { 4, 5, 6 };
+        var row = new OutboxRow { Id = msgId, MessageType = "test.event", Payload = "{}", RowVersion = rowVersion };
+        
+        _repositoryMock.Setup(x => x.GetPendingBatchAsync(10, 3, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { row });
 
         _publisherMock.Setup(x => x.PublishAsync(row, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("RabbitMQ failure"));
+
+        _repositoryMock.Setup(x => x.MarkFailedAsync(msgId, rowVersion, "RabbitMQ failure", 3, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
@@ -87,8 +97,8 @@ public class RabbitMqOutboxRelayWorkerTests
 
         // Assert
         _publisherMock.Verify(x => x.PublishAsync(row, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
-        _repositoryMock.Verify(x => x.MarkPublishedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.MarkFailedAsync(msgId, "RabbitMQ failure", 3, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _repositoryMock.Verify(x => x.MarkPublishedAsync(It.IsAny<Guid>(), It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.MarkFailedAsync(msgId, rowVersion, "RabbitMQ failure", 3, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -111,18 +121,14 @@ public class RabbitMqOutboxRelayWorkerTests
 
         var worker = new RabbitMqOutboxRelayWorker(finalConfig, _loggerMock.Object, _publisherMock.Object, _repositoryMock.Object);
 
-        var msgId = Guid.NewGuid();
-        var row = new OutboxRow { Id = msgId, MessageType = "test.event", Payload = "{}" };
-        _repositoryMock.Setup(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { row });
-
         // Act
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
         try { await worker.StartAsync(cts.Token); } catch { }
 
         // Assert
+        _repositoryMock.Verify(x => x.GetPendingBatchAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         _publisherMock.Verify(x => x.PublishAsync(It.IsAny<OutboxRow>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.MarkPublishedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
-        _repositoryMock.Verify(x => x.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.MarkPublishedAsync(It.IsAny<Guid>(), It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(x => x.MarkFailedAsync(It.IsAny<Guid>(), It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

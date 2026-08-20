@@ -1,24 +1,38 @@
 -- Migration 012
-ALTER TABLE dbo.IDENTITY_OUTBOX ADD Status VARCHAR(50) NOT NULL DEFAULT 'Pending';
-ALTER TABLE dbo.IDENTITY_OUTBOX ADD ClaimedAtUtc DATETIME2 NULL;
-ALTER TABLE dbo.IDENTITY_OUTBOX ADD LastAttemptAtUtc DATETIME2 NULL;
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.IDENTITY_OUTBOX') AND name = 'Status')
+BEGIN
+    ALTER TABLE dbo.IDENTITY_OUTBOX ADD Status VARCHAR(50) NOT NULL DEFAULT 'Pending';
+END
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.IDENTITY_OUTBOX') AND name = 'ClaimedAtUtc')
+BEGIN
+    ALTER TABLE dbo.IDENTITY_OUTBOX ADD ClaimedAtUtc DATETIME2 NULL;
+END
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.IDENTITY_OUTBOX') AND name = 'LastAttemptAtUtc')
+BEGIN
+    ALTER TABLE dbo.IDENTITY_OUTBOX ADD LastAttemptAtUtc DATETIME2 NULL;
+END
 GO
 
--- Update existing records
-UPDATE dbo.IDENTITY_OUTBOX
-SET Status = CASE 
-    WHEN IsPublished = 1 THEN 'Published'
-    WHEN AttemptCount >= 10 THEN 'Failed'
-    ELSE 'Pending'
-END;
+-- Update existing records if modifying for the first time
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.IDENTITY_OUTBOX') AND name = 'IsPublished')
+BEGIN
+    UPDATE dbo.IDENTITY_OUTBOX
+    SET Status = CASE 
+        WHEN IsPublished = 1 THEN 'Published'
+        WHEN AttemptCount >= 10 THEN 'Failed'
+        ELSE 'Pending'
+    END
+    WHERE Status = 'Pending';
+END
 GO
 
--- We drop old procedures and recreate them or modify
 DROP PROCEDURE IF EXISTS dbo.PR_IDENTITY_GET_PENDING_OUTBOX;
+DROP PROCEDURE IF EXISTS dbo.PR_IDENTITY_CLAIM_OUTBOX_BATCH;
 GO
 
 CREATE PROCEDURE dbo.PR_IDENTITY_CLAIM_OUTBOX_BATCH
     @BatchSize INT = 50,
+    @MaxAttempts INT = 10,
     @StaleTimeoutMinutes INT = 5
 AS
 BEGIN
@@ -26,12 +40,11 @@ BEGIN
     
     DECLARE @Now DATETIME2 = GETUTCDATE();
     
-    -- Claim pending or stale processing messages
     WITH CTE AS (
         SELECT TOP (@BatchSize) *
         FROM dbo.IDENTITY_OUTBOX WITH (UPDLOCK, READPAST, ROWLOCK)
         WHERE (Status = 'Pending' OR (Status = 'Processing' AND DATEADD(MINUTE, @StaleTimeoutMinutes, ClaimedAtUtc) < @Now))
-          AND AttemptCount < 10
+          AND AttemptCount < @MaxAttempts
           AND (LastAttemptAtUtc IS NULL OR DATEADD(MINUTE, AttemptCount, LastAttemptAtUtc) < @Now)
         ORDER BY CreatedAtUtc ASC
     )
@@ -46,12 +59,14 @@ BEGIN
         inserted.CreatedAtUtc, 
         inserted.AttemptCount,
         inserted.CorrelationId,
-        inserted.TraceId;
+        inserted.TraceId,
+        inserted.RowVersion;
 END;
 GO
 
 ALTER PROCEDURE dbo.PR_IDENTITY_MARK_OUTBOX_PUBLISHED
-    @Id UNIQUEIDENTIFIER
+    @Id UNIQUEIDENTIFIER,
+    @ClaimRowVersion TIMESTAMP
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -61,12 +76,17 @@ BEGIN
         PublishedAtUtc = GETUTCDATE(),
         LastError = NULL,
         ClaimedAtUtc = NULL
-    WHERE Id = @Id;
+    WHERE Id = @Id
+      AND Status = 'Processing'
+      AND RowVersion = @ClaimRowVersion;
+
+    SELECT @@ROWCOUNT;
 END;
 GO
 
 ALTER PROCEDURE dbo.PR_IDENTITY_MARK_OUTBOX_FAILED
     @Id UNIQUEIDENTIFIER,
+    @ClaimRowVersion TIMESTAMP,
     @LastError NVARCHAR(MAX),
     @MaxAttempts INT = 10
 AS
@@ -78,6 +98,10 @@ BEGIN
         LastAttemptAtUtc = GETUTCDATE(),
         ClaimedAtUtc = NULL,
         Status = CASE WHEN AttemptCount + 1 >= @MaxAttempts THEN 'Failed' ELSE 'Pending' END
-    WHERE Id = @Id;
+    WHERE Id = @Id
+      AND Status = 'Processing'
+      AND RowVersion = @ClaimRowVersion;
+
+    SELECT @@ROWCOUNT;
 END;
 GO
