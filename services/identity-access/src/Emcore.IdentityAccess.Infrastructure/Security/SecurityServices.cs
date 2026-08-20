@@ -67,61 +67,74 @@ public class JwtTokenGenerator : ITokenGenerator, IJwksService
     public JwtTokenGenerator(IConfiguration? configuration = null)
     {
         _configuration = configuration;
-        _issuer = configuration?["Jwt:Issuer"] ?? "https://identity.emcore.platform";
-        _audience = configuration?["Jwt:Audience"] ?? "https://api.emcore.platform";
-        _keyId = configuration?["Jwt:KeyId"] ?? "emcore-id-key-v1";
+        
+        bool isTest = configuration == null || 
+                      configuration.GetConnectionString("IdentityDatabase") == "inmemory-test-db";
 
-        string? env = configuration?["ASPNETCORE_ENVIRONMENT"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        bool isProdOrInteg = string.Equals(env, "Production", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(env, "Integration", StringComparison.OrdinalIgnoreCase);
-        bool useInMemory = configuration?.GetConnectionString("IdentityDatabase") == "inmemory-test-db" ||
-                           string.Equals(env, "Test", StringComparison.OrdinalIgnoreCase);
+        bool jwtEnabled = configuration?.GetValue<bool>("Jwt:Enabled") ?? (configuration != null);
+        
+        _issuer = configuration?["Jwt:Issuer"] ?? "";
+        _audience = configuration?["Jwt:Audience"] ?? "";
+        _keyId = configuration?["Jwt:KeyId"] ?? "";
+        string? configuredKey = configuration?["Jwt:SigningKey"];
+        int tokenLifetime = configuration?.GetValue<int>("Jwt:AccessTokenLifetimeMinutes") ?? 0;
+        
+        string? otpPepper = configuration?["Otp:HmacPepper"] ?? configuration?["Security:OtpPepper"];
 
-        // In Production or Integration without test bypass, enforce strict secret validation
-        if (isProdOrInteg && !useInMemory)
+        if (configuration != null && jwtEnabled)
         {
-            string? configuredKey = configuration?["Jwt:SigningKey"];
-            string? otpPepper = configuration?["Otp:HmacPepper"] ?? configuration?["Security:OtpPepper"];
+            if (string.IsNullOrWhiteSpace(_issuer)) throw new InvalidOperationException("Startup validation failed: Jwt:Issuer is missing.");
+            if (string.IsNullOrWhiteSpace(_audience)) throw new InvalidOperationException("Startup validation failed: Jwt:Audience is missing.");
+            if (string.IsNullOrWhiteSpace(_keyId)) throw new InvalidOperationException("Startup validation failed: Jwt:KeyId is missing.");
+            if (string.IsNullOrWhiteSpace(configuredKey)) throw new InvalidOperationException("Startup validation failed: Jwt:SigningKey is missing.");
+            if (tokenLifetime <= 0) throw new InvalidOperationException("Startup validation failed: Jwt:AccessTokenLifetimeMinutes must be > 0.");
+        }
+        else if (configuration == null)
+        {
+            _issuer = "https://identity.emcore.platform";
+            _audience = "https://api.emcore.platform";
+            _keyId = "emcore-id-key-v1";
+        }
 
-            if (string.IsNullOrWhiteSpace(configuredKey))
-            {
-                throw new InvalidOperationException("Production startup validation failed: Mandatory JWT signing key (Jwt:SigningKey) is missing.");
-            }
-            if (string.IsNullOrWhiteSpace(otpPepper))
-            {
-                throw new InvalidOperationException("Production startup validation failed: Mandatory OTP HMAC pepper (Otp:HmacPepper) is missing.");
-            }
+        if (configuration != null && string.IsNullOrWhiteSpace(otpPepper))
+        {
+            throw new InvalidOperationException("Startup validation failed: Otp:HmacPepper is missing.");
+        }
 
-            _rsaKey = RSA.Create();
-            try
-            {
-                _rsaKey.ImportFromPem(configuredKey.ToCharArray());
-            }
-            catch
-            {
-                // Try importing as base64 RSA parameters if PEM import fails
-                try
-                {
-                    byte[] keyBytes = Convert.FromBase64String(configuredKey);
-                    _rsaKey.ImportPkcs8PrivateKey(keyBytes, out _);
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException("Production startup validation failed: Jwt:SigningKey could not be imported as a valid RSA private key.", ex);
-                }
-            }
+        if (isTest && string.IsNullOrWhiteSpace(configuredKey))
+        {
+            _rsaKey = RSA.Create(2048);
         }
         else
         {
-            // Development/Test explicit setting or fallback ephemeral key
-            _rsaKey = RSA.Create(2048);
+            _rsaKey = RSA.Create();
+            if (!string.IsNullOrWhiteSpace(configuredKey))
+            {
+                try
+                {
+                    _rsaKey.ImportFromPem(configuredKey.ToCharArray());
+                }
+                catch
+                {
+                    try
+                    {
+                        byte[] keyBytes = Convert.FromBase64String(configuredKey);
+                        _rsaKey.ImportPkcs8PrivateKey(keyBytes, out _);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException("Startup validation failed: Jwt:SigningKey could not be imported as a valid RSA private key.", ex);
+                    }
+                }
+            }
         }
     }
 
     public string GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd")
     {
         var now = DateTimeOffset.UtcNow;
-        var exp = now.AddMinutes(15);
+        int lifetimeMinutes = _configuration?.GetValue<int>("Jwt:AccessTokenLifetimeMinutes") ?? 15;
+        var exp = now.AddMinutes(lifetimeMinutes > 0 ? lifetimeMinutes : 15);
 
         var header = new { alg = "RS256", typ = "JWT", kid = _keyId };
         var payload = new
@@ -189,7 +202,12 @@ public class JwtTokenGenerator : ITokenGenerator, IJwksService
     public string HashKeyedToken(string verificationId, string normalizedDestination, string rawOtp)
     {
         if (string.IsNullOrEmpty(rawOtp)) return string.Empty;
-        string pepper = _configuration?["Otp:HmacPepper"] ?? _configuration?["Security:OtpPepper"] ?? "default-dev-test-hmac-pepper-do-not-use-in-prod";
+        string? pepper = _configuration?["Otp:HmacPepper"] ?? _configuration?["Security:OtpPepper"];
+        if (string.IsNullOrEmpty(pepper)) 
+        {
+            if (_configuration == null) pepper = "default-dev-test-hmac-pepper-do-not-use-in-prod";
+            else throw new InvalidOperationException("Otp:HmacPepper is missing.");
+        }
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(pepper));
         string data = $"{verificationId}|{normalizedDestination.ToLowerInvariant()}|{rawOtp}";
         byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));

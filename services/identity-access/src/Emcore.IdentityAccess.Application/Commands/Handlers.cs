@@ -182,7 +182,7 @@ public class IdentityApplicationService
             TokenHash = hash,
             Channel = "Mobile",
             Status = Domain.Enums.VerificationStatus.Issued,
-            ExpiresAtUtc = DateTime.UtcNow.AddHours(2)
+            ExpiresAtUtc = DateTime.UtcNow.AddMinutes(_options.VerificationLifetimeMinutes)
         };
 
         await _repository.CreateVerificationAsync(verification, cancellationToken);

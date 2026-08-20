@@ -172,27 +172,41 @@ public static class GatewayExtensions
         });
 
         // 5. Authentication and Authorization
-        if (isProduction)
+        bool jwtEnabled = configuration.GetValue<bool>("Jwt:Enabled");
+        if (jwtEnabled)
         {
-            var issuer = configuration["Authentication:Issuer"];
-            var audience = configuration["Authentication:Audience"];
-            var signingKey = configuration["Authentication:SigningKey"];
+            var issuer = configuration["Jwt:Issuer"];
+            var audience = configuration["Jwt:Audience"];
+            var jwksUrl = configuration["Jwt:JwksUrl"];
 
-            if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(signingKey))
+            if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(jwksUrl))
             {
-                throw new InvalidOperationException("Missing required Production authentication configuration: 'Authentication:Issuer', 'Authentication:Audience', and 'Authentication:SigningKey' must be explicitly configured in Production environment via secure environment variables or vaults. Development authentication handlers cannot be used in Production.");
+                throw new InvalidOperationException("Missing required Gateway JWT configuration: 'Jwt:Issuer', 'Jwt:Audience', and 'Jwt:JwksUrl' must be explicitly configured.");
             }
 
-            // When Identity Access token issuance is implemented, this placeholder will be upgraded to full JWT Bearer validation.
-            // Until then, prevent fallback to TestAuthHandler in Production.
-            throw new InvalidOperationException("Production JWT verification requires Identity Access token service implementation and cannot fall back to test authentication.");
+            builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = issuer;
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+                        ValidateAudience = true,
+                        ValidAudience = audience,
+                        ValidateIssuerSigningKey = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(2)
+                    };
+                    options.MetadataAddress = jwksUrl;
+                });
         }
         else
         {
-            // In local development or automated tests, use TestAuthHandler only inside tests without weakening Production
-            builder.Services.AddAuthentication(TestAuthHandler.SchemeName)
-                   .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
+            // For tests only, if we really need to disable JWT.
+            // But we shouldn't configure TestAuthHandler in normal runtime.
         }
+
 
         builder.Services.AddAuthorization(options =>
         {
