@@ -18,6 +18,7 @@ using Dapper;
 
 namespace Emcore.IdentityAccess.IntegrationTests.Security;
 
+[Trait("Category", "ExternalSql")]
 public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -69,7 +70,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         return (data!.UserId, email, GetOtpFromFakeSender(email));
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_WrongOtp_ShouldFail()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -94,7 +95,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.False((bool)user!.IsVerified);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_FiveAttemptsExhaustion_ShouldFail()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -122,7 +123,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.Equal(5, verification!.AttemptCount); // It stops at 5 according to logic usually or it's 6, just assert it's >= 5
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_ValidSuccess_ShouldPass()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -152,7 +153,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.Single(events);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_Replay_ShouldFail()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -173,7 +174,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.Single(events);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_ExpiredOtp_ShouldFail()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -188,7 +189,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.False(correctRes.IsSuccessStatusCode);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_CancelledOldOtp_ShouldFail()
     {
         var (userId, email, otp1) = await RegisterAndGetOtpAsync();
@@ -217,7 +218,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         res2.EnsureSuccessStatusCode();
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task EmailVerification_ConcurrentConsumption_ShouldYieldSingleSuccess()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -237,7 +238,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.Equal(1, failCount);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task ignore_test()
     {
         // Handled inherently by the above tests (wrong otp, 5 attempts, success, expired, etc.)
@@ -255,7 +256,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.NotNull(resultSuccess); // Success returns new Result()
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task CanonicalRegistrationUserId_SqlTest()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();
@@ -277,7 +278,7 @@ public class EmailVerificationSqlSecurityTests : IClassFixture<WebApplicationFac
         Assert.Contains(userId, (string)outbox!.Payload);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task VerificationOtpStorageTest()
     {
         var (userId, email, otp) = await RegisterAndGetOtpAsync();

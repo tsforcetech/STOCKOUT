@@ -19,6 +19,7 @@ using System.Net.Http.Headers;
 
 namespace Emcore.IdentityAccess.IntegrationTests.Security;
 
+[Trait("Category", "ExternalSql")]
 public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
@@ -87,7 +88,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         return (data!.UserId, email, otp);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordRecovery_VerifiedEmail_ShouldSucceed()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -108,7 +109,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.NotEqual(token, (string)recovery!.TokenHash);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordRecovery_UnverifiedEmail_ShouldNotSendToken()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: false);
@@ -131,7 +132,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.Null(recovery);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordRecovery_UnknownAccount_ShouldNotSendToken_GenericResponse()
     {
         var client = _factory.CreateClient();
@@ -149,7 +150,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.Empty(token);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_TokenOnlyFlow_ShouldSucceed()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -174,7 +175,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.Single(events);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_WrongIdentifierAndValidToken_ShouldFail()
     {
         var (userA, emailA, _) = await RegisterUserAsync(verifyEmail: true);
@@ -190,7 +191,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.False(resetRes.IsSuccessStatusCode);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_InvalidToken_ShouldFail()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -201,7 +202,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.False(resetRes.IsSuccessStatusCode);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_ExpiredToken_ShouldFail()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -220,7 +221,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.False(resetRes.IsSuccessStatusCode);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_Replay_ShouldFail()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -245,7 +246,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.Single(events);
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_ConcurrentConsumption_ShouldYieldSingleSuccess()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -265,7 +266,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.Equal(1, results.Count(r => !r.IsSuccessStatusCode));
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_SessionRevocation_ShouldRevokeAllUserSessions()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true, password: "SecureP@ss123!");
@@ -293,7 +294,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         Assert.All(sessions, s => Assert.Equal("Revoked", (string)s!.Status));
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordReset_SessionRevocation_IsUserScoped()
     {
         var (userA, emailA, _) = await RegisterUserAsync(verifyEmail: true, password: "SecureP@ss123!");
@@ -315,7 +316,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         refreshResB.EnsureSuccessStatusCode();
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordPolicy_WeakPassword_DoesNotConsumeToken()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true);
@@ -335,7 +336,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         resetResValid.EnsureSuccessStatusCode();
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordPolicy_Registration()
     {
         var client = _factory.CreateClient();
@@ -350,7 +351,7 @@ public class PasswordRecoverySqlSecurityTests : IClassFixture<WebApplicationFact
         resStrong.EnsureSuccessStatusCode();
     }
 
-    [Fact]
+    [Fact] [Trait("Category", "ExternalSql")]
     public async Task PasswordPolicy_ChangePassword()
     {
         var (userId, email, _) = await RegisterUserAsync(verifyEmail: true, password: "SecureP@ss123!");
