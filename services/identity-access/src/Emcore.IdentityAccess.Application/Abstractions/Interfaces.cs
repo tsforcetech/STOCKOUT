@@ -93,9 +93,11 @@ public interface IIdentityRepository
     Task<Result> SaveSecurityEventAsync(SecurityEvent securityEvent, CancellationToken cancellationToken);
 }
 
+public record TokenResult(string AccessToken, DateTimeOffset ExpiresAtUtc, int ExpiresInSeconds);
+
 public interface ITokenGenerator
 {
-    string GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd");
+    TokenResult GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd");
     (string Token, string Hash) GenerateRefreshToken();
     (string Token, string Hash) GenerateVerificationToken();
     (string Token, string Hash) GenerateKeyedVerificationToken(string verificationId, string normalizedDestination);

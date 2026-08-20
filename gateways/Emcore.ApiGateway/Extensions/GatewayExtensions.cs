@@ -22,7 +22,6 @@ public static class GatewayExtensions
     public static IHostApplicationBuilder AddGatewayServices(this IHostApplicationBuilder builder)
     {
         var configuration = builder.Configuration;
-        var isProduction = builder.Environment.IsProduction();
 
         // Register ServiceDefaults and OpenTelemetry
         builder.AddServiceDefaults();
@@ -77,30 +76,19 @@ public static class GatewayExtensions
         var allowedOrigins = configuration.GetSection("Gateway:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
         allowedOrigins = allowedOrigins.Where(o => !string.IsNullOrWhiteSpace(o)).ToArray();
 
-        if (isProduction && allowedOrigins.Length == 0)
+        if (allowedOrigins.Length == 0)
         {
-            throw new InvalidOperationException("Missing required Production configuration: 'Gateway:AllowedOrigins' must contain at least one valid CORS origin when running in Production. Configure via environment variables (e.g., Gateway__AllowedOrigins__0=https://confirmed-public-domain). No AllowAnyOrigin fallback is permitted.");
+            throw new InvalidOperationException("Missing required configuration: 'Gateway:AllowedOrigins' must contain at least one valid CORS origin. No AllowAnyOrigin fallback is permitted.");
         }
 
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("GatewayCorsPolicy", corsBuilder =>
             {
-                if (allowedOrigins.Length > 0)
-                {
-                    corsBuilder.WithOrigins(allowedOrigins)
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .WithExposedHeaders("X-Request-Id", "X-Correlation-Id", "Retry-After");
-                }
-                else
-                {
-                    // Safe local developer fallback only in non-Production environments
-                    corsBuilder.WithOrigins("http://localhost:5173", "http://localhost:3000")
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .WithExposedHeaders("X-Request-Id", "X-Correlation-Id", "Retry-After");
-                }
+                corsBuilder.WithOrigins(allowedOrigins)
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .WithExposedHeaders("X-Request-Id", "X-Correlation-Id", "Retry-After");
             });
         });
 
@@ -174,22 +162,40 @@ public static class GatewayExtensions
         // 5. Authentication and Authorization
         bool jwtEnabled = configuration.GetValue<bool>("Jwt:Enabled");
 
-        var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme);
+        var authBuilder = jwtEnabled 
+            ? builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+            : builder.Services.AddAuthentication();
 
         if (jwtEnabled)
         {
             var issuer = configuration["Jwt:Issuer"];
             var audience = configuration["Jwt:Audience"];
             var jwksUrl = configuration["Jwt:JwksUrl"];
+            var requireHttpsMetadata = configuration.GetValue<bool>("Jwt:RequireHttpsMetadata", true);
 
             if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(jwksUrl))
             {
                 throw new InvalidOperationException("Missing required Gateway JWT configuration: 'Jwt:Issuer', 'Jwt:Audience', and 'Jwt:JwksUrl' must be explicitly configured.");
             }
 
+            if (requireHttpsMetadata && !jwksUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Gateway JWT configuration 'Jwt:JwksUrl' must start with https:// when 'RequireHttpsMetadata' is true.");
+            }
+
+            // Register JWKS cache
+            builder.Services.AddHttpClient();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddSingleton<IJwksKeyProvider>(sp =>
+                new IdentityJwksKeyProvider(
+                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>(),
+                    jwksUrl,
+                    sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>(),
+                    sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IdentityJwksKeyProvider>>()));
+
             authBuilder.AddJwtBearer(options =>
             {
-                options.Authority = issuer;
+                options.RequireHttpsMetadata = requireHttpsMetadata;
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -197,16 +203,22 @@ public static class GatewayExtensions
                     ValidateAudience = true,
                     ValidAudience = audience,
                     ValidateIssuerSigningKey = true,
+                    RequireSignedTokens = true,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(2)
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.FromMinutes(1),
+                    ValidAlgorithms = new[] { "RS256" }
                 };
-                options.MetadataAddress = jwksUrl;
             });
-        }
-        else
-        {
-            // For tests only
-            authBuilder.AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
+
+            builder.Services.AddOptions<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .Configure<IJwksKeyProvider>((options, keyProvider) =>
+                {
+                    options.TokenValidationParameters.IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
+                    {
+                        return keyProvider.GetKeys(kid);
+                    };
+                });
         }
 
 

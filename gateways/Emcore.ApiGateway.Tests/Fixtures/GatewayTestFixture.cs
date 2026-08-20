@@ -122,6 +122,10 @@ public class GatewayTestFixture : IAsyncDisposable
         // Register gateway services
         Emcore.ApiGateway.Extensions.GatewayExtensions.AddGatewayServices(builder);
 
+        // Override auth for testing
+        builder.Services.AddAuthentication(Emcore.ApiGateway.Security.TestAuthHandler.SchemeName)
+            .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, Emcore.ApiGateway.Security.TestAuthHandler>(Emcore.ApiGateway.Security.TestAuthHandler.SchemeName, _ => { });
+
         _gatewayApp = builder.Build();
 
         _gatewayApp.UseForwardedHeaders();

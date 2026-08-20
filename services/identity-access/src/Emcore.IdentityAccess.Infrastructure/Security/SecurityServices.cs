@@ -130,11 +130,12 @@ public class JwtTokenGenerator : ITokenGenerator, IJwksService
         }
     }
 
-    public string GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd")
+    public TokenResult GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd")
     {
         var now = DateTimeOffset.UtcNow;
         int lifetimeMinutes = _configuration?.GetValue<int>("Jwt:AccessTokenLifetimeMinutes") ?? 15;
-        var exp = now.AddMinutes(lifetimeMinutes > 0 ? lifetimeMinutes : 15);
+        if (lifetimeMinutes <= 0) lifetimeMinutes = 15;
+        var exp = now.AddMinutes(lifetimeMinutes);
 
         var header = new { alg = "RS256", typ = "JWT", kid = _keyId };
         var payload = new
@@ -161,7 +162,7 @@ public class JwtTokenGenerator : ITokenGenerator, IJwksService
         byte[] signatureBytes = _rsaKey.SignData(Encoding.UTF8.GetBytes(unsignedToken), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         string signatureBase64 = Base64UrlEncode(signatureBytes);
 
-        return $"{unsignedToken}.{signatureBase64}";
+        return new TokenResult($"{unsignedToken}.{signatureBase64}", exp, lifetimeMinutes * 60);
     }
 
     public (string Token, string Hash) GenerateRefreshToken()

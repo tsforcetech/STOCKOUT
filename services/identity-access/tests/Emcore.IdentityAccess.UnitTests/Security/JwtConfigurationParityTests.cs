@@ -68,10 +68,10 @@ public class JwtConfigurationParityTests
         }).Build();
 
         var gen = new JwtTokenGenerator(config);
-        var tokenStr = gen.GenerateAccessToken("user-123", "u@test.com", "sid-1", true);
+        var tokenResult = gen.GenerateAccessToken("user-123", "u@test.com", "sid-1", true);
 
         var handler = new JwtSecurityTokenHandler();
-        var token = handler.ReadJwtToken(tokenStr);
+        var token = handler.ReadJwtToken(tokenResult.AccessToken);
 
         Assert.Equal("my-issuer", token.Issuer);
         Assert.Equal("my-aud", token.Audiences.First());

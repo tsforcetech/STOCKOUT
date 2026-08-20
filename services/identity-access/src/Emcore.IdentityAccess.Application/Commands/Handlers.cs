@@ -234,12 +234,12 @@ public class IdentityApplicationService
         bool valid = _passwordHasher.VerifyPassword(request.Password, u.PasswordHash ?? string.Empty);
         if (!valid)
         {
-            var lockEvt = new UserLockedV1Event { UserId = u.Id, LockoutReason = "Max failed password attempts exceeded", LockoutEndUtc = DateTime.UtcNow.AddMinutes(15) };
-            await _repository.RecordLoginAttemptAsync(u.Id, false, 15, 5, JsonSerializer.Serialize(lockEvt), cancellationToken);
-            return AppResult<LoginResponse>.Failure(401, "Unauthorized", "Invalid credentials provided.");
+            var lockEvt = new UserLockedV1Event { UserId = u.Id, LockoutReason = "Max failed password attempts exceeded", LockoutEndUtc = DateTime.UtcNow.AddMinutes(_options.LockoutMinutes) };
+            await _repository.RecordLoginAttemptAsync(u.Id, false, _options.LockoutMinutes, _options.MaximumFailedLoginAttempts, JsonSerializer.Serialize(lockEvt), cancellationToken);
+            return AppResult<LoginResponse>.Failure(401, "Authentication Failed", "Invalid credentials.");
         }
 
-        await _repository.RecordLoginAttemptAsync(u.Id, true, 15, 5, null, cancellationToken);
+        await _repository.RecordLoginAttemptAsync(u.Id, true, _options.LockoutMinutes, _options.MaximumFailedLoginAttempts, null, cancellationToken);
 
         var mfaRes = await _repository.GetMfaMethodAsync(u.Id, MfaMethodTypes.EmailOtp, cancellationToken);
         if (mfaRes != null && mfaRes.Value != null && mfaRes.Value.IsEnabled)
@@ -290,15 +290,15 @@ public class IdentityApplicationService
             SessionId = sessionId,
             TokenHash = refHash,
             FamilyId = tokenFamilyId,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(30),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays),
             IsRevoked = false,
             CreatedAtUtc = DateTime.UtcNow
         };
 
         await _repository.CreateSessionAsync(session, refreshTokenObj, cancellationToken);
 
-        string accessToken = _tokenGenerator.GenerateAccessToken(u.Id, u.Email, sessionId, u.EmailVerified, "pwd");
-        return AppResult<LoginResponse>.Success(new LoginResponse(accessToken, refToken, 900, "Bearer"));
+        var tokenResult = _tokenGenerator.GenerateAccessToken(u.Id, u.Email, sessionId, u.EmailVerified, "pwd");
+        return AppResult<LoginResponse>.Success(new LoginResponse(tokenResult.AccessToken, refToken, tokenResult.ExpiresInSeconds, "Bearer"));
     }
 
     public async Task<AppResult<RefreshResponse>> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken)
@@ -315,7 +315,7 @@ public class IdentityApplicationService
         {
             Id = Guid.NewGuid().ToString("N"),
             TokenHash = newRefHash,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(30)
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays)
         };
 
         var rotRes = await _repository.RotateRefreshTokenAsync(oldHash, newRefObj, null, cancellationToken);
@@ -331,8 +331,8 @@ public class IdentityApplicationService
         }
         var u = uRes.Value;
 
-        string accessToken = _tokenGenerator.GenerateAccessToken(u.Id, u.Email, rotRes.Value.SessionId, u.EmailVerified, "ref");
-        return AppResult<RefreshResponse>.Success(new RefreshResponse(accessToken, newRefToken, 900, "Bearer"));
+        var tokenResult = _tokenGenerator.GenerateAccessToken(u.Id, u.Email, rotRes.Value.SessionId, u.EmailVerified, "ref");
+        return AppResult<RefreshResponse>.Success(new RefreshResponse(tokenResult.AccessToken, newRefToken, tokenResult.ExpiresInSeconds, "Bearer"));
     }
 
     public async Task<AppResult<StandardSuccessResponse>> LogoutAsync(string? refreshToken, string? userId, CancellationToken cancellationToken)
@@ -569,15 +569,15 @@ public class IdentityApplicationService
             SessionId = sessionId,
             TokenHash = refHash,
             FamilyId = tokenFamilyId,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(30),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(_options.RefreshTokenLifetimeDays),
             IsRevoked = false,
             CreatedAtUtc = DateTime.UtcNow
         };
 
         await _repository.CreateSessionAsync(session, refreshTokenObj, cancellationToken);
 
-        string accessToken = _tokenGenerator.GenerateAccessToken(uRes.Value.Id, uRes.Value.Email, sessionId, uRes.Value.EmailVerified, "mfa");
-        return AppResult<LoginResponse>.Success(new LoginResponse(accessToken, refToken, 900, "Bearer", false, null));
+        var tokenResult = _tokenGenerator.GenerateAccessToken(uRes.Value.Id, uRes.Value.Email, sessionId, uRes.Value.EmailVerified, "mfa");
+        return AppResult<LoginResponse>.Success(new LoginResponse(tokenResult.AccessToken, refToken, tokenResult.ExpiresInSeconds, "Bearer", false, null));
     }
 
     public async Task<AppResult<ResendMfaResponse>> ResendMfaAsync(string userId, ResendMfaRequest request, CancellationToken cancellationToken)
@@ -944,8 +944,8 @@ public class IdentityApplicationService
             return AppResult<ServiceTokenResponse>.Failure(403, "Forbidden", $"Requested scope '{request.Scope}' is not granted to this service client.");
         }
 
-        string accessToken = _tokenGenerator.GenerateAccessToken(cred.ServiceClientId, request.ClientId, cred.KeyId, true, "s2s");
-        return AppResult<ServiceTokenResponse>.Success(new ServiceTokenResponse(accessToken, 3600, "Bearer"));
+        var tokenResult = _tokenGenerator.GenerateAccessToken(cred.ServiceClientId, request.ClientId, cred.KeyId, true, "s2s");
+        return AppResult<ServiceTokenResponse>.Success(new ServiceTokenResponse(tokenResult.AccessToken, 3600, "Bearer"));
     }
 
     public async Task<AppResult<StandardSuccessResponse>> AdminUpdateUserStatusAsync(AdminUpdateUserStatusRequest request, string actor, CancellationToken cancellationToken)
