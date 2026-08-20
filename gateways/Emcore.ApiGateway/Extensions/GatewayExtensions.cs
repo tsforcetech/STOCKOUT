@@ -173,6 +173,9 @@ public static class GatewayExtensions
 
         // 5. Authentication and Authorization
         bool jwtEnabled = configuration.GetValue<bool>("Jwt:Enabled");
+        
+        var authBuilder = builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme);
+        
         if (jwtEnabled)
         {
             var issuer = configuration["Jwt:Issuer"];
@@ -184,28 +187,28 @@ public static class GatewayExtensions
                 throw new InvalidOperationException("Missing required Gateway JWT configuration: 'Jwt:Issuer', 'Jwt:Audience', and 'Jwt:JwksUrl' must be explicitly configured.");
             }
 
-            builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            authBuilder.AddJwtBearer(options =>
+            {
+                options.Authority = issuer;
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
-                    options.Authority = issuer;
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = issuer,
-                        ValidateAudience = true,
-                        ValidAudience = audience,
-                        ValidateIssuerSigningKey = true,
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(2)
-                    };
-                    options.MetadataAddress = jwksUrl;
-                });
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(2)
+                };
+                options.MetadataAddress = jwksUrl;
+            });
         }
         else
         {
-            // For tests only, if we really need to disable JWT.
-            // But we shouldn't configure TestAuthHandler in normal runtime.
+            // For tests only
+            authBuilder.AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
         }
+
 
 
         builder.Services.AddAuthorization(options =>
