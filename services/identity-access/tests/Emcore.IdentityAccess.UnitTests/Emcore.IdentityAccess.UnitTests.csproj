@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
@@ -19,5 +20,6 @@
     <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Domain\Emcore.IdentityAccess.Domain.csproj" />
     <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Application\Emcore.IdentityAccess.Application.csproj" />
     <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Infrastructure\Emcore.IdentityAccess.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Emcore.IdentityAccess.Worker\Emcore.IdentityAccess.Worker.csproj" />
   </ItemGroup>
 </Project>
