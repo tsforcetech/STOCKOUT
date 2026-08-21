@@ -48,22 +48,13 @@ public class GatewayJwtValidationTests : IClassFixture<WebApplicationFactory<Pro
 
         var client = _factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureAppConfiguration((context, config) =>
-            {
-                config.AddInMemoryCollection(new System.Collections.Generic.Dictionary<string, string?>
-                {
-                    { "Jwt:Enabled", "true" },
-                    { "Jwt:Issuer", issuer },
-                    { "Jwt:Audience", audience },
-                    { "Jwt:JwksUrl", "http://mock-jwks/.well-known/jwks.json" }
-                });
-            });
             builder.ConfigureTestServices(services =>
             {
+                services.AddSingleton<Emcore.ApiGateway.Security.IJwksKeyProvider>(new MockJwksKeyProvider(jwksJson));
                 services.PostConfigure<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, options =>
                 {
-                    options.BackchannelHttpHandler = jwksHandler; // Inject mock jwks retrieval
-                    options.TokenValidationParameters.IssuerSigningKeys = new[] { new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa) { KeyId = "test-kid-1" } };
+                    options.TokenValidationParameters.ValidIssuer = issuer;
+                    options.TokenValidationParameters.ValidAudience = audience;
                 });
             });
         }).CreateClient();
