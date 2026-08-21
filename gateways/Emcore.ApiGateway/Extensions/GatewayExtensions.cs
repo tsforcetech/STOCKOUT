@@ -22,7 +22,6 @@ public static class GatewayExtensions
     public static IHostApplicationBuilder AddGatewayServices(this IHostApplicationBuilder builder)
     {
         var configuration = builder.Configuration;
-        var isProduction = builder.Environment.IsProduction();
 
         // Register ServiceDefaults and OpenTelemetry
         builder.AddServiceDefaults();
@@ -77,30 +76,19 @@ public static class GatewayExtensions
         var allowedOrigins = configuration.GetSection("Gateway:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
         allowedOrigins = allowedOrigins.Where(o => !string.IsNullOrWhiteSpace(o)).ToArray();
 
-        if (isProduction && allowedOrigins.Length == 0)
+        if (allowedOrigins.Length == 0)
         {
-            throw new InvalidOperationException("Missing required Production configuration: 'Gateway:AllowedOrigins' must contain at least one valid CORS origin when running in Production. Configure via environment variables (e.g., Gateway__AllowedOrigins__0=https://confirmed-public-domain). No AllowAnyOrigin fallback is permitted.");
+            throw new InvalidOperationException("Missing required configuration: 'Gateway:AllowedOrigins' must contain at least one valid CORS origin. No AllowAnyOrigin fallback is permitted.");
         }
 
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("GatewayCorsPolicy", corsBuilder =>
             {
-                if (allowedOrigins.Length > 0)
-                {
-                    corsBuilder.WithOrigins(allowedOrigins)
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .WithExposedHeaders("X-Request-Id", "X-Correlation-Id", "Retry-After");
-                }
-                else
-                {
-                    // Safe local developer fallback only in non-Production environments
-                    corsBuilder.WithOrigins("http://localhost:5173", "http://localhost:3000")
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .WithExposedHeaders("X-Request-Id", "X-Correlation-Id", "Retry-After");
-                }
+                corsBuilder.WithOrigins(allowedOrigins)
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .WithExposedHeaders("X-Request-Id", "X-Correlation-Id", "Retry-After");
             });
         });
 
@@ -172,27 +160,68 @@ public static class GatewayExtensions
         });
 
         // 5. Authentication and Authorization
-        if (isProduction)
-        {
-            var issuer = configuration["Authentication:Issuer"];
-            var audience = configuration["Authentication:Audience"];
-            var signingKey = configuration["Authentication:SigningKey"];
+        bool jwtEnabled = configuration.GetValue<bool>("Jwt:Enabled");
 
-            if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(signingKey))
+        var authBuilder = jwtEnabled
+            ? builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+            : builder.Services.AddAuthentication();
+
+        if (jwtEnabled)
+        {
+            var issuer = configuration["Jwt:Issuer"];
+            var audience = configuration["Jwt:Audience"];
+            var jwksUrl = configuration["Jwt:JwksUrl"];
+            var requireHttpsMetadata = configuration.GetValue<bool>("Jwt:RequireHttpsMetadata", true);
+
+            if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(jwksUrl))
             {
-                throw new InvalidOperationException("Missing required Production authentication configuration: 'Authentication:Issuer', 'Authentication:Audience', and 'Authentication:SigningKey' must be explicitly configured in Production environment via secure environment variables or vaults. Development authentication handlers cannot be used in Production.");
+                throw new InvalidOperationException("Missing required Gateway JWT configuration: 'Jwt:Issuer', 'Jwt:Audience', and 'Jwt:JwksUrl' must be explicitly configured.");
             }
 
-            // When Identity Access token issuance is implemented, this placeholder will be upgraded to full JWT Bearer validation.
-            // Until then, prevent fallback to TestAuthHandler in Production.
-            throw new InvalidOperationException("Production JWT verification requires Identity Access token service implementation and cannot fall back to test authentication.");
+            if (requireHttpsMetadata && !jwksUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Gateway JWT configuration 'Jwt:JwksUrl' must start with https:// when 'RequireHttpsMetadata' is true.");
+            }
+
+            // Register JWKS cache
+            builder.Services.AddHttpClient();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddSingleton<IJwksKeyProvider>(sp =>
+                new IdentityJwksKeyProvider(
+                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>(),
+                    jwksUrl,
+                    sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>(),
+                    sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IdentityJwksKeyProvider>>()));
+
+            authBuilder.AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = requireHttpsMetadata;
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience,
+                    ValidateIssuerSigningKey = true,
+                    RequireSignedTokens = true,
+                    ValidateLifetime = true,
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.FromMinutes(1),
+                    ValidAlgorithms = new[] { "RS256" }
+                };
+            });
+
+            builder.Services.AddOptions<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .Configure<IJwksKeyProvider>((options, keyProvider) =>
+                {
+                    Console.WriteLine("CONFIGURING ISSUER SIGNING KEY RESOLVER!"); options.TokenValidationParameters.IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
+                    {
+                        return keyProvider.GetKeys(kid);
+                    };
+                });
         }
-        else
-        {
-            // In local development or automated tests, use TestAuthHandler only inside tests without weakening Production
-            builder.Services.AddAuthentication(TestAuthHandler.SchemeName)
-                   .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
-        }
+
+
 
         builder.Services.AddAuthorization(options =>
         {
@@ -233,3 +262,4 @@ public static class GatewayExtensions
         return builder;
     }
 }
+

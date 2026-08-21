@@ -8,6 +8,7 @@ using Emcore.IdentityAccess.Application.DTOs;
 using Emcore.IdentityAccess.Infrastructure.Persistence;
 using Emcore.IdentityAccess.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
+using Emcore.IdentityAccess.Application.Abstractions;
 
 namespace Emcore.IdentityAccess.IntegrationTests;
 
@@ -25,7 +26,7 @@ public class SecurityHardeningTests
             _overrideToken = overrideToken;
         }
 
-        public string GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd") => _inner.GenerateAccessToken(userId, email, sessionId, emailVerified, amr);
+        public TokenResult GenerateAccessToken(string userId, string email, string sessionId, bool emailVerified, string amr = "pwd") => _inner.GenerateAccessToken(userId, email, sessionId, emailVerified, amr);
         public (string Token, string Hash) GenerateRefreshToken() => _inner.GenerateRefreshToken();
         public (string Token, string Hash) GenerateVerificationToken() => (_overrideToken, HashToken(_overrideToken));
         public (string Token, string Hash) GenerateKeyedVerificationToken(string verificationId, string normalizedDestination) => (_overrideToken, HashKeyedToken(verificationId, normalizedDestination, _overrideToken));

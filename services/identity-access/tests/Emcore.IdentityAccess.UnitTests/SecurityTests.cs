@@ -26,9 +26,10 @@ public class SecurityTests
     [Fact]
     public void Jwt_Access_Token_And_Jwks_Are_RFC_Compliant()
     {
-        string token = _tokenGen.GenerateAccessToken("user_123", "admin@test.com", "sess_456", true, "pwd");
-        Assert.NotNull(token);
-        var parts = token.Split('.');
+        var tokenResult = _tokenGen.GenerateAccessToken("user_123", "admin@test.com", "sess_456", true, "pwd");
+        Assert.NotNull(tokenResult);
+        Assert.NotNull(tokenResult.AccessToken);
+        var parts = tokenResult.AccessToken.Split('.');
         Assert.Equal(3, parts.Length); // Header.Payload.Signature
 
         string jwks = _tokenGen.GetJwksJson();
