@@ -52,8 +52,12 @@ public class ServiceTokenLifetimeTests
         var clientId = regRes.Data!.ClientId;
         var clientSecret = regRes.Data!.ClientSecret;
 
+        var before = DateTime.UtcNow;
+
         // Request service token
         var tokenRes = await service.IssueServiceTokenAsync(new ServiceTokenRequest(clientId, clientSecret, "orders:read"), ct);
+
+        var after = DateTime.UtcNow;
 
         Assert.True(tokenRes.IsSuccess);
         Assert.NotNull(tokenRes.Data);
@@ -65,7 +69,7 @@ public class ServiceTokenLifetimeTests
         var handler = new JwtSecurityTokenHandler();
         var jwt = handler.ReadJwtToken(tokenRes.Data.AccessToken);
 
-        var lifetime = jwt.ValidTo - jwt.ValidFrom;
-        Assert.True(Math.Abs(lifetime.TotalMinutes - 20) < 1, "JWT lifetime should be approximately 20 minutes.");
+        Assert.True(jwt.ValidTo >= before.AddMinutes(19), "JWT ValidTo should be at least 19 minutes in the future.");
+        Assert.True(jwt.ValidTo <= after.AddMinutes(21), "JWT ValidTo should be at most 21 minutes in the future.");
     }
 }
