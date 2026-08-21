@@ -162,7 +162,7 @@ public static class GatewayExtensions
         // 5. Authentication and Authorization
         bool jwtEnabled = configuration.GetValue<bool>("Jwt:Enabled");
 
-        var authBuilder = jwtEnabled 
+        var authBuilder = jwtEnabled
             ? builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
             : builder.Services.AddAuthentication();
 
@@ -214,7 +214,7 @@ public static class GatewayExtensions
             builder.Services.AddOptions<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
                 .Configure<IJwksKeyProvider>((options, keyProvider) =>
                 {
-                    options.TokenValidationParameters.IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
+                    Console.WriteLine("CONFIGURING ISSUER SIGNING KEY RESOLVER!"); options.TokenValidationParameters.IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
                     {
                         return keyProvider.GetKeys(kid);
                     };
@@ -262,3 +262,4 @@ public static class GatewayExtensions
         return builder;
     }
 }
+

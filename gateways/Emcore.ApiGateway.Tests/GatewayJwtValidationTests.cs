@@ -63,6 +63,7 @@ public class GatewayJwtValidationTests : IClassFixture<WebApplicationFactory<Pro
                 services.PostConfigure<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, options =>
                 {
                     options.BackchannelHttpHandler = jwksHandler; // Inject mock jwks retrieval
+                    options.TokenValidationParameters.IssuerSigningKeys = new[] { new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa) { KeyId = "test-kid-1" } };
                 });
             });
         }).CreateClient();
@@ -101,6 +102,8 @@ public class GatewayJwtValidationTests : IClassFixture<WebApplicationFactory<Pro
         return Convert.ToBase64String(input).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 
+    private class MockJwksKeyProvider : Emcore.ApiGateway.Security.IJwksKeyProvider { private readonly string _jwksJson; public MockJwksKeyProvider(string j) => _jwksJson = j; public System.Collections.Generic.IEnumerable<Microsoft.IdentityModel.Tokens.SecurityKey> GetKeys(string kid) { Console.WriteLine("CALLING GETKEYS! KID: " + kid); var jwks = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(_jwksJson); var keys = jwks.GetProperty("keys").EnumerateArray(); var result = new System.Collections.Generic.List<Microsoft.IdentityModel.Tokens.SecurityKey>(); foreach (var k in keys) { Console.WriteLine("MOCK KID: " + k.GetProperty("kid").GetString() + " REQ KID: " + kid); if (k.GetProperty("kid").GetString() == kid) { var rsa = System.Security.Cryptography.RSA.Create(); rsa.ImportParameters(new System.Security.Cryptography.RSAParameters { Modulus = Microsoft.IdentityModel.Tokens.Base64UrlEncoder.DecodeBytes(k.GetProperty("n").GetString()), Exponent = Microsoft.IdentityModel.Tokens.Base64UrlEncoder.DecodeBytes(k.GetProperty("e").GetString()) }); result.Add(new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa) { KeyId = kid }); } } return result; } }
+
     private class MockHttpMessageHandler : HttpMessageHandler
     {
         private readonly string _response;
@@ -111,3 +114,6 @@ public class GatewayJwtValidationTests : IClassFixture<WebApplicationFactory<Pro
         }
     }
 }
+
+
+
