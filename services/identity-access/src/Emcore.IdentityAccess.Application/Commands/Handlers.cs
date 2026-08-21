@@ -945,7 +945,7 @@ public class IdentityApplicationService
         }
 
         var tokenResult = _tokenGenerator.GenerateAccessToken(cred.ServiceClientId, request.ClientId, cred.KeyId, true, "s2s");
-        return AppResult<ServiceTokenResponse>.Success(new ServiceTokenResponse(tokenResult.AccessToken, 3600, "Bearer"));
+        return AppResult<ServiceTokenResponse>.Success(new ServiceTokenResponse(tokenResult.AccessToken, tokenResult.ExpiresInSeconds, "Bearer"));
     }
 
     public async Task<AppResult<StandardSuccessResponse>> AdminUpdateUserStatusAsync(AdminUpdateUserStatusRequest request, string actor, CancellationToken cancellationToken)

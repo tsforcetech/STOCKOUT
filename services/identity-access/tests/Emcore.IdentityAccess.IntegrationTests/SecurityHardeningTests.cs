@@ -8,6 +8,7 @@ using Emcore.IdentityAccess.Application.DTOs;
 using Emcore.IdentityAccess.Infrastructure.Persistence;
 using Emcore.IdentityAccess.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
+using Emcore.IdentityAccess.Application.Abstractions;
 
 namespace Emcore.IdentityAccess.IntegrationTests;
 
